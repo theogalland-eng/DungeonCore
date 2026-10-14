@@ -28,7 +28,7 @@ Le joueur **creuse** son antre, **invoque** des monstres, pose **pièges, portes
 
 Trois intentions guident tout le développement :
 
-| | |
+| Intention | En jeu |
 |---|---|
 | 🌋 **La beauté** | Île générée procéduralement, relief 2.5D, lumières dynamiques, cycle jour/nuit, cinématiques mises en scène. |
 | 😨 **La peur constante** | Personne n'annonce les bateaux. Pendant une attaque, on ne peut plus rien construire : *il faut toujours être prêt*. |
@@ -113,7 +113,7 @@ flowchart LR
 
 ## 🛠️ Sous le capot
 
-| | |
+| Domaine | Détails |
 |---|---|
 | **Moteur** | Unity **6000.3.8f1** · Universal Render Pipeline 2D (Light2D, tri par axe Y) · Input System |
 | **Navigation** | [A* Pathfinding Project](https://arongranberg.com/astar/) 4.2 (GridGraph, tags pour les portes, chemins personnalisés pour l'exploration) |
