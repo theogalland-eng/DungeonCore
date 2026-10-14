@@ -1,0 +1,78 @@
+{
+  "group_id": "f21a37ef-edc9-48e5-ade2-c6a623f17d67",
+  "states": [
+    {
+      "character": {
+        "id": "fc4ea90b-2168-4471-9b38-e52aa00dc703",
+        "name": "Idle",
+        "prompt": "human ranger archer adventurer, green hooded tunic over leather armor, holding a wooden longbow, quiver of arrows on the back",
+        "size": {
+          "width": 68,
+          "height": 68
+        },
+        "template_id": "mannequin",
+        "directions": 4,
+        "view": "low top-down",
+        "created_at": "2026-09-26T09:27:33.260828+00:00"
+      },
+      "folder": "Idle",
+      "frames": {
+        "rotations": {
+          "south": "Idle/rotations/south.png",
+          "west": "Idle/rotations/west.png",
+          "east": "Idle/rotations/east.png",
+          "north": "Idle/rotations/north.png"
+        },
+        "animations": {
+          "Shoot": {
+            "east": [
+              "Idle/animations/Shoot/east/frame_000.png",
+              "Idle/animations/Shoot/east/frame_001.png",
+              "Idle/animations/Shoot/east/frame_002.png",
+              "Idle/animations/Shoot/east/frame_003.png",
+              "Idle/animations/Shoot/east/frame_004.png",
+              "Idle/animations/Shoot/east/frame_005.png",
+              "Idle/animations/Shoot/east/frame_006.png",
+              "Idle/animations/Shoot/east/frame_007.png",
+              "Idle/animations/Shoot/east/frame_008.png"
+            ]
+          },
+          "Walk": {
+            "south": [
+              "Idle/animations/Walk/south/frame_000.png",
+              "Idle/animations/Walk/south/frame_001.png",
+              "Idle/animations/Walk/south/frame_002.png",
+              "Idle/animations/Walk/south/frame_003.png",
+              "Idle/animations/Walk/south/frame_004.png",
+              "Idle/animations/Walk/south/frame_005.png",
+              "Idle/animations/Walk/south/frame_006.png",
+              "Idle/animations/Walk/south/frame_007.png"
+            ],
+            "east": [
+              "Idle/animations/Walk/east/frame_000.png",
+              "Idle/animations/Walk/east/frame_001.png",
+              "Idle/animations/Walk/east/frame_002.png",
+              "Idle/animations/Walk/east/frame_003.png",
+              "Idle/animations/Walk/east/frame_004.png",
+              "Idle/animations/Walk/east/frame_005.png",
+              "Idle/animations/Walk/east/frame_006.png",
+              "Idle/animations/Walk/east/frame_007.png"
+            ],
+            "north": [
+              "Idle/animations/Walk/north/frame_000.png",
+              "Idle/animations/Walk/north/frame_001.png",
+              "Idle/animations/Walk/north/frame_002.png",
+              "Idle/animations/Walk/north/frame_003.png",
+              "Idle/animations/Walk/north/frame_004.png",
+              "Idle/animations/Walk/north/frame_005.png",
+              "Idle/animations/Walk/north/frame_006.png",
+              "Idle/animations/Walk/north/frame_007.png"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "export_version": "3.1",
+  "export_date": "2026-09-26T09:42:38.596063"
+}

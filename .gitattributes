@@ -1,0 +1,20 @@
+# Texte : fins de ligne normalisées
+* text=auto
+
+# Fichiers Unity sérialisés (YAML) : fusion intelligente si UnityYAMLMerge est configuré
+*.unity    merge=unityyamlmerge eol=lf
+*.prefab   merge=unityyamlmerge eol=lf
+*.asset    merge=unityyamlmerge eol=lf
+*.anim     merge=unityyamlmerge eol=lf
+*.controller merge=unityyamlmerge eol=lf
+*.meta     eol=lf
+
+# Binaires
+*.png  binary
+*.jpg  binary
+*.gif  binary
+*.wav  binary
+*.mp3  binary
+*.ogg  binary
+*.ttf  binary
+*.apk  binary

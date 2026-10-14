@@ -1,0 +1,281 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b13a0a0eb23e1b644b6a926bd4448776, type: 3}
+  m_Name: SettlementArt
+  m_EditorClassIdentifier: Assembly-CSharp::SettlementArt
+  entries:
+  - name: banner_red
+    frames:
+    - {fileID: 21300000, guid: 2e1f2f57b09727b44a1aad64f7088a4c, type: 3}
+  - name: barrel
+    frames:
+    - {fileID: 21300000, guid: d0adc1d60ec3e4b43872071333545734, type: 3}
+  - name: barrel_big
+    frames:
+    - {fileID: 21300000, guid: d40b8bc6bccb1fe4fa05f07d8389c50e, type: 3}
+  - name: barrel_fish
+    frames:
+    - {fileID: 21300000, guid: b6a635c7f8c8d1247aa9548a702f9742, type: 3}
+  - name: bld_farmhouse
+    frames:
+    - {fileID: 21300000, guid: 49de7e12f10ca9c47a50efb2a7d590f5, type: 3}
+  - name: bld_forge
+    frames:
+    - {fileID: 21300000, guid: 0c662a42a972d8d46af98dfb774855cf, type: 3}
+  - name: bld_glass
+    frames:
+    - {fileID: 21300000, guid: 283409ee2fa9ac246bbae92230f9069b, type: 3}
+  - name: bld_guild
+    frames:
+    - {fileID: 21300000, guid: e4f7191737210a341907edf441187038, type: 3}
+  - name: bld_magetower
+    frames:
+    - {fileID: 21300000, guid: b552b4f686ec07745b468aa2ba63a751, type: 3}
+  - name: bld_tavern
+    frames:
+    - {fileID: 21300000, guid: 84210a41d41203c43b102ccdec70f7f9, type: 3}
+  - name: bld_windmill
+    frames:
+    - {fileID: 21300000, guid: fbd492fbcc87c5e43b1c17c2953ec4be, type: 3}
+  - name: boat_row
+    frames:
+    - {fileID: 5745317530830880870, guid: 11d3807627167784ca796e6688be2f65, type: 3}
+    - {fileID: 1689413743620961185, guid: 11d3807627167784ca796e6688be2f65, type: 3}
+    - {fileID: -1371884224753458505, guid: 11d3807627167784ca796e6688be2f65, type: 3}
+    - {fileID: 5777846280272017091, guid: 11d3807627167784ca796e6688be2f65, type: 3}
+    - {fileID: 316424497719407750, guid: 11d3807627167784ca796e6688be2f65, type: 3}
+    - {fileID: 4370779023021867422, guid: 11d3807627167784ca796e6688be2f65, type: 3}
+    - {fileID: 4650069712269740584, guid: 11d3807627167784ca796e6688be2f65, type: 3}
+    - {fileID: -3909069200720235871, guid: 11d3807627167784ca796e6688be2f65, type: 3}
+    - {fileID: -7220935312540636647, guid: 11d3807627167784ca796e6688be2f65, type: 3}
+    - {fileID: -4497140316647508842, guid: 11d3807627167784ca796e6688be2f65, type: 3}
+    - {fileID: 3646803881780227834, guid: 11d3807627167784ca796e6688be2f65, type: 3}
+    - {fileID: -8160469526909784639, guid: 11d3807627167784ca796e6688be2f65, type: 3}
+  - name: boat_row2
+    frames:
+    - {fileID: 3771116830153358337, guid: 2fb3cd68691125b49b91e97af251138a, type: 3}
+    - {fileID: -6225288800545710162, guid: 2fb3cd68691125b49b91e97af251138a, type: 3}
+    - {fileID: 8563788164577958811, guid: 2fb3cd68691125b49b91e97af251138a, type: 3}
+    - {fileID: -3198505841019767017, guid: 2fb3cd68691125b49b91e97af251138a, type: 3}
+    - {fileID: -1113208625692345810, guid: 2fb3cd68691125b49b91e97af251138a, type: 3}
+    - {fileID: -989547685105518649, guid: 2fb3cd68691125b49b91e97af251138a, type: 3}
+    - {fileID: -7691599613991755594, guid: 2fb3cd68691125b49b91e97af251138a, type: 3}
+    - {fileID: -4210718667723811194, guid: 2fb3cd68691125b49b91e97af251138a, type: 3}
+    - {fileID: 6807157447437362524, guid: 2fb3cd68691125b49b91e97af251138a, type: 3}
+    - {fileID: -3492927297449193628, guid: 2fb3cd68691125b49b91e97af251138a, type: 3}
+    - {fileID: 3517724079566619370, guid: 2fb3cd68691125b49b91e97af251138a, type: 3}
+    - {fileID: -3545521184245732191, guid: 2fb3cd68691125b49b91e97af251138a, type: 3}
+  - name: boat_row3
+    frames:
+    - {fileID: -9131816894487082200, guid: 4b52e54c68623f94887808155db75f21, type: 3}
+    - {fileID: 838724092364105044, guid: 4b52e54c68623f94887808155db75f21, type: 3}
+    - {fileID: 3705501107184881625, guid: 4b52e54c68623f94887808155db75f21, type: 3}
+    - {fileID: 6101796966402419095, guid: 4b52e54c68623f94887808155db75f21, type: 3}
+    - {fileID: -4187454603845293654, guid: 4b52e54c68623f94887808155db75f21, type: 3}
+    - {fileID: -6663296104620364546, guid: 4b52e54c68623f94887808155db75f21, type: 3}
+    - {fileID: -8853826472760473519, guid: 4b52e54c68623f94887808155db75f21, type: 3}
+    - {fileID: 363558783189685197, guid: 4b52e54c68623f94887808155db75f21, type: 3}
+    - {fileID: -537431196207223748, guid: 4b52e54c68623f94887808155db75f21, type: 3}
+    - {fileID: -1916426075968017648, guid: 4b52e54c68623f94887808155db75f21, type: 3}
+    - {fileID: -4380204275360893636, guid: 4b52e54c68623f94887808155db75f21, type: 3}
+    - {fileID: -4934186393876654314, guid: 4b52e54c68623f94887808155db75f21, type: 3}
+  - name: boat_sail
+    frames:
+    - {fileID: -6197760591018089618, guid: b0a89e6aa79654646a0813e46933f95a, type: 3}
+    - {fileID: -7962210154852028348, guid: b0a89e6aa79654646a0813e46933f95a, type: 3}
+    - {fileID: 7622089746256116468, guid: b0a89e6aa79654646a0813e46933f95a, type: 3}
+    - {fileID: -154096832557059697, guid: b0a89e6aa79654646a0813e46933f95a, type: 3}
+    - {fileID: 3575370675888429602, guid: b0a89e6aa79654646a0813e46933f95a, type: 3}
+    - {fileID: -2811832647286880569, guid: b0a89e6aa79654646a0813e46933f95a, type: 3}
+    - {fileID: 2544562816115481889, guid: b0a89e6aa79654646a0813e46933f95a, type: 3}
+    - {fileID: 6860216664992104106, guid: b0a89e6aa79654646a0813e46933f95a, type: 3}
+    - {fileID: -6753957514653745770, guid: b0a89e6aa79654646a0813e46933f95a, type: 3}
+    - {fileID: -446073394350649060, guid: b0a89e6aa79654646a0813e46933f95a, type: 3}
+    - {fileID: 6670577797269477306, guid: b0a89e6aa79654646a0813e46933f95a, type: 3}
+    - {fileID: 5476952221245979878, guid: b0a89e6aa79654646a0813e46933f95a, type: 3}
+  - name: boat_ship
+    frames:
+    - {fileID: -6287328313658609569, guid: 2f44ac57a423c994c98ce00abad37f38, type: 3}
+    - {fileID: -2768083228116966140, guid: 2f44ac57a423c994c98ce00abad37f38, type: 3}
+    - {fileID: -3541497072300651708, guid: 2f44ac57a423c994c98ce00abad37f38, type: 3}
+    - {fileID: 1935166407621013338, guid: 2f44ac57a423c994c98ce00abad37f38, type: 3}
+    - {fileID: -5911306279276746654, guid: 2f44ac57a423c994c98ce00abad37f38, type: 3}
+    - {fileID: -7318334188461573403, guid: 2f44ac57a423c994c98ce00abad37f38, type: 3}
+    - {fileID: -724259027874318803, guid: 2f44ac57a423c994c98ce00abad37f38, type: 3}
+    - {fileID: 2903780849767301674, guid: 2f44ac57a423c994c98ce00abad37f38, type: 3}
+    - {fileID: 3264049735190717438, guid: 2f44ac57a423c994c98ce00abad37f38, type: 3}
+    - {fileID: 2951238387877760312, guid: 2f44ac57a423c994c98ce00abad37f38, type: 3}
+    - {fileID: -5592637551211375087, guid: 2f44ac57a423c994c98ce00abad37f38, type: 3}
+    - {fileID: 6802489321837938172, guid: 2f44ac57a423c994c98ce00abad37f38, type: 3}
+  - name: camp_barrel_sack
+    frames:
+    - {fileID: 21300000, guid: b3414baf5cf89284a9a8fb4c55e61488, type: 3}
+  - name: camp_crate_crystals
+    frames:
+    - {fileID: 21300000, guid: fba3ba5ff6b399b478197a9e64067385, type: 3}
+  - name: camp_potions
+    frames:
+    - {fileID: 21300000, guid: 8e7ab6b7ce8edf74eb2cf9194156ebe1, type: 3}
+  - name: camp_sacks
+    frames:
+    - {fileID: 21300000, guid: 52c617daf6c91624cbda05ffa4c18678, type: 3}
+  - name: camp_shield_axe
+    frames:
+    - {fileID: 21300000, guid: a8b96be4dbd60a7458fda50217bd97e6, type: 3}
+  - name: campfire_pot
+    frames:
+    - {fileID: -7305607199963806121, guid: a47dbb0a47556e2409835f1501129a44, type: 3}
+    - {fileID: 7220534107210580311, guid: a47dbb0a47556e2409835f1501129a44, type: 3}
+    - {fileID: -4950515698417720645, guid: a47dbb0a47556e2409835f1501129a44, type: 3}
+    - {fileID: -4443882365908724546, guid: a47dbb0a47556e2409835f1501129a44, type: 3}
+    - {fileID: 8992000202645233053, guid: a47dbb0a47556e2409835f1501129a44, type: 3}
+    - {fileID: 899047103897396790, guid: a47dbb0a47556e2409835f1501129a44, type: 3}
+    - {fileID: -1212666245223276498, guid: a47dbb0a47556e2409835f1501129a44, type: 3}
+    - {fileID: -4924284133408987684, guid: a47dbb0a47556e2409835f1501129a44, type: 3}
+    - {fileID: 1049397653983033541, guid: a47dbb0a47556e2409835f1501129a44, type: 3}
+    - {fileID: 3883777828349509404, guid: a47dbb0a47556e2409835f1501129a44, type: 3}
+    - {fileID: 1764391113433158636, guid: a47dbb0a47556e2409835f1501129a44, type: 3}
+    - {fileID: 8738309072057482315, guid: a47dbb0a47556e2409835f1501129a44, type: 3}
+    - {fileID: -7749346557051846487, guid: a47dbb0a47556e2409835f1501129a44, type: 3}
+    - {fileID: 5651368890421735314, guid: a47dbb0a47556e2409835f1501129a44, type: 3}
+    - {fileID: 1216174816791276053, guid: a47dbb0a47556e2409835f1501129a44, type: 3}
+    - {fileID: 8427456393774565046, guid: a47dbb0a47556e2409835f1501129a44, type: 3}
+    - {fileID: 6791332081668130746, guid: a47dbb0a47556e2409835f1501129a44, type: 3}
+    - {fileID: -6020098566080109350, guid: a47dbb0a47556e2409835f1501129a44, type: 3}
+    - {fileID: -7955356196030721105, guid: a47dbb0a47556e2409835f1501129a44, type: 3}
+    - {fileID: 2635997092497558529, guid: a47dbb0a47556e2409835f1501129a44, type: 3}
+    - {fileID: -1243165455651211342, guid: a47dbb0a47556e2409835f1501129a44, type: 3}
+    - {fileID: 7090129065956165855, guid: a47dbb0a47556e2409835f1501129a44, type: 3}
+    - {fileID: 5883111568057791209, guid: a47dbb0a47556e2409835f1501129a44, type: 3}
+    - {fileID: 1241768200172638385, guid: a47dbb0a47556e2409835f1501129a44, type: 3}
+  - name: cart_potions
+    frames:
+    - {fileID: 21300000, guid: 8d41e66704a704148b3169893aecf28f, type: 3}
+  - name: crate_stack
+    frames:
+    - {fileID: 21300000, guid: 80acb7582d262df49ab96304bf87d81c, type: 3}
+  - name: crates_fish
+    frames:
+    - {fileID: 21300000, guid: a2b13014e39745b41ba7f250ed7af229, type: 3}
+  - name: deck_plank
+    frames:
+    - {fileID: 21300000, guid: eb0bd84be837d904cadab90ba76b8672, type: 3}
+  - name: dummy
+    frames:
+    - {fileID: 21300000, guid: a55de8d90909a414cb1924e033c2cce8, type: 3}
+  - name: field
+    frames:
+    - {fileID: 21300000, guid: 25b2db27fba96714f96081359f71d053, type: 3}
+  - name: fish_crates2
+    frames:
+    - {fileID: 21300000, guid: 80882f1d21383d84e8952eb34629f893, type: 3}
+  - name: fish_net
+    frames:
+    - {fileID: 21300000, guid: 2f00eff796e20064d8c8721a3b35a47a, type: 3}
+  - name: fish_rack
+    frames:
+    - {fileID: 21300000, guid: 5e9e92b4e5c85424b94b3d7afb4d75de, type: 3}
+  - name: house_a
+    frames:
+    - {fileID: 21300000, guid: 1964ee1b86eae6048a91bcb14193a37e, type: 3}
+  - name: house_a_walls
+    frames:
+    - {fileID: 21300000, guid: 8b087103c6b57e345aa69d67ae1b0917, type: 3}
+  - name: house_b
+    frames:
+    - {fileID: 21300000, guid: 21009421b5c97d94f94ee93381d96ace, type: 3}
+  - name: house_b_walls
+    frames:
+    - {fileID: 21300000, guid: 27b2d37c2f136d6419cf91e53119748e, type: 3}
+  - name: log_h
+    frames:
+    - {fileID: 21300000, guid: 83fbbb0a52a0859418d58e6924fc1426, type: 3}
+  - name: log_h2
+    frames:
+    - {fileID: 21300000, guid: 997ca6115cc8e3e439303bae57ea79f7, type: 3}
+  - name: log_v
+    frames:
+    - {fileID: 21300000, guid: af57e2b04e3464f478792c84e3665aa7, type: 3}
+  - name: log_v2
+    frames:
+    - {fileID: 21300000, guid: a15eee172d2f3724aa7a9f2b8157726c, type: 3}
+  - name: market_crates
+    frames:
+    - {fileID: 21300000, guid: 3df9e219a920a584194f905be6085614, type: 3}
+  - name: pier_left
+    frames:
+    - {fileID: 21300000, guid: 638fd4fc212b97547841b8efe1530d46, type: 3}
+  - name: pier_platform
+    frames:
+    - {fileID: 21300000, guid: ebec4e38c7af2c64db343933de1f5393, type: 3}
+  - name: pier_right
+    frames:
+    - {fileID: 21300000, guid: 4f927f1fec79d2b46b6e0467609f9435, type: 3}
+  - name: sacks
+    frames:
+    - {fileID: 21300000, guid: cd1064d6d1bcf674cbd40af912eda056, type: 3}
+  - name: shark
+    frames:
+    - {fileID: 21300000, guid: 9eb3cb51bee2e9b46be50ddf5d15cf3d, type: 3}
+  - name: stall_bread
+    frames:
+    - {fileID: 21300000, guid: d4fe44655b298194e83349e8f5796822, type: 3}
+  - name: stall_fruits
+    frames:
+    - {fileID: 21300000, guid: db54e702976e7e74c98ec955b02807ee, type: 3}
+  - name: stall_weapons
+    frames:
+    - {fileID: 21300000, guid: 129bcc1dc165717428d11edf7549abf8, type: 3}
+  - name: stump_0
+    frames:
+    - {fileID: 21300000, guid: 57adbb9fa43927a4180f76c75c2e948e, type: 3}
+  - name: stump_1
+    frames:
+    - {fileID: 21300000, guid: 04db8c77a4426984da33603cf09ed7bf, type: 3}
+  - name: stump_2
+    frames:
+    - {fileID: 21300000, guid: 95bbf0fe1e708844ba0ae168ee6cff51, type: 3}
+  - name: table_feast
+    frames:
+    - {fileID: 21300000, guid: ff43d24784e929a408bc00b6ada37cc7, type: 3}
+  - name: tent_green
+    frames:
+    - {fileID: 21300000, guid: db13bb8cf8b689c41b82b764dbcf7269, type: 3}
+  - name: tent_magic
+    frames:
+    - {fileID: 21300000, guid: 354e5abf0df55fb479a1940612956361, type: 3}
+  - name: tent_orange
+    frames:
+    - {fileID: 21300000, guid: ecec0d1b7424e6e4ba3afa1b7bb60129, type: 3}
+  - name: tent_purple
+    frames:
+    - {fileID: 21300000, guid: f00debdeb0eb858458b47aa58e08fd80, type: 3}
+  - name: tent_red
+    frames:
+    - {fileID: 21300000, guid: 76ee0e14b553f18459085cac617c165e, type: 3}
+  - name: tent_round
+    frames:
+    - {fileID: 21300000, guid: 6690b8eb074f2ca4baaae6fdab3b9d90, type: 3}
+  - name: tent_white
+    frames:
+    - {fileID: 21300000, guid: 3f7d580f26eeaf74d86bca18123984ee, type: 3}
+  - name: tent_white_full
+    frames:
+    - {fileID: 21300000, guid: 75e24f06b483c454c9ef3553183597b0, type: 3}
+  pierLeft: {fileID: 11400000, guid: 7f31565e4302f90438b17f6921e9aab6, type: 2}
+  pierRight: {fileID: 11400000, guid: ba1818395da5050429e8ccedb075d8fe, type: 2}
+  pierPlatform: {fileID: 11400000, guid: eb67a53307c991f4f82369d6a233fd26, type: 2}
+  seaFloor: {fileID: 11400000, guid: 81a722a877ad7f046987934bb26cfca5, type: 2}
+  stumps:
+  - {fileID: 21300000, guid: 57adbb9fa43927a4180f76c75c2e948e, type: 3}
+  - {fileID: 21300000, guid: 04db8c77a4426984da33603cf09ed7bf, type: 3}
+  - {fileID: 21300000, guid: 95bbf0fe1e708844ba0ae168ee6cff51, type: 3}

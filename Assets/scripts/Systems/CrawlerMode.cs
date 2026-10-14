@@ -1,0 +1,966 @@
+using System.Collections;
+using System.Collections.Generic;
+using TMPro;
+using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.UI;
+
+/// <summary>
+/// MODE AVENTURIER (dungeon crawler) : le joueur incarne un aventurier arrivé sur l'île.
+///   - La colonie est une ville complète : on ENTRE À PIED dans la taverne, la forge, le hall de la Guilde et la
+///     tour des mages, et on parle aux habitants (repos, rumeurs, équipement, potions, rang, recrues).
+///   - Au hall de la Guilde, on forme un GROUPE : jusqu'à trois compagnons (guerrier, archer, mage, soigneuse).
+///   - Le donjon compte DIX ÉTAGES procéduraux (CrawlerDungeon) : rats et gobelins d'abord, puis orcs, morts-vivants,
+///     gnolls, golems, liches, vampires... et un seigneur démon devant le cristal, au dixième.
+///     Escaliers entre les étages ; la Guilde ouvre des passages directs vers les étages 4 et 7 une fois atteints.
+///   - Le donjon est vivant : les étages se repeuplent quand on y revient.
+///   - Mort : on se réveille à la taverne, délesté de la moitié de son or. Briser le cristal = victoire.
+/// </summary>
+public class CrawlerMode : MonoBehaviour
+{
+    public static CrawlerMode Instance { get; private set; }
+    public static bool Active => Instance != null && Instance.started;
+
+    public static readonly string[] ClassNames = { "Guerrier", "Archer", "Mage", "Soigneuse" };
+    public static readonly string[] ClassDescs =
+    {
+        "Solide au corps à corps. Compétence : Tourbillon (frappe tout autour).",
+        "Tire de loin. Compétence : Volée (trois flèches sur trois cibles).",
+        "Boules de feu explosives. Compétence : Nova (explosion autour de soi).",
+        "Frappe peu, tient longtemps. Compétence : Prière (grands soins).",
+    };
+    private static readonly int[] RankKills = { 0, 5, 12, 22, 35, 50, 70, 95, 130 };
+    private static readonly int[] Checkpoints = { 4, 7 };
+    public const int MaxParty = 3;
+
+    public CrawlerPlayer Player { get; private set; }
+    public DungeonCore Core { get; private set; }
+    public int gold = 40, potions = 2, recallStones, kills, weaponLvl, armorLvl, rank;
+    /// <summary>Étage où se trouve le joueur (0 = dehors), et le plus profond atteint.</summary>
+    public int floor, deepest, reportedDeepest;
+
+    /// <summary>Tout est figé (dialogue, boutique, menu, transition).</summary>
+    public bool Frozen =>
+        victory || shop != null || transitioning || (StoryManager.Instance != null && StoryManager.Instance.IsShowing) ||
+        (MainMenu.Instance != null && MainMenu.Instance.InPause) || (InteriorSystem.Instance != null && InteriorSystem.Instance.Moving);
+    public bool InputBlocked => Frozen;
+
+    private bool started, victory, transitioning;
+    private int seed;
+    private readonly Dictionary<int, CrawlerDungeon.Floor> floors = new Dictionary<int, CrawlerDungeon.Floor>();
+    private readonly Dictionary<int, int> regionFloor = new Dictionary<int, int>();
+    private readonly HashSet<string> lootedChests = new HashSet<string>();
+    private readonly List<Recruit> recruits = new List<Recruit>();
+    private GameObject checkpointCircle;
+    private int killedSinceTown;
+    private System.Random rng;
+    private Canvas canvas;
+    private RectTransform hud, shop;
+    private TextMeshProUGUI title, stats, prompt, partyText, banner;
+    private RectTransform hpFill, skillFill;
+    private Image fade;
+    private float startTime;
+
+    private class Recruit { public string name; public AdventurerAI.Role role; public int rank, cost; public bool female; }
+
+    private static readonly string[] MaleClass = { "Guerrier", "Archer", "Mage", "Soigneur" };
+    private static readonly string[] FemaleClass = { "Guerrière", "Archère", "Mage", "Soigneuse" };
+    public static string ClassLabel(AdventurerAI.Role r, bool female) => (female ? FemaleClass : MaleClass)[(int)r];
+
+    private void Awake()
+    {
+        if (Instance != null && Instance != this) { Destroy(this); return; }
+        Instance = this;
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this) Instance = null;
+        if (canvas != null) Destroy(canvas.gameObject);
+        DungeonTerritory.ExtraSeeds.Clear();
+    }
+
+    // ─────────────────────────────────────────────
+    // DÉMARRAGE
+    // ─────────────────────────────────────────────
+
+    public void Begin(AdventurerAI.Role role)
+    {
+        if (started) return;
+        started = true;
+        startTime = Time.time;
+        seed = System.Environment.TickCount & 0x7fffffff;
+        rng = new System.Random(seed);
+        GameHUD.Instance?.SetPanelsVisible(false);
+        foreach (var sel in FindObjectsByType<MonsterSelector>(FindObjectsSortMode.None)) sel.enabled = false;
+        if (RaidSystem.Instance != null) RaidSystem.Instance.enabled = false;
+        if (ExpeditionManager.Instance != null) ExpeditionManager.Instance.enabled = false;
+        var story = StoryManager.Instance;
+        if (story != null)
+            foreach (var f in new[] { "intro", "colony_1", "colony_2", "colony_3", "colony_4", "colony_5", "colony_cine_1", "colony_cine_2", "colony_cine_4", "colony_cine_5",
+                                      "first_dig", "first_summon", "first_decor", "first_room", "first_guardian", "tavern_first", "guild_first" }) story.SetFlag(f);
+
+        BuildTown();
+        BuildDungeon();
+        SpawnPlayer(role);
+        BuildHud();
+        StartCoroutine(Intro());
+    }
+
+    private void BuildTown()
+    {
+        var sm = SettlementManager.Instance;
+        if (sm == null || sm.Site == null) return;
+        bool cine = GameSettings.Cinematics;
+        GameSettings.Cinematics = false;
+        sm.BuildInstantly(5);
+        GameSettings.Cinematics = cine;
+    }
+
+    private void BuildDungeon()
+    {
+        Core = FindFirstObjectByType<DungeonCore>();
+        ManaSystem.Instance?.Add(999999);
+        // Étage 1 : dans la montagne, autour de l'ancien emplacement du cristal
+        var f1 = CrawlerDungeon.Generate(1, seed);
+        floors[1] = f1;
+        regionFloor[0] = 1;
+        FinishFloor(f1);
+        // Étage 10 : l'antre du cristal (zone réservée), creusé dès maintenant pour y loger le Noyau
+        var f10 = CrawlerDungeon.Generate(CrawlerDungeon.FloorCount, seed);
+        floors[CrawlerDungeon.FloorCount] = f10;
+        regionFloor[CrawlerDungeon.RegionOf(CrawlerDungeon.FloorCount)] = CrawlerDungeon.FloorCount;
+        if (Core != null)
+        {
+            var last = f10.Last;
+            Core.transform.position = new Vector3(last.rect.x + last.rect.width * 0.5f, last.rect.yMax - 1.2f, 0f);
+            Core.maxHealth = 1800f;
+            Core.currentHealth = Core.maxHealth;
+            if (AstarPath.active != null) AstarPath.active.UpdateGraphs(new Bounds(Core.transform.position, new Vector3(4, 4, 1)));
+        }
+        CrawlerStairs.Create(StairsUpPos(f10), f10.number, false);
+        UpdateSeeds();
+        // cercle de passage de la Guilde (étages 4 et 7), dans la première salle
+        var circle = Resources.Load<Sprite>("Interiors/mag_circle");
+        foreach (var s in Resources.LoadAll<Sprite>("Interiors")) if (s.name == "mag_circle") circle = s;
+        if (circle != null)
+        {
+            checkpointCircle = new GameObject("Cercle de passage");
+            checkpointCircle.transform.position = f1.Start.Center + new Vector3(-1.2f, -0.3f, 0f);
+            var sr = checkpointCircle.AddComponent<SpriteRenderer>();
+            sr.sprite = circle;
+            sr.sortingOrder = 1;
+            sr.color = new Color(0.7f, 0.8f, 1f, 0.9f);
+            checkpointCircle.transform.localScale = Vector3.one * 0.6f;
+            checkpointCircle.SetActive(false);
+        }
+    }
+
+    private Vector3 StairsUpPos(CrawlerDungeon.Floor f) => DungeonBuilder.Instance.floorTilemap.GetCellCenterWorld(new Vector3Int(f.Start.CenterCell.x, f.Start.rect.yMax - 1, 0));
+    private Vector3 StairsDownPos(CrawlerDungeon.Floor f) => DungeonBuilder.Instance.floorTilemap.GetCellCenterWorld(new Vector3Int(f.Last.CenterCell.x, f.Last.rect.yMax - 1, 0));
+
+    /// <summary>Peuple l'étage et pose ses escaliers.</summary>
+    private void FinishFloor(CrawlerDungeon.Floor f)
+    {
+        CrawlerDungeon.Populate(f, new System.Random(rng.Next()), key => lootedChests.Contains(key));
+        if (f.number < CrawlerDungeon.FloorCount) CrawlerStairs.Create(StairsDownPos(f), f.number, true);
+        if (f.number > 1) CrawlerStairs.Create(StairsUpPos(f), f.number, false);
+        if (f.number == CrawlerDungeon.FloorCount && Core != null)
+        {
+            // le seigneur de l'antre, devant le cristal
+            var g = CrawlerDungeon.SpawnMonster(rng.Next(2) == 0 ? "demon" : "vampire", 3, (Vector2)Core.transform.position + Vector2.down * 1.8f, f);
+            if (g != null)
+            {
+                MonsterMind.For(g).MakeGuardian(new[] { "Azhra", "Morvenna", "Kharn", "Vorth" }[rng.Next(4)], true);
+                g.SetBehavior(GobelinAI.GoblinBehavior.Stay);
+            }
+        }
+    }
+
+    private void UpdateSeeds()
+    {
+        DungeonTerritory.ExtraSeeds.Clear();
+        foreach (var kv in regionFloor)
+            if (floors.TryGetValue(kv.Value, out var f)) DungeonTerritory.ExtraSeeds.Add(f.Start.CenterCell);
+        DungeonTerritory.Instance?.Recompute();
+    }
+
+    private void SpawnPlayer(AdventurerAI.Role role)
+    {
+        var spawner = FindFirstObjectByType<AdventurerSpawner>();
+        Vector3 at = spawner != null ? spawner.SpawnPosition : Vector3.zero;
+        var go = SpawnAdventurer(role, at, "Joueur");
+        Player = go.AddComponent<CrawlerPlayer>();
+        Player.Setup(role);
+        Player.Combat.adventurerName = $"{ClassNames[(int)role]} (vous)";
+        HealthBar.Attach(go.transform, () => Player.Combat.currentHealth / Player.Combat.maxHealth, new Color(0.35f, 0.9f, 0.4f));
+        NemesisSystem.AddTag(go.transform, "Vous", new Color(0.6f, 0.9f, 1f));
+        var cam = Camera.main;
+        if (cam != null) { cam.orthographicSize = 6f; cam.transform.position = new Vector3(at.x, at.y, cam.transform.position.z); }
+        if (CameraController.Instance != null) CameraController.Instance.cinematic = true;
+        MountainRelief.Instance?.SetUserView(false);
+    }
+
+    /// <summary>Un aventurier contrôlé par le mode (joueur ou compagnon) : sans l'IA d'intrus.</summary>
+    private static GameObject SpawnAdventurer(AdventurerAI.Role role, Vector3 at, string name)
+    {
+        var cat = DungeonCatalog.Get();
+        GameObject prefab = role == AdventurerAI.Role.Archer ? cat.archerPrefab : role == AdventurerAI.Role.Mage ? cat.magePrefab :
+                            role == AdventurerAI.Role.Healer ? cat.healerPrefab : (cat.adventurerPrefabs.Count > 2 ? cat.adventurerPrefabs[2] : null);
+        if (prefab == null) prefab = cat.adventurerPrefabs.Count > 0 ? cat.adventurerPrefabs[0] : null;
+        var go = Instantiate(prefab, at, Quaternion.identity);
+        go.name = name;
+        var ai = go.GetComponent<AdventurerAI>();
+        if (ai != null) DestroyImmediate(ai);
+        return go;
+    }
+
+    private IEnumerator Intro()
+    {
+        yield return null;
+        StoryManager.Instance?.Play(
+            new StoryManager.Line(StoryManager.NarratorName, "Le bateau de la Guilde vous dépose au ponton de l'île. Au loin, le volcan fume."),
+            new StoryManager.Line("Maître de guilde", "Encore un qui veut sa part du donjon ? Il a DIX étages, et chaque marche vers le bas est pire que la précédente."),
+            new StoryManager.Line("Maître de guilde", "Passe à la forge, à la tour des mages, et viens au hall : on y forme des groupes. Seul, tu ne passeras pas le quatrième étage."),
+            new StoryManager.Line("Maître de guilde", "Le cristal est tout au fond. Brise-le, et ton nom sera chanté dans toutes les tavernes."),
+            new StoryManager.Line(StoryManager.SystemName, "Déplacement : ZQSD / flèches ou joystick. Attaque : Espace, clic ou bouton. Compétence : R. Potion : F. Interagir (portes, habitants, coffres, escaliers) : E. Pierre de rappel : T."));
+    }
+
+    // ─────────────────────────────────────────────
+    // BOUCLE
+    // ─────────────────────────────────────────────
+
+    private void Update()
+    {
+        if (!started || Player == null) return;
+        var kb = Keyboard.current;
+        if (shop != null && kb != null && (kb.escapeKey.wasPressedThisFrame || kb.eKey.wasPressedThisFrame)) { CloseShop(); return; }
+        if (!Frozen && kb != null && kb.tKey.wasPressedThisFrame) UseRecall();
+        // entrer dans un bâtiment en marchant vers sa porte
+        if (!Frozen && Player.MoveInput.y > 0.5f && InteriorSystem.Instance != null && !InteriorSystem.Instance.Inside)
+        {
+            var b = DoorNear(0.75f);
+            if (b != null) EnterBuilding(b);
+        }
+    }
+
+    private void LateUpdate()
+    {
+        if (!started || Player == null) return;
+        var cam = Camera.main;
+        var interior = InteriorSystem.Instance;
+        bool indoors = interior != null && interior.Physical;
+        Vector2 pp = Player.transform.position;
+        int fl = indoors ? 0 : FloorAt(pp);
+        if (cam != null && !transitioning)
+        {
+            if (CameraController.Instance != null) CameraController.Instance.cinematic = true;
+            Vector3 target = new Vector3(pp.x, pp.y, cam.transform.position.z);
+            float size = indoors ? 4.3f : fl > 0 ? 5.5f : 6.5f;
+            if (indoors)
+            {
+                // la caméra reste dans la pièce
+                var r = interior.RoomRect;
+                float hw = size * cam.aspect, hh = size;
+                target.x = r.width > hw * 2f ? Mathf.Clamp(target.x, r.xMin + hw - 0.5f, r.xMax - hw + 0.5f) : r.center.x;
+                target.y = r.height > hh * 2f ? Mathf.Clamp(target.y, r.yMin + hh - 1f, r.yMax - hh) : r.center.y;
+            }
+            cam.transform.position = Vector3.Lerp(cam.transform.position, target, 1f - Mathf.Exp(-8f * Time.unscaledDeltaTime));
+            cam.orthographicSize = Mathf.Lerp(cam.orthographicSize, size, Time.unscaledDeltaTime * 2f);
+        }
+        // Dedans : on voit l'intérieur de la montagne ; dehors : le volcan
+        var relief = MountainRelief.Instance;
+        bool dungeonView = fl > 0;
+        if (relief != null && relief.UserDungeonView != dungeonView && !indoors) relief.SetUserView(dungeonView);
+
+        if (!indoors && fl != floor)
+        {
+            if (fl == 1 && floor == 0) OnEnterDungeon();
+            if (fl == 0 && floor == 1) GameHUD.Toast("Vous ressortez à l'air libre", GameHUD.InfoColor);
+            floor = fl;
+            if (floor > deepest)
+            {
+                deepest = floor;
+                if (System.Array.IndexOf(Checkpoints, floor) >= 0)
+                    GameHUD.Toast($"Étage {floor} atteint : la Guilde peut désormais vous y faire descendre directement", GameHUD.GoldColor);
+            }
+        }
+        if (checkpointCircle != null) checkpointCircle.SetActive(Checkpoint() > 1);
+        UpdateHud();
+    }
+
+    /// <summary>Étage d'une position (0 : dehors, en ville ou à l'intérieur d'un bâtiment).</summary>
+    public int FloorAt(Vector2 p)
+    {
+        var t = DungeonTerritory.Instance;
+        if (t == null || !t.IsInside(p)) return 0;
+        var layers = DungeonLayers.Instance;
+        int region = layers != null ? layers.IndexAt(p) : 0;
+        return regionFloor.TryGetValue(region, out int f) ? f : 0;
+    }
+
+    private int Checkpoint()
+    {
+        int c = 1;
+        foreach (var cp in Checkpoints) if (deepest >= cp) c = cp;
+        return c;
+    }
+
+    /// <summary>Le donjon est vivant : en votre absence, il fait repousser une partie de ses créatures.</summary>
+    private void OnEnterDungeon()
+    {
+        int n = Mathf.Min(4, killedSinceTown / 2);
+        killedSinceTown = 0;
+        if (n <= 0 || !floors.TryGetValue(1, out var f1)) return;
+        for (int i = 0; i < n; i++)
+        {
+            var room = f1.rooms[Mathf.Clamp(1 + rng.Next(f1.rooms.Count - 1), 1, f1.rooms.Count - 1)];
+            var pos = new Vector2(room.rect.x + 1 + rng.Next(Mathf.Max(1, room.rect.width - 2)) + 0.5f, room.rect.y + 1 + rng.Next(Mathf.Max(1, room.rect.height - 2)) + 0.5f);
+            CrawlerDungeon.SpawnMonster(CrawlerDungeon.RandomFamily(1, rng), 1, pos, f1);
+        }
+        GameHUD.Toast("Le donjon a repoussé pendant votre absence...", GameHUD.DangerColor);
+    }
+
+    // ─────────────────────────────────────────────
+    // ÉTAGES
+    // ─────────────────────────────────────────────
+
+    /// <summary>Descend (ou remonte) à un étage ; l'étage est (re)créé s'il n'existe plus.</summary>
+    public void GoToFloor(int target, bool fromAbove)
+    {
+        if (transitioning || target < 1 || target > CrawlerDungeon.FloorCount) return;
+        StartCoroutine(FloorRoutine(target, fromAbove));
+    }
+
+    private IEnumerator FloorRoutine(int target, bool fromAbove)
+    {
+        transitioning = true;
+        yield return Fade(1f, 0.35f);
+        var f = Materialize(target);
+        Vector3 at = fromAbove
+            ? (target == 1 ? f.Start.Center : StairsUpPos(f) + Vector3.down * 1.3f)
+            : StairsDownPos(f) + Vector3.down * 1.3f;
+        TeleportParty(at);
+        var cam = Camera.main;
+        if (cam != null) cam.transform.position = new Vector3(at.x, at.y, cam.transform.position.z);
+        MountainRelief.Instance?.SetUserView(true);
+        Sfx.Play(fromAbove ? "dig" : "place", at, 0.6f);
+        yield return new WaitForSecondsRealtime(0.15f);
+        yield return Fade(0f, 0.45f);
+        transitioning = false;
+        ShowBanner($"Étage {target}", CrawlerDungeon.FloorNames[target]);
+        if (target == CrawlerDungeon.FloorCount)
+            StoryManager.Instance?.PlayOnce("crawler_lair",
+                new StoryManager.Line(StoryManager.NarratorName, "L'air vibre. Tout au fond, une lueur bat comme un cœur : le cristal du Noyau."),
+                new StoryManager.Line("???", "Tant de marches pour venir mourir ici... Approche, petit héros."));
+        else if (target == 5 || target == 8)
+            StoryManager.Instance?.PlayOnce("crawler_guardian_" + target,
+                new StoryManager.Line(StoryManager.NarratorName, target == 5 ? "Des tambours de guerre résonnent au loin. Quelque chose de gros garde l'escalier." : "Un froid de tombe. Des murmures en langue morte montent des profondeurs."));
+    }
+
+    private CrawlerDungeon.Floor Materialize(int target)
+    {
+        int region = CrawlerDungeon.RegionOf(target);
+        if (floors.TryGetValue(target, out var f) && regionFloor.TryGetValue(region, out int present) && present == target)
+        {
+            // étage final : peuplé au premier passage seulement
+            if (target == CrawlerDungeon.FloorCount && f.spawned.Count == 0) FinishFloor(f);
+            return f;
+        }
+        f = CrawlerDungeon.Generate(target, seed);
+        floors[target] = f;
+        regionFloor[region] = target;
+        FinishFloor(f);
+        UpdateSeeds();
+        return f;
+    }
+
+    private void TeleportParty(Vector3 at)
+    {
+        Player.transform.position = at;
+        var rb = Player.GetComponent<Rigidbody2D>();
+        if (rb != null) { rb.position = at; rb.linearVelocity = Vector2.zero; }
+        int i = 0;
+        foreach (var c in CrawlerCompanion.All)
+            if (c != null && !c.IsDead) c.WarpTo((Vector2)at + new Vector2((i++ % 2 == 0 ? -0.8f : 0.8f), -0.5f));
+    }
+
+    private void UseRecall()
+    {
+        if (floor <= 0) { GameHUD.Toast("Vous êtes déjà à l'air libre", GameHUD.InfoColor); return; }
+        if (recallStones <= 0) { GameHUD.Toast("Pas de pierre de rappel (tour des mages)", GameHUD.WarningColor); return; }
+        recallStones--;
+        StartCoroutine(RecallRoutine());
+    }
+
+    private IEnumerator RecallRoutine()
+    {
+        transitioning = true;
+        Fx.Play("revival", Player.transform.position, 2f, 14f, 16, null, false, null, new Color(0.6f, 0.8f, 1f));
+        Sfx.Play("summon", Player.transform.position);
+        yield return new WaitForSecondsRealtime(0.6f);
+        yield return Fade(1f, 0.3f);
+        Vector3 at = TavernDoor();
+        TeleportParty(at);
+        var cam = Camera.main;
+        if (cam != null) cam.transform.position = new Vector3(at.x, at.y, cam.transform.position.z);
+        yield return Fade(0f, 0.4f);
+        transitioning = false;
+        GameHUD.Toast("La pierre de rappel vous ramène en ville", GameHUD.InfoColor);
+    }
+
+    // ─────────────────────────────────────────────
+    // INTERACTIONS
+    // ─────────────────────────────────────────────
+
+    public void UsePotion()
+    {
+        if (potions <= 0) { GameHUD.Toast("Plus de potions (tour des mages)", GameHUD.WarningColor); return; }
+        var c = Player.Combat;
+        if (c.currentHealth >= c.maxHealth) return;
+        potions--;
+        float heal = c.maxHealth * 0.5f;
+        c.currentHealth = Mathf.Min(c.maxHealth, c.currentHealth + heal);
+        Sfx.Play("heal", Player.transform.position);
+        FloatingText.Spawn(Player.transform.position + Vector3.up * 0.8f, $"+{Mathf.RoundToInt(heal)}", new Color(0.45f, 1f, 0.5f), 1.2f);
+    }
+
+    private SettlementBuilding DoorNear(float radius)
+    {
+        var colony = SettlementManager.Instance;
+        if (colony == null || Player == null) return null;
+        Vector2 p = Player.transform.position;
+        foreach (var b in colony.Buildings)
+        {
+            if (b == null || !b.IsComplete || !InteriorSystem.HasInterior(b.def.id)) continue;
+            if (Vector2.Distance(DoorOf(b), p) <= radius) return b;
+        }
+        return null;
+    }
+
+    /// <summary>Devant la porte (milieu du bas de la façade).</summary>
+    private static Vector3 DoorOf(SettlementBuilding b) => b.transform.position + Vector3.down * 0.45f;
+
+    private void EnterBuilding(SettlementBuilding b)
+    {
+        var party = new List<Transform> { Player.transform };
+        foreach (var c in CrawlerCompanion.All) if (c != null && !c.IsDead) party.Add(c.transform);
+        InteriorSystem.Instance?.EnterPhysical(b.def.id, DoorOf(b) + Vector3.down * 0.5f, party);
+    }
+
+    private string InteractionLabel(out System.Action act)
+    {
+        act = null;
+        if (Player == null) return null;
+        Vector2 p = Player.transform.position;
+        var interior = InteriorSystem.Instance;
+        if (interior != null && interior.Physical)
+        {
+            InteriorSystem.Spot best = null;
+            float bd = 1.3f;
+            foreach (var s in interior.Spots)
+            {
+                float d = Vector2.Distance(s.World, p);
+                if (d < bd) { bd = d; best = s; }
+            }
+            if (best != null) { var key = best.key; act = () => OpenShop(key); return best.label; }
+            if (Vector2.Distance(interior.DoorInside, p) < 1.1f) { act = () => interior.ExitPhysical(); return "Sortir"; }
+            return null;
+        }
+        foreach (var ch in TreasureChest.All)
+        {
+            if (ch == null || !ch.IsFull || Vector2.Distance(ch.transform.position, p) > 1.3f) continue;
+            var chest = ch;
+            act = () => OpenChest(chest);
+            return "Ouvrir le coffre";
+        }
+        foreach (var st in CrawlerStairs.All)
+        {
+            if (st == null || Vector2.Distance(st.transform.position, p) > 1.2f) continue;
+            int t = st.Target;
+            bool down = st.down;
+            act = () => GoToFloor(t, down);
+            return down ? $"Descendre : étage {t} — {CrawlerDungeon.FloorNames[t]}" : $"Remonter à l'étage {t}";
+        }
+        if (checkpointCircle != null && checkpointCircle.activeSelf && Vector2.Distance(checkpointCircle.transform.position, p) < 1.2f)
+        {
+            int cp = Checkpoint();
+            act = () => GoToFloor(cp, true);
+            return $"Cercle de passage : descendre à l'étage {cp}";
+        }
+        var b = DoorNear(1.4f);
+        if (b != null) { act = () => EnterBuilding(b); return $"Entrer : {b.def.name}"; }
+        return null;
+    }
+
+    public void Interact()
+    {
+        if (shop != null) { CloseShop(); return; }
+        InteractionLabel(out var act);
+        act?.Invoke();
+    }
+
+    private void OpenChest(TreasureChest chest)
+    {
+        int depth = Mathf.Max(1, floor);
+        int g = 15 + 22 * depth + rng.Next(0, 10 + 5 * depth);
+        gold += g;
+        chest.Loot(null);
+        chest.refillTime = 1e9f;   // un coffre pillé le reste
+        var cell = DungeonBuilder.Instance.floorTilemap.WorldToCell(chest.transform.position);
+        lootedChests.Add($"{floor}:{cell.x}:{cell.y}");
+        Sfx.Play("coin", chest.transform.position);
+        FloatingText.Spawn(chest.transform.position + Vector3.up * 0.8f, $"+{g} or", GameHUD.GoldColor, 1.4f);
+        if (rng.Next(3) == 0) { potions++; FloatingText.Spawn(chest.transform.position + Vector3.up * 1.3f, "+1 potion", new Color(0.5f, 1f, 0.6f), 1.2f); }
+        else if (depth >= 3 && rng.Next(4) == 0) { recallStones++; FloatingText.Spawn(chest.transform.position + Vector3.up * 1.3f, "+1 pierre de rappel", new Color(0.6f, 0.8f, 1f), 1.2f); }
+    }
+
+    public void OnMonsterKilled(GobelinAI g)
+    {
+        var u = g.GetComponent<MonsterUnit>();
+        int stage = u != null ? u.stage : 1;
+        int reward = 3 + 4 * stage + Mathf.Max(0, floor) * 2 + rng.Next(0, 5) + (g.GetComponent<MonsterMind>()?.IsGuardian == true ? 150 : 0);
+        gold += reward;
+        kills++;
+        killedSinceTown++;
+        FloatingText.Spawn(g.transform.position + Vector3.up * 0.9f, $"+{reward} or", GameHUD.GoldColor, 1.1f);
+        if (rank < RankKills.Length - 1 && kills == RankKills[rank + 1])
+            GameHUD.Toast($"Vous méritez le rang {GuildSystem.RankName(rank + 1)} : faites-le valider au hall de la Guilde", GameHUD.GoldColor);
+    }
+
+    public void OnPlayerDied()
+    {
+        if (transitioning) return;
+        StartCoroutine(Respawn());
+    }
+
+    private IEnumerator Respawn()
+    {
+        transitioning = true;
+        GameHUD.Toast("Vous vous effondrez...", GameHUD.DangerColor);
+        yield return new WaitForSecondsRealtime(2f);
+        yield return Fade(1f, 0.4f);
+        int lost = gold / 2;
+        gold -= lost;
+        Vector3 at = TavernDoor();
+        Player.Revive(at);
+        TeleportParty(at);
+        foreach (var c in CrawlerCompanion.All) if (c != null && !c.IsDead) c.Combat.currentHealth = c.Combat.maxHealth;
+        var cam = Camera.main;
+        if (cam != null) cam.transform.position = new Vector3(at.x, at.y, cam.transform.position.z);
+        yield return Fade(0f, 0.5f);
+        transitioning = false;
+        StoryManager.Instance?.Play(new StoryManager.Line("La tavernière", lost > 0
+            ? $"On t'a ramassé à l'entrée de la grotte. Les soins, ça se paie : {lost} pièces. Repose-toi, et n'y retourne pas les mains vides."
+            : "On t'a ramassé à l'entrée de la grotte. Repose-toi... et apprends à fuir."));
+    }
+
+    public void OnCompanionDied(CrawlerCompanion c)
+    {
+        GameHUD.Toast($"{c.displayName} est tombé(e) au combat", GameHUD.DangerColor);
+        int i = 0;
+        foreach (var o in CrawlerCompanion.All) if (o != null && !o.IsDead) o.slot = i++;
+    }
+
+    private Vector3 TavernDoor()
+    {
+        var colony = SettlementManager.Instance;
+        if (colony != null)
+            foreach (var b in colony.Buildings)
+                if (b != null && b.def.id == "house_1") return DoorOf(b) + Vector3.down * 0.6f;
+        var spawner = FindFirstObjectByType<AdventurerSpawner>();
+        return spawner != null ? spawner.SpawnPosition : Vector3.zero;
+    }
+
+    // ─────────────────────────────────────────────
+    // HABITANTS ET BOUTIQUES
+    // ─────────────────────────────────────────────
+
+    private int WeaponCost => 60 + 55 * weaponLvl;
+    private int ArmorCost => 50 + 50 * armorLvl;
+    private float HpMult => (1f + 0.25f * armorLvl) * (1f + 0.08f * rank);
+    private float DmgMult => (1f + 0.22f * weaponLvl) * (1f + 0.08f * rank);
+    public int PartyCount { get { int n = 0; foreach (var c in CrawlerCompanion.All) if (c != null && !c.IsDead) n++; return n; } }
+
+    private void RefreshStats(bool heal) => Player.ApplyStats(HpMult, DmgMult, heal);
+
+    private static string ShopTitle(string key)
+    {
+        switch (key)
+        {
+            case "tavern_host": return "La tavernière";
+            case "tavern_bard": return "Le barde";
+            case "tavern_drinkers": return "Les buveurs";
+            case "guild_master": return "Le maître de guilde";
+            case "guild_board": return "Tableau des recrues";
+            case "guild_talkers": return "Les aventuriers";
+            case "forge_smith": case "forge_rack": return "La forgeronne";
+            case "mage_seller": return "L'apothicaire";
+            default: return "L'orbe de scrutation";
+        }
+    }
+
+    /// <summary>Compatibilité : encart des intérieurs « panneau » (identifiant de bâtiment).</summary>
+    public void BuildShop(RectTransform box, string id) =>
+        FillShop(box, id == "house_1" ? "tavern_host" : id == "house_3" ? "forge_smith" : id == "tent_magic" ? "mage_seller" : "guild_master");
+
+    private void OpenShop(string key)
+    {
+        // les simples bavards : quelques répliques
+        if (key == "tavern_bard" || key == "tavern_drinkers" || key == "guild_talkers")
+        {
+            var r = Rumors.Generate(2);
+            var lines = new List<StoryManager.Line>();
+            if (key == "tavern_bard") lines.Add(new StoryManager.Line("Le barde", "♪ Dix marches de pierre, dix portes de nuit... le cristal attend celui qui ne fuit ! ♪"));
+            foreach (var x in r) lines.Add(new StoryManager.Line(x.who, x.text));
+            if (key == "guild_talkers" && deepest < 4) lines.Add(new StoryManager.Line("Aventurière", "Seul au-delà du troisième étage ? Recrute au tableau, ou prépare ton épitaphe."));
+            StoryManager.Instance?.Play(lines.ToArray());
+            return;
+        }
+        if (key == "mage_orb")
+        {
+            int next = Mathf.Clamp(deepest + 1, 1, CrawlerDungeon.FloorCount);
+            StoryManager.Instance?.Play(
+                new StoryManager.Line("L'orbe de scrutation", $"Des images montent dans le cristal... L'étage {next}, « {CrawlerDungeon.FloorNames[next]} »."),
+                new StoryManager.Line("L'apothicaire", next <= 3 ? "Des bestioles, surtout. Rats, slimes, gobelins. Garde tes potions pour plus bas."
+                    : next <= 5 ? "Des orcs, des morts qui marchent. Et au cinquième, un seigneur de guerre garde l'escalier."
+                    : next <= 7 ? "Gnolls, spectres, golems... Là-bas, une soigneuse vaut plus qu'une épée."
+                    : next <= 9 ? "Des liches. Des vampires. Une archiliche au huitième. Ne descends pas sans groupe."
+                    : "Le cristal. Et ce qui le garde. Que les dieux t'accompagnent."));
+            return;
+        }
+        if (shop != null) CloseShop();
+        shop = UIKit.Rect("Boutique", canvas.transform);
+        UIKit.Stretch(shop);
+        var blocker = UIKit.Image(shop, new Color(0f, 0f, 0f, 0.35f), false);
+        var box = UIKit.PanelBox("Encart", shop, new Vector2(0.5f, 0.5f), new Vector2(0, 0), new Vector2(620, 700));
+        UIKit.LabelAt(box, ShopTitle(key), 32, UIKit.Gold, new Vector2(24, -18), new Vector2(560, 44));
+        FillShop(box, key);
+        var close = UIKit.BtnAt(box, "Au revoir", CloseShop, new Vector2(0.5f, 0), new Vector2(0, 20), new Vector2(300, 64), 26, UIKit.Button);
+        shopKey = key;
+    }
+
+    private string shopKey;
+
+    private void CloseShop()
+    {
+        if (shop != null) Destroy(shop.gameObject);
+        shop = null;
+        shopKey = null;
+    }
+
+    private void RefreshShop()
+    {
+        if (shopKey == null) return;
+        string k = shopKey;
+        CloseShop();
+        OpenShop(k);
+    }
+
+    private void FillShop(RectTransform box, string key)
+    {
+        float y = 76f;
+        void Line(string text, float h = 60f)
+        {
+            var t = UIKit.LabelAt(box, text, 20, UIKit.Text, new Vector2(24, -y), new Vector2(570, h));
+            t.textWrappingMode = TextWrappingModes.Normal;
+            // hauteur réelle du texte (retours à la ligne compris)
+            h = Mathf.Max(28f, t.GetPreferredValues(text, 570f, 0f).y + 4f);
+            t.rectTransform.sizeDelta = new Vector2(570f, h);
+            y += h + 4f;
+        }
+        void Button(string label, System.Action a, bool ok)
+        {
+            UIKit.BtnAt(box, label, () => { a(); RefreshShop(); InteriorSystem.Instance?.RefreshPanel(); }, new Vector2(0.5f, 1), new Vector2(0, -y), new Vector2(560, 56), 21, ok ? UIKit.Accent : UIKit.Disabled);
+            y += 64f;
+        }
+        Line($"<color=#FFD966>Votre bourse : {gold} or</color>   ·   Potions : {potions}   ·   Pierres de rappel : {recallStones}", 34f);
+        switch (key)
+        {
+            case "tavern_host":
+                Line("<i>« Un lit, une soupe, et on n'en parle plus. Tes compagnons aussi, s'ils ont de quoi payer — c'est toi qui paies. »</i>", 70f);
+                int cost = 10 + 5 * PartyCount;
+                Button($"Se reposer ({cost} or) : santé pleine pour tout le groupe", () =>
+                {
+                    if (!Pay(cost)) return;
+                    Player.Combat.currentHealth = Player.Combat.maxHealth;
+                    foreach (var c in CrawlerCompanion.All) if (c != null && !c.IsDead) c.Combat.currentHealth = c.Combat.maxHealth;
+                    GameHUD.Toast("Le groupe est reposé", GameHUD.InfoColor);
+                }, gold >= cost);
+                foreach (var r in Rumors.Generate(1)) Line($"<color=#FFD9A0>{r.who}</color> : <i>« {r.text} »</i>", 80f);
+                break;
+            case "forge_smith":
+            case "forge_rack":
+                Line("<i>« Tout ce qui sort de ma forge revient cabossé. Quand ça revient. »</i>", 50f);
+                Line($"Arme niveau {weaponLvl} (dégâts ×{DmgMult:0.00}) · Armure niveau {armorLvl} (PV ×{HpMult:0.00})", 40f);
+                Button($"Aiguiser l'arme ({WeaponCost} or)", () => { if (Pay(WeaponCost)) { weaponLvl++; RefreshStats(false); Sfx.Play("hit_sword"); } }, gold >= WeaponCost);
+                Button($"Renforcer l'armure ({ArmorCost} or)", () => { if (Pay(ArmorCost)) { armorLvl++; RefreshStats(false); Sfx.Play("hit_sword"); } }, gold >= ArmorCost);
+                if (PartyCount > 0)
+                    Button($"Équiper le groupe ({40 * PartyCount} or) : compagnons +15 % PV et dégâts", () =>
+                    {
+                        if (!Pay(40 * PartyCount)) return;
+                        foreach (var c in CrawlerCompanion.All)
+                            if (c != null && !c.IsDead) { c.Combat.maxHealth *= 1.15f; c.Combat.currentHealth = c.Combat.maxHealth; c.Combat.attackDamage *= 1.15f; }
+                        Sfx.Play("hit_sword");
+                    }, gold >= 40 * PartyCount);
+                break;
+            case "mage_seller":
+                Line("<i>« Rouge pour les blessures. Bleu pour rentrer. Ne buvez pas les vertes. »</i>", 50f);
+                Button("Potion de soins (25 or)", () => { if (Pay(25)) { potions++; Sfx.Play("coin"); } }, gold >= 25);
+                Button("Trois potions (65 or)", () => { if (Pay(65)) { potions += 3; Sfx.Play("coin"); } }, gold >= 65);
+                Button("Pierre de rappel (45 or) : retour en ville (touche T)", () => { if (Pay(45)) { recallStones++; Sfx.Play("coin"); } }, gold >= 45);
+                break;
+            case "guild_master":
+            {
+                int earned = 0;
+                for (int i = 0; i < RankKills.Length; i++) if (kills >= RankKills[i]) earned = i;
+                Line($"Votre rang : {GuildSystem.RankTag(rank)} · Monstres vaincus : {kills} · Étage le plus profond : {deepest}/{CrawlerDungeon.FloorCount}", 40f);
+                if (earned > rank)
+                    Button($"Faire valider le rang {GuildSystem.RankName(earned)} (+8 % par rang)", () =>
+                    {
+                        rank = earned; RefreshStats(true); Sfx.Play("levelup");
+                        GameHUD.Toast($"Vous êtes désormais aventurier de rang {GuildSystem.RankName(rank)}", GameHUD.GoldColor);
+                    }, true);
+                else if (rank < RankKills.Length - 1) Line($"Prochain rang ({GuildSystem.RankName(rank + 1)}) : {RankKills[rank + 1]} monstres vaincus.", 34f);
+                // prime d'exploration : chaque nouvel étage rapporté paie
+                if (deepest > reportedDeepest)
+                {
+                    int bounty = 0;
+                    for (int f = reportedDeepest + 1; f <= deepest; f++) bounty += 25 * f;
+                    Button($"Rapporter votre exploration (prime : {bounty} or)", () => { reportedDeepest = deepest; gold += bounty; Sfx.Play("coin"); }, true);
+                }
+                int cp = Checkpoint();
+                Line(cp > 1 ? $"Passage ouvert : le cercle de la première salle du donjon mène à l'étage {cp}." :
+                              "La Guilde ouvre un passage direct vers les étages 4 et 7 dès qu'un aventurier les a atteints.", 60f);
+                break;
+            }
+            case "guild_board":
+            {
+                if (recruits.Count == 0) RollRecruits();
+                Line($"Votre groupe : {PartyCount}/{MaxParty} compagnons. Un compagnon tombé ne revient pas.", 34f);
+                foreach (var c in CrawlerCompanion.All)
+                    if (c != null && !c.IsDead) Line($"• {c.displayName} — {c.classLabel} de rang {GuildSystem.RankTag(c.rank)} ({Mathf.CeilToInt(c.Combat.currentHealth)}/{Mathf.RoundToInt(c.Combat.maxHealth)} PV)", 30f);
+                Line("<color=#B9B3CC>Recrues disponibles :</color>", 28f);
+                foreach (var r in new List<Recruit>(recruits))
+                {
+                    var rr = r;
+                    Button($"{rr.name} — {ClassLabel(rr.role, rr.female)} de rang {GuildSystem.RankName(rr.rank)} ({rr.cost} or)", () => Hire(rr), gold >= rr.cost && PartyCount < MaxParty);
+                }
+                if (recruits.Count == 0) Line("<i>Plus personne ne veut descendre... Revenez plus tard.</i>", 34f);
+                break;
+            }
+        }
+    }
+
+    private bool Pay(int cost)
+    {
+        if (gold < cost) { GameHUD.Toast("Pas assez d'or", GameHUD.WarningColor); return false; }
+        gold -= cost;
+        return true;
+    }
+
+    // ─────────────────────────────────────────────
+    // GROUPE
+    // ─────────────────────────────────────────────
+
+    private static readonly string[] MaleNames = { "Aldric", "Cassian", "Elwin", "Garrick", "Joran", "Lothar", "Nils", "Perrin", "Sigur", "Ulric", "Wendel", "Bastien", "Oswin" };
+    private static readonly string[] FemaleNames = { "Brunhild", "Dagna", "Fenna", "Hilde", "Isolde", "Kaela", "Maelis", "Orla", "Roswitha", "Talia", "Vesna", "Yseult", "Lise" };
+
+    private void RollRecruits()
+    {
+        recruits.Clear();
+        var roles = new List<AdventurerAI.Role> { AdventurerAI.Role.Warrior, AdventurerAI.Role.Archer, AdventurerAI.Role.Mage, AdventurerAI.Role.Healer };
+        for (int i = 0; i < 4; i++)
+        {
+            var role = roles[rng.Next(roles.Count)];
+            roles.Remove(role);
+            int rk = Mathf.Clamp(rank + rng.Next(-1, 2), 0, GuildSystem.MaxRank);
+            bool female = rng.Next(2) == 0;
+            var pool = female ? FemaleNames : MaleNames;
+            recruits.Add(new Recruit
+            {
+                name = pool[rng.Next(pool.Length)], role = role, rank = rk, female = female,
+                cost = 45 + 40 * rk + (role == AdventurerAI.Role.Healer ? 20 : 0),
+            });
+        }
+    }
+
+    private void Hire(Recruit r)
+    {
+        if (PartyCount >= MaxParty || !Pay(r.cost)) return;
+        recruits.Remove(r);
+        Vector3 at = Player.transform.position + new Vector3(0.8f, -0.4f, 0f);
+        var go = SpawnAdventurer(r.role, at, r.name);
+        var c = go.AddComponent<CrawlerCompanion>();
+        float m = 1f + 0.12f * r.rank;
+        float hp = r.role == AdventurerAI.Role.Warrior ? 190 : r.role == AdventurerAI.Role.Healer ? 140 : r.role == AdventurerAI.Role.Archer ? 120 : 100;
+        float dmg = r.role == AdventurerAI.Role.Warrior ? 15 : r.role == AdventurerAI.Role.Healer ? 8 : r.role == AdventurerAI.Role.Archer ? 12 : 18;
+        c.Setup(r.role, r.name, r.rank, hp * m, dmg * m);
+        c.classLabel = ClassLabel(r.role, r.female);
+        c.slot = PartyCount - 1;
+        HealthBar.Attach(go.transform, () => c.Combat.currentHealth / c.Combat.maxHealth, new Color(0.4f, 0.7f, 1f));
+        NemesisSystem.AddTag(go.transform, r.name, new Color(0.7f, 0.85f, 1f));
+        Sfx.Play("levelup", at, 0.6f);
+        GameHUD.Toast($"{r.name} rejoint votre groupe", GameHUD.GoldColor);
+        StoryManager.Instance?.Play(new StoryManager.Line(r.name, new[]
+        {
+            "Tu paies, je cogne. On s'entend.", "Dix étages ? J'en ai vu d'autres. Enfin... pas vraiment.",
+            "Reste derrière moi et tout ira bien.", "Si je tombe, garde ma part pour ma mère.",
+        }[rng.Next(4)]));
+    }
+
+    // ─────────────────────────────────────────────
+    // VICTOIRE
+    // ─────────────────────────────────────────────
+
+    public void Victory()
+    {
+        if (victory) return;
+        victory = true;
+        Sfx.Play("core_break");
+        CameraController.Instance?.Shake(0.3f, 1.2f);
+        StartCoroutine(VictoryScreen());
+    }
+
+    private IEnumerator VictoryScreen()
+    {
+        yield return new WaitForSecondsRealtime(1.5f);
+        var box = UIKit.Stretch(UIKit.Rect("Victoire", canvas.transform));
+        UIKit.Image(box, new Color(0.02f, 0.01f, 0.04f, 0.88f), false);
+        var t = UIKit.LabelAt(box, "Le donjon de l'île est tombé", 64, UIKit.Gold, new Vector2(0, -260), new Vector2(1600, 90), TextAlignmentOptions.Center, new Vector2(0.5f, 1));
+        t.rectTransform.pivot = new Vector2(0.5f, 1);
+        float minutes = (Time.time - startTime) / 60f;
+        var s = UIKit.LabelAt(box, $"Le cristal vole en éclats. Dans toutes les tavernes du continent, on chantera votre nom.\n\n" +
+            $"Classe : <b>{ClassNames[(int)Player.role]}</b>   ·   Rang : <b>{GuildSystem.RankName(rank)}</b>   ·   Monstres vaincus : <b>{kills}</b>\n" +
+            $"Compagnons survivants : <b>{PartyCount}</b>   ·   Or : <b>{gold}</b>   ·   Temps : <b>{minutes:0} min</b>", 28, UIKit.Text, new Vector2(0, -380), new Vector2(1400, 220), TextAlignmentOptions.Center, new Vector2(0.5f, 1));
+        s.rectTransform.pivot = new Vector2(0.5f, 1);
+        s.textWrappingMode = TextWrappingModes.Normal;
+        var b = UIKit.BtnAt(box, "Retour à l'accueil", () => MainMenu.Instance?.GoHome(), new Vector2(0.5f, 0), new Vector2(0, 200), new Vector2(420, 80), 30, UIKit.Accent);
+        ((RectTransform)b.transform).pivot = new Vector2(0.5f, 0);
+    }
+
+    // ─────────────────────────────────────────────
+    // INTERFACE
+    // ─────────────────────────────────────────────
+
+    private void BuildHud()
+    {
+        var go = new GameObject("Crawler_Canvas");
+        canvas = go.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = 20;
+        var scaler = go.AddComponent<CanvasScaler>();
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1920, 1080);
+        AdaptiveScaler.Setup(scaler);
+        go.AddComponent<GraphicRaycaster>();
+        hud = UIKit.Stretch(UIKit.Rect("HUD", go.transform));
+        SafeArea.Apply(hud);
+
+        var panel = UIKit.PanelBox("Statut", hud, new Vector2(0, 1), new Vector2(16, -16), new Vector2(600, 150));
+        title = UIKit.LabelAt(panel, "", 26, UIKit.Gold, new Vector2(18, -10), new Vector2(570, 34));
+        var bg = UIKit.PanelBox("PV", panel, new Vector2(0, 1), new Vector2(18, -52), new Vector2(560, 20), new Color(0.15f, 0.08f, 0.1f, 1f));
+        hpFill = UIKit.Rect("Fill", bg);
+        UIKit.Image(hpFill, new Color(0.35f, 0.85f, 0.4f), false);
+        hpFill.anchorMin = Vector2.zero; hpFill.anchorMax = new Vector2(1, 1); hpFill.pivot = new Vector2(0, 0.5f); hpFill.offsetMin = hpFill.offsetMax = Vector2.zero;
+        stats = UIKit.LabelAt(panel, "", 20, UIKit.Text, new Vector2(18, -82), new Vector2(570, 60));
+        stats.textWrappingMode = TextWrappingModes.Normal;
+        partyText = UIKit.LabelAt(hud, "", 20, UIKit.Text, new Vector2(22, -176), new Vector2(560, 120));
+        partyText.textWrappingMode = TextWrappingModes.Normal;
+
+        var menu = UIKit.BtnAt(hud, "Menu", () => MainMenu.Instance?.OpenPause(), new Vector2(1, 1), new Vector2(-16, -16), new Vector2(140, 60), 24);
+
+        prompt = UIKit.LabelAt(hud, "", 28, new Color(1f, 0.95f, 0.8f), new Vector2(0, -24), new Vector2(1000, 44), TextAlignmentOptions.Center, new Vector2(0.5f, 1));
+        prompt.outlineWidth = 0.2f;
+        prompt.outlineColor = new Color32(10, 6, 16, 255);
+        banner = UIKit.LabelAt(go.transform, "", 56, UIKit.Gold, new Vector2(0, 170), new Vector2(1400, 160), TextAlignmentOptions.Center, new Vector2(0.5f, 0.5f));
+        banner.alpha = 0f;
+
+        // joystick virtuel
+        var joy = UIKit.Rect("Joystick", hud);
+        joy.anchorMin = joy.anchorMax = joy.pivot = Vector2.zero;
+        joy.anchoredPosition = new Vector2(60, 60);
+        joy.sizeDelta = new Vector2(280, 280);
+        var jbg = joy.gameObject.AddComponent<Image>();
+        jbg.sprite = SpriteUtil.Circle;
+        jbg.color = new Color(1f, 1f, 1f, 0.12f);
+        var handle = UIKit.Rect("Handle", joy);
+        handle.anchorMin = handle.anchorMax = handle.pivot = new Vector2(0.5f, 0.5f);
+        handle.sizeDelta = new Vector2(120, 120);
+        var hi = handle.gameObject.AddComponent<Image>();
+        hi.sprite = SpriteUtil.Circle;
+        hi.color = new Color(1f, 1f, 1f, 0.4f);
+        hi.raycastTarget = false;
+        joy.gameObject.AddComponent<VirtualJoystick>().handle = handle;
+
+        // boutons d'action
+        Button Act(string label, Vector2 pos, Vector2 size, Color c, System.Action a)
+        {
+            var b = UIKit.BtnAt(hud, label, () => a(), new Vector2(1, 0), pos, size, 24, c);
+            return b;
+        }
+        Act("Attaque", new Vector2(-40, 60), new Vector2(200, 200), new Color(0.55f, 0.2f, 0.22f, 0.9f), () => { if (Player) Player.touchAttack = true; });
+        var sk = Act("Compétence", new Vector2(-260, 60), new Vector2(170, 110), new Color(0.3f, 0.25f, 0.55f, 0.9f), () => { if (Player) Player.touchSkill = true; });
+        skillFill = UIKit.Rect("Recharge", (RectTransform)sk.transform);
+        UIKit.Image(skillFill, new Color(1f, 1f, 1f, 0.18f), false).raycastTarget = false;
+        skillFill.anchorMin = Vector2.zero; skillFill.anchorMax = new Vector2(1, 0); skillFill.pivot = new Vector2(0.5f, 0); skillFill.offsetMin = skillFill.offsetMax = Vector2.zero;
+        Act("Potion", new Vector2(-260, 180), new Vector2(170, 80), new Color(0.2f, 0.45f, 0.3f, 0.9f), () => { if (Player) Player.touchPotion = true; });
+        Act("Interagir", new Vector2(-40, 280), new Vector2(200, 80), new Color(0.45f, 0.38f, 0.15f, 0.9f), () => { if (Player) Player.touchInteract = true; });
+        Act("Rappel", new Vector2(-260, 280), new Vector2(170, 80), new Color(0.2f, 0.3f, 0.5f, 0.9f), UseRecall);
+
+        fade = UIKit.Image(UIKit.Stretch(UIKit.Rect("Fondu", go.transform)), new Color(0f, 0f, 0f, 0f), false, false);
+        fade.raycastTarget = false;
+    }
+
+    private IEnumerator Fade(float a, float t)
+    {
+        if (fade == null) yield break;
+        float from = fade.color.a;
+        for (float k = 0f; k < 1f; k += Time.unscaledDeltaTime / t)
+        {
+            fade.color = new Color(0f, 0f, 0f, Mathf.Lerp(from, a, k));
+            yield return null;
+        }
+        fade.color = new Color(0f, 0f, 0f, a);
+    }
+
+    private void ShowBanner(string head, string sub) => StartCoroutine(BannerRoutine(head, sub));
+
+    private IEnumerator BannerRoutine(string head, string sub)
+    {
+        banner.text = $"<smallcaps>{head}</smallcaps>\n<size=60%><i>{sub}</i></size>";
+        for (float k = 0f; k < 1f; k += Time.unscaledDeltaTime / 0.6f) { banner.alpha = k; yield return null; }
+        banner.alpha = 1f;
+        yield return new WaitForSecondsRealtime(2f);
+        for (float k = 1f; k > 0f; k -= Time.unscaledDeltaTime / 0.8f) { banner.alpha = k; yield return null; }
+        banner.alpha = 0f;
+    }
+
+    private void UpdateHud()
+    {
+        if (hud == null || Player == null) return;
+        bool show = !victory && shop == null && (MainMenu.Instance == null || !MainMenu.Instance.InPause);
+        hud.gameObject.SetActive(show);
+        if (!show) return;
+        var c = Player.Combat;
+        title.text = $"{ClassNames[(int)Player.role]}  ·  rang {GuildSystem.RankTag(rank)}";
+        hpFill.anchorMax = new Vector2(Mathf.Clamp01(c.currentHealth / c.maxHealth), 1f);
+        var interior = InteriorSystem.Instance;
+        string where = interior != null && interior.Physical ? interior.CurrentTitle
+                     : floor > 0 ? $"Étage {floor}/{CrawlerDungeon.FloorCount} — {CrawlerDungeon.FloorNames[floor]}" : "La ville du donjon";
+        stats.text = $"PV {Mathf.CeilToInt(c.currentHealth)}/{Mathf.RoundToInt(c.maxHealth)}   ·   <color=#FFD966>{gold} or</color>   ·   Potions {potions}   ·   Rappel {recallStones}\n" +
+                     $"<size=85%><color=#B9B3CC>{where}   ·   record : étage {deepest}   ·   vaincus {kills}</color></size>";
+        var sb = new System.Text.StringBuilder();
+        foreach (var m in CrawlerCompanion.All)
+        {
+            if (m == null || m.IsDead) continue;
+            float r = Mathf.Clamp01(m.Combat.currentHealth / m.Combat.maxHealth);
+            string col = r > 0.6f ? "#7BE08A" : r > 0.3f ? "#FFD966" : "#FF6B6B";
+            sb.Append($"<color=#A9C8FF>{m.displayName}</color> <size=80%>({m.classLabel})</size>  <color={col}>{Mathf.CeilToInt(m.Combat.currentHealth)} PV</color>\n");
+        }
+        partyText.text = sb.ToString();
+        skillFill.anchorMax = new Vector2(1f, Player.SkillReady);
+        string label = Frozen ? null : InteractionLabel(out _);
+        prompt.text = label != null ? $"[E] {label}" : "";
+    }
+}

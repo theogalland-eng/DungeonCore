@@ -1,0 +1,84 @@
+# ─────────────────────────────────────────────────────────────
+#  Dungeon Core — .gitignore en LISTE BLANCHE
+#  Tout est ignoré par défaut ; seuls notre code, nos outils, nos
+#  données générées et nos propres créations sont publiés.
+#  Les packs tiers (craftpix, A* Pathfinding, TextMesh Pro...) restent
+#  en local : voir docs/ASSETS.md pour les récupérer.
+# ─────────────────────────────────────────────────────────────
+
+/*
+!/.gitignore
+!/.gitattributes
+!/README.md
+!/LICENSE
+!/docs/
+!/Packages/
+!/ProjectSettings/
+!/Tools~/
+!/Assets/
+
+# ── Assets : liste blanche ───────────────────────────────────
+/Assets/*
+!/Assets/scripts/
+!/Assets/scripts.meta
+!/Assets/Editor/
+!/Assets/Editor.meta
+!/Assets/Fonts/
+!/Assets/Fonts.meta
+!/Assets/Scenes/
+!/Assets/Scenes.meta
+!/Assets/Prefabs/
+!/Assets/Prefabs.meta
+!/Assets/animations/
+!/Assets/animations.meta
+!/Assets/Settings/
+!/Assets/Settings.meta
+!/Assets/DefaultVolumeProfile.asset
+!/Assets/DefaultVolumeProfile.asset.meta
+!/Assets/UniversalRenderPipelineGlobalSettings.asset
+!/Assets/UniversalRenderPipelineGlobalSettings.asset.meta
+!/Assets/InputSystem_Actions.inputactions
+!/Assets/InputSystem_Actions.inputactions.meta
+
+# Art : créations PixelLab (générées pour le projet) et relief procédural
+!/Assets/Art/
+!/Assets/Art.meta
+/Assets/Art/*
+!/Assets/Art/PixelLab/
+!/Assets/Art/PixelLab.meta
+# relief du volcan : calculé de zéro par Tools~/make_relief.py
+!/Assets/Art/Generated/
+!/Assets/Art/Generated.meta
+/Assets/Art/Generated/*
+!/Assets/Art/Generated/Relief/
+!/Assets/Art/Generated/Relief.meta
+
+# Resources : catalogue, polices générées (Cinzel, OFL), sons procéduraux, mouette
+!/Assets/Resources/
+!/Assets/Resources.meta
+/Assets/Resources/*
+!/Assets/Resources/DungeonCatalog.asset
+!/Assets/Resources/DungeonCatalog.asset.meta
+!/Assets/Resources/SettlementArt.asset
+!/Assets/Resources/SettlementArt.asset.meta
+!/Assets/Resources/Fonts/
+!/Assets/Resources/Fonts.meta
+!/Assets/Resources/FX/
+!/Assets/Resources/FX.meta
+/Assets/Resources/FX/*
+!/Assets/Resources/FX/gull_32x32.png
+!/Assets/Resources/FX/gull_32x32.png.meta
+!/Assets/Resources/Audio/
+!/Assets/Resources/Audio.meta
+/Assets/Resources/Audio/Music/*
+!/Assets/Resources/Audio/Music/LISEZMOI.txt
+!/Assets/Resources/Audio/Music/LISEZMOI.txt.meta
+
+# ── Divers ───────────────────────────────────────────────────
+*.psd
+*.ai
+*.eps
+.DS_Store
+Thumbs.db
+__pycache__/
+*.pyc

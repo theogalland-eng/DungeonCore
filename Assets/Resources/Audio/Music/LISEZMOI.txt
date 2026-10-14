@@ -1,0 +1,15 @@
+Musiques du jeu (.mp3 ou .ogg). La catégorie est déduite de mots-clés dans le nom du fichier :
+
+  morning / midday / afternoon   le jour, au calme (suit l'heure : matin, midi, après-midi)
+  day                            le jour, n'importe quelle heure
+  night                          la nuit
+  attack ... not / non           des intrus dans le donjon (menace ordinaire)
+  attack ... critic              le cœur menacé (intrus tout près du cristal, ou cristal blessé)
+  hero                           un héros (rang SS/SSS) dans le donjon
+  cinematic                      pendant les cinématiques
+  menu / general                 écran d'accueil, et secours pour toute catégorie vide
+  intro                          réservé à la future cinématique d'introduction (ignoré pour l'instant)
+
+Plusieurs fichiers d'une même catégorie = tirage au hasard.
+Une catégorie vide reprend la plus proche (critic -> attack -> night -> general).
+Les réglages d'import (streaming, compression Vorbis) sont automatiques (Editor/AudioImport.cs).

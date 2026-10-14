@@ -1,0 +1,1195 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a37a5aae91d62d742984d2c2b2345cd8, type: 3}
+  m_Name: DungeonCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::DungeonCatalog
+  items:
+  - id: dig
+    displayName: Creuser
+    description: "Marquer la roche \xE0 creuser"
+    category: 0
+    kind: 0
+    tool: 7
+    icon: {fileID: 2102382392, guid: 7af072278bf42534cbf1aebb438c2a14, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 0}
+    cost: 10
+    unlockLevel: 1
+    prestige: 0
+    upkeep: 0
+  - id: fill
+    displayName: Remblayer
+    description: Reboucher une case
+    category: 0
+    kind: 0
+    tool: 8
+    icon: {fileID: -7828530080940834483, guid: e286df932dac47446a3622cc0fbc9c90, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 0}
+    cost: 5
+    unlockLevel: 1
+    prestige: 0
+    upkeep: 0
+  - id: erase
+    displayName: Gomme
+    description: "Retirer un objet (rembours\xE9 \xE0 moiti\xE9)"
+    category: 0
+    kind: 0
+    tool: 6
+    icon: {fileID: 0}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 0}
+    cost: 0
+    unlockLevel: 1
+    prestige: 0
+    upkeep: 0
+  - id: move_core
+    displayName: "D\xE9placer le c\u0153ur"
+    description: "Transf\xE9rer le c\u0153ur ailleurs dans le donjon (90 % du mana
+      max)"
+    category: 0
+    kind: 0
+    tool: 12
+    icon: {fileID: 8266357279917865837, guid: 6e9e37e71eac9374290584353f9aa15b, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 0}
+    cost: 0
+    unlockLevel: 1
+    prestige: 0
+    upkeep: 0
+  - id: rat_1
+    displayName: "Rat g\xE9ant"
+    description: "Rapide et bon march\xE9 : id\xE9al en meute. \xC9volue en Rat pestif\xE9r\xE9
+      puis Rat-roi. Entretien : 3 mana/jour."
+    category: 1
+    kind: 1
+    tool: 0
+    icon: {fileID: 21300000, guid: 690e775184e34844b8d87c4547c9129e, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 3072783295188911451, guid: a40dd5631c082ca4fa68c98151815d35, type: 3}
+    cost: 20
+    unlockLevel: 1
+    prestige: 0
+    upkeep: 0
+  - id: slime_1
+    displayName: Slime
+    description: "Lent et mou, il ralentit les intrus qu'il touche. \xC9volue en
+      Slime toxique puis Slime de magma. Entretien : 4 mana/jour."
+    category: 1
+    kind: 1
+    tool: 0
+    icon: {fileID: 21300000, guid: 45cc0b979f6dd5f46863afb7e3427986, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 1653183063228520085, guid: c320a9c61aaa2dd42a9d2d4b08df2054, type: 3}
+    cost: 30
+    unlockLevel: 1
+    prestige: 0
+    upkeep: 0
+  - id: goblin_1
+    displayName: Gobelin
+    description: "Vif et sournois, mais fragile : frappe vite. \xC9volue en Gobelin
+      pillard puis Chef gobelin. Entretien : 4 mana/jour."
+    category: 1
+    kind: 1
+    tool: 0
+    icon: {fileID: 21300000, guid: c758c6241d7490b4aa304fbea8e20484, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 16949472351273116, guid: 9b930a19526550b429a8bcef1a780684, type: 3}
+    cost: 30
+    unlockLevel: 2
+    prestige: 0
+    upkeep: 0
+  - id: skeleton_1
+    displayName: Squelette
+    description: "Soldat mort-vivant infatigable. \xC9volue en Squelette guerrier
+      puis Chevalier squelette. Entretien : 6 mana/jour."
+    category: 1
+    kind: 1
+    tool: 0
+    icon: {fileID: 21300000, guid: 314c572c06e363e44983642bc811b29e, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 321398268140917867, guid: bd84cd152d2f45445adec630f0fcb80d, type: 3}
+    cost: 45
+    unlockLevel: 3
+    prestige: 0
+    upkeep: 0
+  - id: mushroom_1
+    displayName: Champignon
+    description: "Ses spores engourdissent : les intrus touch\xE9s ralentissent fortement.
+      \xC9volue en Myconide puis Myconide ancien. Entretien : 6 mana/jour."
+    category: 1
+    kind: 1
+    tool: 0
+    icon: {fileID: 21300000, guid: f7c5359cdea9eda4cb13214c78b971a7, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 7717303334171650954, guid: 06bbc6b2e1b3eea489b1aaa4e4bf22f4, type: 3}
+    cost: 50
+    unlockLevel: 4
+    prestige: 0
+    upkeep: 0
+  - id: orc_1
+    displayName: Orc
+    description: "Guerrier robuste qui donne l'alerte. \xC9volue en Orc guerrier
+      puis Seigneur orc. Entretien : 7 mana/jour."
+    category: 1
+    kind: 1
+    tool: 0
+    icon: {fileID: 21300000, guid: c7f8f0741c38a1648b054cd0e1558933, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 1579370178970960199, guid: fbd1018cff9aa6546a7cd15a9a538cca, type: 3}
+    cost: 60
+    unlockLevel: 5
+    prestige: 0
+    upkeep: 0
+  - id: zombie_1
+    displayName: Zombie
+    description: "Tr\xE8s r\xE9sistant mais lent. Un mur de chair. \xC9volue en Goule
+      puis Abomination. Entretien : 8 mana/jour."
+    category: 1
+    kind: 1
+    tool: 0
+    icon: {fileID: 21300000, guid: 3ab16334ccff741459bda11b13c40adb, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 8663225175037588277, guid: 0d52b1849afc6b64896ecf46b0642635, type: 3}
+    cost: 60
+    unlockLevel: 6
+    prestige: 0
+    upkeep: 0
+  - id: cave_boar
+    displayName: Sanglier des cavernes
+    description: "Tr\xE8s rapide, charge les intrus qui fuient. Entretien : 5 mana/jour."
+    category: 1
+    kind: 1
+    tool: 0
+    icon: {fileID: 21300000, guid: af413d3576d073447b7725d43f0d7719, type: 3}
+    iconTint: {r: 0.75, g: 0.7, b: 0.85, a: 1}
+    prefab: {fileID: 8436471445839718495, guid: 80a23139ed274cd449e2639a90c1565f, type: 3}
+    cost: 70
+    unlockLevel: 7
+    prestige: 0
+    upkeep: 0
+  - id: imp_1
+    displayName: Diablotin
+    description: "Lance des boules de feu \xE0 distance (br\xFBlure). \xC9volue en
+      Diablotin de feu puis Diablotin infernal. Entretien : 9 mana/jour."
+    category: 1
+    kind: 1
+    tool: 0
+    icon: {fileID: 21300000, guid: 59d087a95005e7a46aa7a1dbae7a2335, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 6842150922502030214, guid: 574555d4396671145be324b8c654c6e1, type: 3}
+    cost: 70
+    unlockLevel: 8
+    prestige: 0
+    upkeep: 0
+  - id: gnoll_1
+    displayName: Gnoll
+    description: "Chasseur rapide qui ne l\xE2che pas sa proie. \xC9volue en Gnoll
+      traqueur puis Gnoll alpha. Entretien : 9 mana/jour."
+    category: 1
+    kind: 1
+    tool: 0
+    icon: {fileID: 21300000, guid: 11be2b0495c95dd47ad09ed297426ffd, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 8056943279286747984, guid: b81eb64779cf6454cb3ddec55f86fb51, type: 3}
+    cost: 75
+    unlockLevel: 9
+    prestige: 0
+    upkeep: 0
+  - id: lizard_1
+    displayName: "Homme-l\xE9zard"
+    description: "Combattant aguerri, \xE0 l'aise dans les grottes inond\xE9es. \xC9volue
+      en Guerrier l\xE9zard puis Champion l\xE9zard. Entretien : 11 mana/jour."
+    category: 1
+    kind: 1
+    tool: 0
+    icon: {fileID: 21300000, guid: fb6c3e2591d9e99428b46e0f5cc0dbe1, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 1478206903521049009, guid: 416e2d3fd6df1ba42802ef243f17da3e, type: 3}
+    cost: 90
+    unlockLevel: 10
+    prestige: 0
+    upkeep: 0
+  - id: ghost_1
+    displayName: Spectre
+    description: "Son toucher glac\xE9 ralentit et terrifie. \xC9volue en Fant\xF4me
+      puis Banshee. Entretien : 11 mana/jour."
+    category: 1
+    kind: 1
+    tool: 0
+    icon: {fileID: 21300000, guid: ffb6862cfba038644b8135734cf54262, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 0.85}
+    prefab: {fileID: 8071532565525439024, guid: a1fa46a2014cb8645a289f87e06ebe51, type: 3}
+    cost: 90
+    unlockLevel: 11
+    prestige: 0
+    upkeep: 0
+  - id: golem_1
+    displayName: Golem d'argile
+    description: "Colosse de roche, lent mais presque indestructible : ses coups
+      sonnent les intrus. \xC9volue en Golem de pierre puis Golem de cristal. Entretien
+      : 12 mana/jour."
+    category: 1
+    kind: 1
+    tool: 0
+    icon: {fileID: 21300000, guid: cb6f327b94203a2488667e7c498060f9, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 440348986317024693, guid: c9969fb3dcb6f274191c5cb910ad3881, type: 3}
+    cost: 110
+    unlockLevel: 12
+    prestige: 0
+    upkeep: 0
+  - id: lich_1
+    displayName: Liche apprentie
+    description: "Petit sort \xE0 distance ; invoque 1, 2 puis 3 squelettes au combat.
+      \xC9volue en Liche puis Archiliche. Entretien : 17 mana/jour."
+    category: 1
+    kind: 1
+    tool: 0
+    icon: {fileID: 21300000, guid: 6391706b50d5af74fb810d50a77f518b, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 2431612927587788482, guid: b0233f8d305251448aa01bd22da35c8a, type: 3}
+    cost: 140
+    unlockLevel: 14
+    prestige: 0
+    upkeep: 0
+  - id: vampire_1
+    displayName: Vampire
+    description: "Se soigne en buvant le sang des intrus (vol de vie). \xC9volue
+      en Seigneur vampire puis Comte vampire. Entretien : 18 mana/jour."
+    category: 1
+    kind: 1
+    tool: 0
+    icon: {fileID: 21300000, guid: 8521385253f82e74aabed73b749fcb93, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 4356879831126528184, guid: cc44cbb75c4d8d34e99f335002aed08e, type: 3}
+    cost: 150
+    unlockLevel: 16
+    prestige: 0
+    upkeep: 0
+  - id: demon_1
+    displayName: "D\xE9mon mineur"
+    description: "Colosse infernal : ses coups embrasent les intrus. \xC9volue en
+      D\xE9mon puis Archid\xE9mon. Entretien : 30 mana/jour."
+    category: 1
+    kind: 1
+    tool: 0
+    icon: {fileID: 21300000, guid: 04d49ab399b362f40be71a21c92ade1c, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 7254347014080715813, guid: fcbdb690eb78d5e4987d8145637ac2cf, type: 3}
+    cost: 260
+    unlockLevel: 18
+    prestige: 0
+    upkeep: 0
+  - id: temple_spirit
+    displayName: Esprit du temple
+    description: 'Gardien antique : glace les intrus d''effroi. Entretien : 14 mana/jour.'
+    category: 1
+    kind: 1
+    tool: 0
+    icon: {fileID: 21300000, guid: 387350b7969b16e40833137c0d46f56a, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 4586707230867615976, guid: 139496e8ad11db440aaefd09437733a0, type: 3}
+    cost: 320
+    unlockLevel: 20
+    prestige: 0
+    upkeep: 0
+  - id: blade
+    displayName: Roue tranchante
+    description: "Lame tournoyante : blesse \xE0 chaque passage."
+    category: 2
+    kind: 2
+    tool: 0
+    icon: {fileID: -2866557178365404384, guid: 3bb3d26f69aa32d449162e16b9c6925f, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 9106658419862870230, guid: a23dd4bf4c647ed47844fe66369531b5, type: 3}
+    cost: 30
+    unlockLevel: 1
+    prestige: 0
+    upkeep: 2
+  - id: spikes
+    displayName: "Pics r\xE9tractables"
+    description: "Jaillissent du sol toutes les 2,4 s (22 d\xE9g\xE2ts)."
+    category: 2
+    kind: 2
+    tool: 0
+    icon: {fileID: 3594381593587037778, guid: 083607b9c63815441bf8037205420178, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 7791918937662997066, guid: 38150e6501fdec646921ed2f4cdbdac6, type: 3}
+    cost: 35
+    unlockLevel: 1
+    prestige: 0
+    upkeep: 3
+  - id: web
+    displayName: "Toile d'araign\xE9e"
+    description: 'Englue les intrus : vitesse -65 % tant qu''ils la traversent.'
+    category: 2
+    kind: 2
+    tool: 0
+    icon: {fileID: 21300000, guid: f926cba185cb02a44a38479edfa869ed, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 3178732060072572004, guid: 054734d3e2cc136459ff394dd5df2f7a, type: 3}
+    cost: 15
+    unlockLevel: 1
+    prestige: 0
+    upkeep: 2
+  - id: blades
+    displayName: Lames rotatives
+    description: "Tournent sans fin : 16 d\xE9g\xE2ts par seconde \xE0 qui s'approche."
+    category: 2
+    kind: 2
+    tool: 0
+    icon: {fileID: -3421227793854133648, guid: c4b62f09569151c41b21217d57f07d95, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 7659834760237493193, guid: c6692075e02fc9e47923a35fd734c8ea, type: 3}
+    cost: 65
+    unlockLevel: 2
+    prestige: 0
+    upkeep: 6
+  - id: guillotine
+    displayName: Guillotine
+    description: "Tombe toutes les 3,6 s : 48 d\xE9g\xE2ts."
+    category: 2
+    kind: 2
+    tool: 0
+    icon: {fileID: 5569180145884776716, guid: 8bd3eac523e7b8e4586297ded7e17efc, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 6976429870238487818, guid: ce8c4cd7c5af4594e90b489e58e3abf2, type: 3}
+    cost: 60
+    unlockLevel: 2
+    prestige: 0
+    upkeep: 5
+  - id: column
+    displayName: "Colonne \xE0 lances"
+    description: "Lances dans les 4 directions : touche tout autour (26 d\xE9g\xE2ts)."
+    category: 2
+    kind: 2
+    tool: 0
+    icon: {fileID: 5843461777023794298, guid: d9303115d893f174c8b7996daa414b3f, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 1491538688622925566, guid: ee167a2ca74f02f43b8c2432a8045f1d, type: 3}
+    cost: 70
+    unlockLevel: 3
+    prestige: 0
+    upkeep: 6
+  - id: bomb
+    displayName: Bombe
+    description: "Explose au passage d'un intrus (75 d\xE9g\xE2ts en zone). Se r\xE9arme
+      en 25 s."
+    category: 2
+    kind: 2
+    tool: 0
+    icon: {fileID: 2525089740802600966, guid: 86aaf0825e55268469e93768874bc46d, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 4620899264937346298, guid: f3468911a8300174f8985b48f22aa546, type: 3}
+    cost: 55
+    unlockLevel: 3
+    prestige: 0
+    upkeep: 5
+  - id: ghost_trap
+    displayName: "Pi\xE8ge spectral"
+    description: "Un spectre surgit : 30 d\xE9g\xE2ts et les intrus, glac\xE9s, ralentissent
+      3 s."
+    category: 2
+    kind: 2
+    tool: 0
+    icon: {fileID: -8773621273890103271, guid: 9d28f91f673a16542b4bf2b9515928be, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 4615325188197808921, guid: d0d2e4b0130f7bf49ad443c55e70782f, type: 3}
+    cost: 80
+    unlockLevel: 4
+    prestige: 0
+    upkeep: 8
+  - id: bear
+    displayName: "Pi\xE8ge \xE0 loup"
+    description: "Se referme sur un intrus : le blesse et l'immobilise 3,5 s. Se
+      r\xE9arme seul."
+    category: 2
+    kind: 2
+    tool: 0
+    icon: {fileID: 21300000, guid: 3803120b685a5714abbb02322e859e10, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 7407816658928174267, guid: c9dbccab9e6dba54fbe22b76db13e198, type: 3}
+    cost: 40
+    unlockLevel: 2
+    prestige: 0
+    upkeep: 3
+  - id: poison
+    displayName: Gaz toxique
+    description: 'Nuage permanent : empoisonne et ralentit les intrus alentour.'
+    category: 2
+    kind: 2
+    tool: 0
+    icon: {fileID: 21300000, guid: 276b41fa94a1f9845b8d7f581e2d9af8, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 1885946690433580581, guid: 8657a793ed72d0140a1126f0e7b02b36, type: 3}
+    cost: 70
+    unlockLevel: 3
+    prestige: 0
+    upkeep: 6
+  - id: door_wood
+    displayName: Porte en bois
+    description: "Porte vo\xFBt\xE9e : les intrus perdent 2,5 s \xE0 la forcer, puis
+      elle reste ouverte. Ferm\xE9e, elle arr\xEAte la vue, les tirs... et vos monstres,
+      sauf sur votre ordre."
+    category: 2
+    kind: 3
+    tool: 0
+    icon: {fileID: -5517639776167723145, guid: 9f0d49edb8bf5234ba51331ba49b651a, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 2456638972071394061, guid: 4dea123d2ad2c614c9d8692bc4c095e2, type: 3}
+    cost: 25
+    unlockLevel: 1
+    prestige: 0.5
+    upkeep: 2
+  - id: door_iron
+    displayName: Herse de fer
+    description: 'Retient chaque intrus 5 s le temps de la soulever : parfait devant
+      une embuscade.'
+    category: 2
+    kind: 3
+    tool: 0
+    icon: {fileID: 5650549994350509946, guid: 0450c8c766fc4004da344fd4c16b8460, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 941944536348303860, guid: 27745c7337472bb4cac481fa74dae35a, type: 3}
+    cost: 60
+    unlockLevel: 3
+    prestige: 1
+    upkeep: 3
+  - id: door_skull
+    displayName: Gueule d'ossements
+    description: "Porte de crypte vivante : retient 6 s et mord (12 d\xE9g\xE2ts)
+      chaque intrus qui la force."
+    category: 2
+    kind: 3
+    tool: 0
+    icon: {fileID: 21300000, guid: 603a9db479b59a045a5630b6fff2fe35, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 3360792671152783254, guid: ccd29ac9a5aa24644a9922e1ee41a400, type: 3}
+    cost: 110
+    unlockLevel: 5
+    prestige: 2.5
+    upkeep: 6
+  - id: flame
+    displayName: Jet de flammes
+    description: "Crache du feu par intermittence. Gros d\xE9g\xE2ts."
+    category: 2
+    kind: 2
+    tool: 0
+    icon: {fileID: -4678254405223409538, guid: 3bb3d26f69aa32d449162e16b9c6925f, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 1443022926480195354, guid: b2deade3f9b2c7248998ca46ff4c1d99, type: 3}
+    cost: 45
+    unlockLevel: 2
+    prestige: 0
+    upkeep: 5
+  - id: torch
+    displayName: Torche
+    description: "\xC9claire les couloirs (surtout la nuit)."
+    category: 3
+    kind: 3
+    tool: 0
+    icon: {fileID: -1431330250, guid: f7ccc0a9a363eb14ba0b52370d17a349, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 2005062008387236170, guid: e93c23a5090c8c84bb119ab8b58e93b6, type: 3}
+    cost: 15
+    unlockLevel: 1
+    prestige: 1
+    upkeep: 0
+  - id: chest
+    displayName: "Coffre au tr\xE9sor"
+    description: "App\xE2t : les intrus cupides font un d\xE9tour pour le piller.
+      Chaque jour, le Noyau le remplit (butin pris aux morts, ou richesses n\xE9es
+      du mana). Encombrant : bloque le passage (contre un mur ou dans un recoin)."
+    category: 3
+    kind: 3
+    tool: 0
+    icon: {fileID: -195283984, guid: f7ccc0a9a363eb14ba0b52370d17a349, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 1883424002191977152, guid: d867d47c80c15e3419232a2cf3d9286f, type: 3}
+    cost: 60
+    unlockLevel: 1
+    prestige: 2
+    upkeep: 4
+  - id: barrel
+    displayName: Tonneau
+    description: "Simple d\xE9cor. Encombrant : bloque le passage (contre un mur
+      ou dans un recoin)."
+    category: 3
+    kind: 3
+    tool: 0
+    icon: {fileID: 2960576154082836866, guid: 3bb3d26f69aa32d449162e16b9c6925f, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 5937664608581474608, guid: 1a42283a8d09af9459ee362f5d86419d, type: 3}
+    cost: 8
+    unlockLevel: 1
+    prestige: 0.5
+    upkeep: 0
+  - id: supplies
+    displayName: "R\xE9serves"
+    description: 'Caisses et tonneaux. Encombrant : bloque le passage (contre un
+      mur ou dans un recoin).'
+    category: 3
+    kind: 3
+    tool: 0
+    icon: {fileID: 1657752030127037747, guid: 3bb3d26f69aa32d449162e16b9c6925f, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 8803571813590704507, guid: 6304c0dc7eb2a6249a574cbc58ef2466, type: 3}
+    cost: 12
+    unlockLevel: 1
+    prestige: 0.7
+    upkeep: 0
+  - id: banner
+    displayName: "Banni\xE8re"
+    description: Un donjon qui a du style attire les curieux.
+    category: 3
+    kind: 3
+    tool: 0
+    icon: {fileID: 3629132862291328607, guid: 3bb3d26f69aa32d449162e16b9c6925f, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 9110262241699697758, guid: 69283ff8bf2164649bda1d774c55f609, type: 3}
+    cost: 20
+    unlockLevel: 2
+    prestige: 1.5
+    upkeep: 0
+  - id: helm
+    displayName: "Heaume troph\xE9e"
+    description: Souvenir d'un chevalier malchanceux.
+    category: 3
+    kind: 3
+    tool: 0
+    icon: {fileID: 8327135327036563493, guid: 3bb3d26f69aa32d449162e16b9c6925f, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 8015137941387974694, guid: 0a78f638539dea64d868d4d0eb44548b, type: 3}
+    cost: 20
+    unlockLevel: 2
+    prestige: 1.5
+    upkeep: 0
+  - id: rack
+    displayName: "R\xE2telier d'armes"
+    description: 'Armes des vaincus. Encombrant : bloque le passage (contre un mur
+      ou dans un recoin).'
+    category: 3
+    kind: 3
+    tool: 0
+    icon: {fileID: -7022736643624768388, guid: 3bb3d26f69aa32d449162e16b9c6925f, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 967133927413139983, guid: 3f42cfe91d9fa9d41843b27665dfa0a1, type: 3}
+    cost: 35
+    unlockLevel: 2
+    prestige: 2
+    upkeep: 0
+  - id: crystal_blue
+    displayName: Cristaux bleus
+    description: "Lueur froide. R\xE9unis, les cristaux forment un sanctuaire."
+    category: 3
+    kind: 3
+    tool: 0
+    icon: {fileID: 21300000, guid: 2ea43bff5d8e83242aa540cc774ff219, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 2545950655205237134, guid: 4e51d3273bcb39949a45bc1c921a5905, type: 3}
+    cost: 35
+    unlockLevel: 2
+    prestige: 2.5
+    upkeep: 0
+  - id: crystal_red
+    displayName: Cristaux rouges
+    description: "Ils pulsent comme un c\u0153ur."
+    category: 3
+    kind: 3
+    tool: 0
+    icon: {fileID: 21300000, guid: 7c9d221a352a01e449b4f944afddbb6d, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 8365100023275510098, guid: a56e2f1c15093af409bbdf180de689ac, type: 3}
+    cost: 35
+    unlockLevel: 2
+    prestige: 2.5
+    upkeep: 0
+  - id: crystal_yellow
+    displayName: Cristaux d'ambre
+    description: On jurerait de l'or. Les intrus aussi.
+    category: 3
+    kind: 3
+    tool: 0
+    icon: {fileID: 21300000, guid: 0558f34c52b44364da907d323a30835b, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 7122215601208240167, guid: 37211f68660a80c489c4a2de37ec8af4, type: 3}
+    cost: 40
+    unlockLevel: 3
+    prestige: 3
+    upkeep: 0
+  - id: crystal_green
+    displayName: Cristaux verts
+    description: "Une lueur malade, apaisante pour vos cr\xE9atures."
+    category: 3
+    kind: 3
+    tool: 0
+    icon: {fileID: 21300000, guid: c88271118b875ea40b17fd350b55b657, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 7612438149738175611, guid: 77228a53412f1564087ed1b0ec44f927, type: 3}
+    cost: 30
+    unlockLevel: 2
+    prestige: 2
+    upkeep: 0
+  - id: crystal_black
+    displayName: Cristaux noirs
+    description: Obsidienne brute.
+    category: 3
+    kind: 3
+    tool: 0
+    icon: {fileID: 21300000, guid: 4f3f3ff79a9106c4a89572337087b376, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 5852491562561006533, guid: 5db41566b602e4c4a9a3fd2dcfe40e81, type: 3}
+    cost: 20
+    unlockLevel: 1
+    prestige: 1
+    upkeep: 0
+  - id: mushrooms_long
+    displayName: "Champignons g\xE9ants"
+    description: "Phosphorescents. R\xE9unis, ils forment un jardin fongique. Encombrant
+      : bloque le passage (contre un mur ou dans un recoin)."
+    category: 3
+    kind: 3
+    tool: 0
+    icon: {fileID: 21300000, guid: 39d45ab87c5d25048abd707943f888f0, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 3879391477030940924, guid: 31e131f1f01c0c34bad1c6a326d8fcaa, type: 3}
+    cost: 25
+    unlockLevel: 1
+    prestige: 1.2
+    upkeep: 0
+  - id: mushroom_slime
+    displayName: Champignon gluant
+    description: Il suinte. Les slimes adorent.
+    category: 3
+    kind: 3
+    tool: 0
+    icon: {fileID: 21300000, guid: 27eb0cca22a63f04091dd174669e3b0f, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 6127513472346824301, guid: b10be9a4a1340754b9b49658b67ca513, type: 3}
+    cost: 25
+    unlockLevel: 2
+    prestige: 1.2
+    upkeep: 0
+  - id: mushrooms_small
+    displayName: Champignons
+    description: Quelques champignons dans les recoins.
+    category: 3
+    kind: 3
+    tool: 0
+    icon: {fileID: 21300000, guid: f3c3047fab632b04691fb526fcdb468b, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 5492340163890507590, guid: 01147913a75fc644aa6a3c1574c09959, type: 3}
+    cost: 8
+    unlockLevel: 1
+    prestige: 0.4
+    upkeep: 0
+  - id: stalagmites
+    displayName: Stalagmites
+    description: 'La roche qui pousse. Encombrant : bloque le passage (contre un
+      mur ou dans un recoin).'
+    category: 3
+    kind: 3
+    tool: 0
+    icon: {fileID: 21300000, guid: 0c7a4e4a53095ec40a122bd9629b984e, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 6362444842552191191, guid: a71514c2dd2c279469a91d9839a3deec, type: 3}
+    cost: 10
+    unlockLevel: 1
+    prestige: 0.5
+    upkeep: 0
+  - id: stalagmites_gray
+    displayName: Stalagmites grises
+    description: 'Des crocs de pierre. Encombrant : bloque le passage (contre un
+      mur ou dans un recoin).'
+    category: 3
+    kind: 3
+    tool: 0
+    icon: {fileID: 21300000, guid: da2103bbd3e027a4db75f53e4e5e26fb, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 947436031682137475, guid: afaef5a1a0934d647830602a2d22528b, type: 3}
+    cost: 10
+    unlockLevel: 1
+    prestige: 0.5
+    upkeep: 0
+  - id: magma_vent
+    displayName: Faille de magma
+    description: "La roche saigne du feu. \xC9claire et impressionne."
+    category: 3
+    kind: 3
+    tool: 0
+    icon: {fileID: 3976513714982249590, guid: c4be8b5aeca648440826e29089f75588, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 1200903655647719068, guid: 38e595729e3f4064fb032a15c2e1cedc, type: 3}
+    cost: 45
+    unlockLevel: 3
+    prestige: 2
+    upkeep: 0
+  - id: demon_hand
+    displayName: "Main d\xE9moniaque"
+    description: "Elle sort du sol et s'agite. Gla\xE7ant."
+    category: 3
+    kind: 3
+    tool: 0
+    icon: {fileID: 5752201707800382453, guid: 6960f9d8e27b9ae43819516ca3300ff8, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 7759715595240260638, guid: 4fb86bf3b1ce7e041944bfb832b3edd6, type: 3}
+    cost: 60
+    unlockLevel: 4
+    prestige: 3
+    upkeep: 0
+  - id: demon_altar
+    displayName: "Autel d\xE9moniaque"
+    description: "Un cr\xE2ne cornu couronn\xE9 de flammes : le c\u0153ur d'un sanctuaire
+      infernal. Encombrant : bloque le passage (contre un mur ou dans un recoin)."
+    category: 3
+    kind: 3
+    tool: 0
+    icon: {fileID: -4761687585737803984, guid: f2ebd4dcebc1a22449de4586e2045b95, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 9136211222531038952, guid: f5b47bcd5a2c16d4182dbf9738484a99, type: 3}
+    cost: 220
+    unlockLevel: 6
+    prestige: 12
+    upkeep: 0
+  - id: cell
+    displayName: Cellule
+    description: "Activez les captures : un intrus vaincu y est enferm\xE9 au lieu
+      de mourir. Il nourrit le cristal chaque matin. Encombrant : bloque le passage
+      (contre un mur ou dans un recoin)."
+    category: 3
+    kind: 3
+    tool: 0
+    icon: {fileID: 21300000, guid: e149d2dbc982f454687f64d0ea6b3f10, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 5336931999921565766, guid: c4ec7b049cde17041adc8682ea8983c0, type: 3}
+    cost: 90
+    unlockLevel: 3
+    prestige: 0
+    upkeep: 0
+  - id: gold
+    displayName: Tas d'or
+    description: "App\xE2t irr\xE9sistible, racont\xE9 dans toutes les tavernes."
+    category: 3
+    kind: 3
+    tool: 0
+    icon: {fileID: -8009552318330250497, guid: 3bb3d26f69aa32d449162e16b9c6925f, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 8845632429470108607, guid: 770d6f5217e529042a10b28bd1e02e28, type: 3}
+    cost: 120
+    unlockLevel: 3
+    prestige: 4
+    upkeep: 0
+  - id: brazier
+    displayName: Brasero spectral
+    description: "Flammes d'\xE2mes : \xE9claire loin, ambiance garantie."
+    category: 3
+    kind: 3
+    tool: 0
+    icon: {fileID: 2455873044983784848, guid: a65f405657aa6904099363d1e6bbfb16, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 8672374663081175828, guid: 1abf5e08f1183ab428233eb721b48372, type: 3}
+    cost: 30
+    unlockLevel: 1
+    prestige: 1.5
+    upkeep: 0
+  - id: wall_torch
+    displayName: Torche spectrale
+    description: Petite flamme verte vacillante.
+    category: 3
+    kind: 3
+    tool: 0
+    icon: {fileID: 2402054711508184830, guid: 75492f7fbe0899d468e4ce29c73de4c8, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 5418007380754451009, guid: 8e6f383fa3a7e134ca234efe5cd6b1a2, type: 3}
+    cost: 18
+    unlockLevel: 1
+    prestige: 1
+    upkeep: 0
+  - id: candelabra
+    displayName: "Cand\xE9labre"
+    description: "Bougies \xE9ternelles."
+    category: 3
+    kind: 3
+    tool: 0
+    icon: {fileID: 9002787064755693396, guid: 6a32887edfadd6745a7fd80af590c112, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 3161041403965764669, guid: c114dc3e55042334e84dd670eeb63084, type: 3}
+    cost: 22
+    unlockLevel: 2
+    prestige: 1
+    upkeep: 0
+  - id: bones
+    displayName: Ossements
+    description: "Rappelle aux visiteurs le sort de leurs pr\xE9d\xE9cesseurs."
+    category: 3
+    kind: 3
+    tool: 0
+    icon: {fileID: 21300000, guid: fe01a05ff27eebf4fafe01131c5ad00e, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 3463990043233112241, guid: d4b63cc6d312c564d9bdf4b33e6be490, type: 3}
+    cost: 8
+    unlockLevel: 1
+    prestige: 0.5
+    upkeep: 0
+  - id: skull_pile
+    displayName: "Pile de cr\xE2nes"
+    description: 'Effrayant : prestige des cryptes.'
+    category: 3
+    kind: 3
+    tool: 0
+    icon: {fileID: 21300000, guid: 91c88227c7c22e146ae629146b50033a, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 2900339468224146232, guid: fd7f32ee9a027a9428e7ec55be7825b3, type: 3}
+    cost: 15
+    unlockLevel: 2
+    prestige: 1
+    upkeep: 0
+  - id: coffin
+    displayName: Cercueil
+    description: 'Un occupant s''y repose... pour l''instant. Encombrant : bloque
+      le passage (contre un mur ou dans un recoin).'
+    category: 3
+    kind: 3
+    tool: 0
+    icon: {fileID: 21300000, guid: a37564987e5048145a5ce85b330c9cdc, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 1890559996222266577, guid: 8579319c6470e0e41a15f93bf1395c4e, type: 3}
+    cost: 20
+    unlockLevel: 2
+    prestige: 1.2
+    upkeep: 0
+  - id: hanging
+    displayName: "Squelette encha\xEEn\xE9"
+    description: Avertissement explicite.
+    category: 3
+    kind: 3
+    tool: 0
+    icon: {fileID: 21300000, guid: 3ab7845c31db6644986aad9f851112df, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 8480560974806950805, guid: 5d26234ff1e7cb943b74a937034f25f3, type: 3}
+    cost: 25
+    unlockLevel: 2
+    prestige: 1.5
+    upkeep: 0
+  - id: sarcophagus
+    displayName: Sarcophage
+    description: "Tombeau d'un roi oubli\xE9. Encombrant : bloque le passage (contre
+      un mur ou dans un recoin)."
+    category: 3
+    kind: 3
+    tool: 0
+    icon: {fileID: 21300000, guid: 0bb846e91f3a7154083fe6b23d686cad, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 295092830124666781, guid: 0621a3830e409b041ba0a74596be498f, type: 3}
+    cost: 45
+    unlockLevel: 3
+    prestige: 2.5
+    upkeep: 0
+  - id: sarcophagus_open
+    displayName: Sarcophage ouvert
+    description: "Son occupant s'est lev\xE9... Encombrant : bloque le passage (contre
+      un mur ou dans un recoin)."
+    category: 3
+    kind: 3
+    tool: 0
+    icon: {fileID: 21300000, guid: 542c377407355b642b14cdf6fb10135a, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 7120200248828292122, guid: c131b03986f9126409a024e7c5d43b54, type: 3}
+    cost: 50
+    unlockLevel: 3
+    prestige: 2.5
+    upkeep: 0
+  - id: gargoyle
+    displayName: Gargouille
+    description: 'Veille sur les couloirs. Encombrant : bloque le passage (contre
+      un mur ou dans un recoin).'
+    category: 3
+    kind: 3
+    tool: 0
+    icon: {fileID: 21300000, guid: c2092225ea7162143812fc20b1edde95, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 6594104330610963838, guid: 09dd98d87c1181546a44a8867da8d272, type: 3}
+    cost: 40
+    unlockLevel: 3
+    prestige: 2
+    upkeep: 0
+  - id: statue_knight
+    displayName: Statue de chevalier
+    description: "Hommage ironique aux chevaliers tomb\xE9s. Encombrant : bloque
+      le passage (contre un mur ou dans un recoin)."
+    category: 3
+    kind: 3
+    tool: 0
+    icon: {fileID: 21300000, guid: e5edb2b42611a1a44b0bc655ae47c6dd, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 6225288932639747419, guid: d3bc2a0d23bbff94bb7fcd6526978676, type: 3}
+    cost: 55
+    unlockLevel: 3
+    prestige: 3
+    upkeep: 0
+  - id: gold_pile
+    displayName: Pile d'or
+    description: "App\xE2t : les cupides s'y pr\xE9cipitent."
+    category: 3
+    kind: 3
+    tool: 0
+    icon: {fileID: 21300000, guid: c4f24a1218cfd694c9a473e41926e2ab, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 6330918532339360374, guid: 213ba99ec11fc3c43b2cbead2a58bdf8, type: 3}
+    cost: 90
+    unlockLevel: 3
+    prestige: 3
+    upkeep: 0
+  - id: chest_royal
+    displayName: Coffre royal
+    description: "Le tr\xE9sor dont parlent les tavernes : attire les h\xE9ros. Un
+      entretien co\xFBteux pour de vraies richesses. Encombrant : bloque le passage
+      (contre un mur ou dans un recoin)."
+    category: 3
+    kind: 3
+    tool: 0
+    icon: {fileID: 21300000, guid: e774b31541afbf84dae7461895149ddc, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 6495938406816409205, guid: 8e7cef52dc975f14c87108ea089b87ff, type: 3}
+    cost: 110
+    unlockLevel: 4
+    prestige: 5
+    upkeep: 9
+  - id: fountain
+    displayName: "Fontaine sacr\xE9e"
+    description: 'Eau miroitante. Grand prestige. Encombrant : bloque le passage
+      (contre un mur ou dans un recoin).'
+    category: 3
+    kind: 3
+    tool: 0
+    icon: {fileID: 7772053563467876060, guid: ac65d86e94ebbb543a47ab71857cd24d, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 6015509007722385992, guid: 0f30cae9860fecc42a2a1aaf7698b697, type: 3}
+    cost: 150
+    unlockLevel: 4
+    prestige: 6
+    upkeep: 0
+  - id: statue_fire
+    displayName: "Statue d\xE9moniaque"
+    description: "Flammes vertes \xE9ternelles. Prestige immense. Encombrant : bloque
+      le passage (contre un mur ou dans un recoin)."
+    category: 3
+    kind: 3
+    tool: 0
+    icon: {fileID: -4025846250019159667, guid: d0eb9000d7b1f0a44a06c5a9639eee51, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 1419167042387757846, guid: 67e4208f4f6ad2848ae8ebcc737b2f92, type: 3}
+    cost: 180
+    unlockLevel: 5
+    prestige: 7
+    upkeep: 0
+  - id: skull
+    displayName: "Cr\xE2ne de dragon"
+    description: "Pi\xE8ce ma\xEEtresse. \xC9norme prestige. Encombrant : bloque
+      le passage (contre un mur ou dans un recoin)."
+    category: 3
+    kind: 3
+    tool: 0
+    icon: {fileID: -5317189287571079581, guid: 3bb3d26f69aa32d449162e16b9c6925f, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 8188454810116996431, guid: 099fd3dcbbfb3724f841da6bef0f24dc, type: 3}
+    cost: 200
+    unlockLevel: 4
+    prestige: 8
+    upkeep: 0
+  themes:
+  - id: volcanic
+    displayName: Roche volcanique
+    description: "La roche noire de l'\xEEle."
+    stoneTint: {r: 0.36, g: 0.33, b: 0.33, a: 1}
+    floorTint: {r: 1, g: 1, b: 1, a: 1}
+    floorTile: {fileID: 11400000, guid: 19004bb18231fec40a776faa2f4da610, type: 2}
+    wallTile: {fileID: 11400000, guid: da9e9b05b08fed04d9216d0408d0ed12, type: 2}
+    intruderDamagePerSecond: 0
+    intruderSpeedMult: 1
+    intruderAttackCooldownMult: 1
+    manaDrainMult: 1
+    intruderFleeBonus: 0
+    monsterDamageMult: 1
+    undeadDamageMult: 1
+    ambientLight: {r: 0, g: 0, b: 0, a: 0}
+  - id: lava
+    displayName: Fournaise
+    description: "Les intrus br\xFBlent lentement (1,5 PV/s). Vos monstres frappent
+      25 % plus fort."
+    stoneTint: {r: 0.72, g: 0.36, b: 0.28, a: 1}
+    floorTint: {r: 1, g: 1, b: 1, a: 1}
+    floorTile: {fileID: 11400000, guid: c90319111012d6b45bdc31884f460d83, type: 2}
+    wallTile: {fileID: 11400000, guid: 558843b452290d54dbbc2c6c8e0646d7, type: 2}
+    intruderDamagePerSecond: 1.5
+    intruderSpeedMult: 1
+    intruderAttackCooldownMult: 1
+    manaDrainMult: 1
+    intruderFleeBonus: 0
+    monsterDamageMult: 1.25
+    undeadDamageMult: 1
+    ambientLight: {r: 0, g: 0, b: 0, a: 0}
+  - id: aqua
+    displayName: Sanctuaire englouti
+    description: "Sol inond\xE9 : les intrus avancent 35 % moins vite."
+    stoneTint: {r: 0.38, g: 0.52, b: 0.82, a: 1}
+    floorTint: {r: 1, g: 1, b: 1, a: 1}
+    floorTile: {fileID: 11400000, guid: f06da393c4a26684abc478f313f403f5, type: 2}
+    wallTile: {fileID: 11400000, guid: 01fae41444bb31c4ca6347efae174d54, type: 2}
+    intruderDamagePerSecond: 0
+    intruderSpeedMult: 0.65
+    intruderAttackCooldownMult: 1
+    manaDrainMult: 1
+    intruderFleeBonus: 0
+    monsterDamageMult: 1
+    undeadDamageMult: 1
+    ambientLight: {r: 0, g: 0, b: 0, a: 0}
+  - id: ice
+    displayName: "Caverne gel\xE9e"
+    description: 'Le froid engourdit : les intrus attaquent 50 % moins souvent.'
+    stoneTint: {r: 0.72, g: 0.86, b: 1, a: 1}
+    floorTint: {r: 1, g: 1, b: 1, a: 1}
+    floorTile: {fileID: 11400000, guid: d36d6aee42083d44db652cda2eeed990, type: 2}
+    wallTile: {fileID: 11400000, guid: 776837ad2196d924bb67e1356171a0f1, type: 2}
+    intruderDamagePerSecond: 0
+    intruderSpeedMult: 1
+    intruderAttackCooldownMult: 1.5
+    manaDrainMult: 1
+    intruderFleeBonus: 0
+    monsterDamageMult: 1
+    undeadDamageMult: 1
+    ambientLight: {r: 0, g: 0, b: 0, a: 0}
+  - id: fungal
+    displayName: Jardin fongique
+    description: Spores toxiques (0,8 PV/s) et drain de mana +50 %.
+    stoneTint: {r: 0.5, g: 0.62, b: 0.45, a: 1}
+    floorTint: {r: 1, g: 1, b: 1, a: 1}
+    floorTile: {fileID: 11400000, guid: 6da92be59ccf50c4a9edded9ff9a6988, type: 2}
+    wallTile: {fileID: 11400000, guid: 56bcf724aefa8a4429aa2b0c22b215ec, type: 2}
+    intruderDamagePerSecond: 0.8
+    intruderSpeedMult: 1
+    intruderAttackCooldownMult: 1
+    manaDrainMult: 1.5
+    intruderFleeBonus: 0
+    monsterDamageMult: 1
+    undeadDamageMult: 1
+    ambientLight: {r: 0, g: 0, b: 0, a: 0}
+  - id: crystal
+    displayName: Temple de cristal
+    description: "Le cristal amplifie l'absorption : drain de mana des intrus \xD72,2."
+    stoneTint: {r: 0.7, g: 0.56, b: 0.95, a: 1}
+    floorTint: {r: 1, g: 1, b: 1, a: 1}
+    floorTile: {fileID: 11400000, guid: afb7a9bc799b05247ad074af21b491dc, type: 2}
+    wallTile: {fileID: 11400000, guid: 20b04499db7ceda45a92d4c9edb9004a, type: 2}
+    intruderDamagePerSecond: 0
+    intruderSpeedMult: 1
+    intruderAttackCooldownMult: 1
+    manaDrainMult: 2.2
+    intruderFleeBonus: 0
+    monsterDamageMult: 1
+    undeadDamageMult: 1
+    ambientLight: {r: 0, g: 0, b: 0, a: 0}
+  - id: crypt
+    displayName: "Crypte hant\xE9e"
+    description: 'Ossements et murmures : les intrus ont 25 % de chances en plus
+      de fuir. Drain de mana +30 %.'
+    stoneTint: {r: 0.6, g: 0.7, b: 0.62, a: 1}
+    floorTint: {r: 1, g: 1, b: 1, a: 1}
+    floorTile: {fileID: 11400000, guid: 10958656cef417e4baa1155b9f7f561e, type: 2}
+    wallTile: {fileID: 11400000, guid: 6818426ec4e97db4a95627c01258c8bb, type: 2}
+    intruderDamagePerSecond: 0
+    intruderSpeedMult: 1
+    intruderAttackCooldownMult: 1
+    manaDrainMult: 1.3
+    intruderFleeBonus: 0.25
+    monsterDamageMult: 1
+    undeadDamageMult: 1
+    ambientLight: {r: 0, g: 0, b: 0, a: 0}
+  - id: fortress
+    displayName: Forteresse
+    description: "Pierre taill\xE9e : vos monstres frappent 15 % plus fort, les intrus
+      attaquent 20 % moins souvent."
+    stoneTint: {r: 0.55, g: 0.56, b: 0.68, a: 1}
+    floorTint: {r: 1, g: 1, b: 1, a: 1}
+    floorTile: {fileID: 11400000, guid: 04ec26b4a814cc643ac15793ed7d29cf, type: 2}
+    wallTile: {fileID: 11400000, guid: 3b508192d7149ea40a5aac4bae885f15, type: 2}
+    intruderDamagePerSecond: 0
+    intruderSpeedMult: 1
+    intruderAttackCooldownMult: 1.2
+    manaDrainMult: 1
+    intruderFleeBonus: 0
+    monsterDamageMult: 1.15
+    undeadDamageMult: 1
+    ambientLight: {r: 0, g: 0, b: 0, a: 0}
+  - id: catacomb
+    displayName: Catacombes
+    description: "Les morts veillent : vos morts-vivants (squelettes, zombies, liches,
+      fant\xF4mes, vampires) frappent 30 % plus fort. Drain de mana +20 %."
+    stoneTint: {r: 0.55, g: 0.42, b: 0.36, a: 1}
+    floorTint: {r: 0.8, g: 0.7, b: 0.62, a: 1}
+    floorTile: {fileID: 11400000, guid: 04ec26b4a814cc643ac15793ed7d29cf, type: 2}
+    wallTile: {fileID: 11400000, guid: 296e01580dbe9e24a91308dd88baf1cd, type: 2}
+    intruderDamagePerSecond: 0
+    intruderSpeedMult: 1
+    intruderAttackCooldownMult: 1
+    manaDrainMult: 1.2
+    intruderFleeBonus: 0
+    monsterDamageMult: 1
+    undeadDamageMult: 1.3
+    ambientLight: {r: 0, g: 0, b: 0, a: 0}
+  adventurerPrefabs:
+  - {fileID: 7320476218491270517, guid: 6e6b168e3499c2743a6a531c17cc09db, type: 3}
+  - {fileID: 378907595312396482, guid: 3adb20c73fe3c2148a396cd4282c3451, type: 3}
+  - {fileID: 947543774103914157, guid: 97396f11167244245bfcee2410c16c04, type: 3}
+  - {fileID: 8270182179467396554, guid: 2e067e51ce02bd242810a29bbf2dc6e5, type: 3}
+  - {fileID: 4559706422809659024, guid: e1c327f10adeaf84f9affce96e40c9d4, type: 3}
+  archerPrefab: {fileID: 5894697761395483399, guid: 431b3ca4cef810d4f96cc7bb6fb97f2a, type: 3}
+  magePrefab: {fileID: 3163466216076088718, guid: 9665f24393146554caaccf021e22c9c5, type: 3}
+  healerPrefab: {fileID: 199880081143000486, guid: 70332783adc191a4a97f4dec28908a19, type: 3}
+  wildlifePrefabs:
+  - {fileID: 6882509823238473260, guid: 0f42b8a7153ae204aadf7a933b8a6d01, type: 3}
+  - {fileID: 6882509823238473260, guid: 0f42b8a7153ae204aadf7a933b8a6d01, type: 3}
+  - {fileID: 8755586440310283457, guid: 17ef13063fd766d4f9068788a5685b13, type: 3}
+  - {fileID: 8755586440310283457, guid: 17ef13063fd766d4f9068788a5685b13, type: 3}
+  - {fileID: 5536340555013800846, guid: 1979a1e5895b4f44d9cfe9720231bd8f, type: 3}
+  - {fileID: 8605057006310733031, guid: 4e4f2c9ff6a61d34dab70b19245dcaf2, type: 3}
+  - {fileID: 714568643860229883, guid: 676d3f86d47b5254c9c8d3c8ca1ab0a9, type: 3}
+  settlerPrefabs:
+  - {fileID: 5995459329134500684, guid: 8fcf319eb4d27ba478e8fb51fabe2c75, type: 3}
+  - {fileID: 9109824106724531243, guid: 476f20e1c48b94b41b4cb4b53e37ee86, type: 3}
+  - {fileID: 3394596054809173074, guid: d176f56e7c682354eac02fab91a9f8a0, type: 3}
+  - {fileID: 4823791845942084020, guid: 7ff20ab033727dd46b613743443efbe4, type: 3}
+  - {fileID: 6620654344220298814, guid: 7ce3f26bd77b7b04a85523622fcaab83, type: 3}
+  - {fileID: 6816995101357661342, guid: d3b675dd670f10c4ea800db3c4278c95, type: 3}
+  tierVariants:
+  - prefabs: []
+  - prefabs: []
+  - prefabs:
+    - {fileID: 947543774103914157, guid: 97396f11167244245bfcee2410c16c04, type: 3}
+    - {fileID: 8680216389396363, guid: e4f9db1a2f6c1ab40a5da19dff830c6a, type: 3}
+    - {fileID: 6813697408800555363, guid: 98efd7f7074ec2b4a9e172d3a8866db3, type: 3}
+  - prefabs:
+    - {fileID: 6813697408800555363, guid: 98efd7f7074ec2b4a9e172d3a8866db3, type: 3}
+    - {fileID: 8270182179467396554, guid: 2e067e51ce02bd242810a29bbf2dc6e5, type: 3}
+    - {fileID: 811725921938605153, guid: 5aa998fe66644d043b65b44a0c7eba78, type: 3}
+    - {fileID: 3885950000194416642, guid: e253525db5eaa10419152f86681a020d, type: 3}
+  - prefabs:
+    - {fileID: 4559706422809659024, guid: e1c327f10adeaf84f9affce96e40c9d4, type: 3}
+    - {fileID: 6434871865571974683, guid: 4b981fd4708176e42b445f34ebf38b89, type: 3}
+    - {fileID: 5531547093921148291, guid: 21d5531240fd5da42877b3a47a450a7e, type: 3}
+  boatSprites:
+  - {fileID: 21300000, guid: 764ee3c6c536d0848981638bc427cd19, type: 3}
+  - {fileID: 21300000, guid: 4f556c38f2ace5a4db6b70173029bc26, type: 3}
+  - {fileID: 21300000, guid: c0cc1d11207e2de46a3011c5bbed320e, type: 3}
+  stairsDownSprite: {fileID: 21300000, guid: 1c7f085de1340a64bbebd7edbe978480, type: 3}
+  stairsUpSprite: {fileID: 21300000, guid: 55df421fba76c1b47a253941bbb45ebe, type: 3}
