@@ -29,6 +29,9 @@ public class CrawlerPlayer : MonoBehaviour
     public float maxStamina = 100f;
     public float Stamina { get; private set; } = 100f;
     public float Stamina01 => Mathf.Clamp01(Stamina / maxStamina);
+    /// <summary>La faim ralentit la récupération (CrawlerMode).</summary>
+    [System.NonSerialized] public float StaminaRegenMult = 1f;
+    [System.NonSerialized] public bool touchEat;
     /// <summary>À bout de souffle : plus de course tant que la jauge n'est pas remontée à 35 %.</summary>
     public bool Exhausted { get; private set; }
     public bool Running { get; private set; }
@@ -199,6 +202,9 @@ public class CrawlerPlayer : MonoBehaviour
         if (attack) Attack();
         if (skill) Skill();
         if (potion) CrawlerMode.Instance.UsePotion();
+        bool eat = touchEat || (kb != null && kb.gKey.wasPressedThisFrame);
+        touchEat = false;
+        if (eat) CrawlerMode.Instance.Eat();
         if (interact) CrawlerMode.Instance.Interact();
         if (attackAnim > 0f) attackAnim -= Time.deltaTime;
         // pas de récupération automatique : potions, prières, soigneurs ou repos à la taverne
@@ -233,7 +239,7 @@ public class CrawlerPlayer : MonoBehaviour
             if (Stamina <= 0f) Exhausted = true;
         }
         else if (Time.time - lastEffort > RegenDelay)
-            Stamina = Mathf.Min(maxStamina, Stamina + StaminaRegen * Time.deltaTime);
+            Stamina = Mathf.Min(maxStamina, Stamina + StaminaRegen * StaminaRegenMult * Time.deltaTime);
         if (Exhausted && Stamina >= maxStamina * 0.35f) Exhausted = false;
     }
 
@@ -320,6 +326,17 @@ public class CrawlerPlayer : MonoBehaviour
             float score = d + (Vector2.Angle(facing, to) > 100f ? 2f : 0f);
             if (score < bestScore) { bestScore = score; best = g; t = g.transform; }
         }
+        // le gibier aussi (chasser pour manger)
+        if (best == null)
+            foreach (var a in WildAnimal.All)
+            {
+                if (a == null || a.IsDead) continue;
+                Vector2 to = (Vector2)a.transform.position - rb.position;
+                float d = to.magnitude;
+                if (d > range || !Visible(rb.position, a.transform.position)) continue;
+                float score = d + (Vector2.Angle(facing, to) > 100f ? 2f : 0f);
+                if (score < bestScore) { bestScore = score; best = a; t = a.transform; }
+            }
         if (best == null)
         {
             var core = CrawlerMode.Instance != null ? CrawlerMode.Instance.Core : null;

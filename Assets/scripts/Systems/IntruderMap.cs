@@ -17,6 +17,9 @@ public class IntruderMap
     public readonly HashSet<Vector3Int> Walls = new HashSet<Vector3Int>();
     /// <summary>Cases encombrées (coffre, tonneau, statue...) : on les contourne.</summary>
     public readonly HashSet<Vector3Int> Blocked = new HashSet<Vector3Int>();
+    /// <summary>Pièges repérés par l'expédition : on les contourne quand un autre passage existe.</summary>
+    public readonly HashSet<Vector3Int> Traps = new HashSet<Vector3Int>();
+    private bool avoidTraps;
     /// <summary>Case où l'on a vu le cristal (null : inconnue).</summary>
     public Vector3Int? CoreCell;
     /// <summary>Change à chaque découverte.</summary>
@@ -127,7 +130,7 @@ public class IntruderMap
         return null;
     }
 
-    private bool Walkable(Vector3Int c) => Floor.Contains(c) && !Walls.Contains(c) && !Blocked.Contains(c);
+    private bool Walkable(Vector3Int c) => Floor.Contains(c) && !Walls.Contains(c) && !Blocked.Contains(c) && !(avoidTraps && Traps.Contains(c));
 
     /// <summary>Case connue dont un voisin reste à découvrir (une porte fermée encore jamais franchie en est une).</summary>
     public bool IsFrontier(Vector3Int c)
@@ -156,6 +159,19 @@ public class IntruderMap
     /// <summary>Plus court chemin à travers le plan connu jusqu'à une case qui satisfait 'goal' (null : aucun).</summary>
     public List<Vector3Int> FindPath(Vector3Int from, Func<Vector3Int, bool> goal, int maxNodes = 6000)
     {
+        // d'abord un chemin qui évite les pièges connus ; sinon on passe quand même
+        if (Traps.Count > 0)
+        {
+            avoidTraps = true;
+            var safe = Search(from, goal, maxNodes);
+            avoidTraps = false;
+            if (safe != null) return safe;
+        }
+        return Search(from, goal, maxNodes);
+    }
+
+    private List<Vector3Int> Search(Vector3Int from, Func<Vector3Int, bool> goal, int maxNodes)
+    {
         var prev = new Dictionary<Vector3Int, Vector3Int> { [from] = from };
         var q = new Queue<Vector3Int>();
         q.Enqueue(from);
@@ -176,6 +192,18 @@ public class IntruderMap
 
     /// <summary>Frontières accessibles, de la plus proche à la plus lointaine (les 'count' premières, avec leur chemin).</summary>
     public List<List<Vector3Int>> NearestFrontiers(Vector3Int from, int count)
+    {
+        if (Traps.Count > 0)
+        {
+            avoidTraps = true;
+            var safe = Frontiers(from, count);
+            avoidTraps = false;
+            if (safe.Count > 0) return safe;
+        }
+        return Frontiers(from, count);
+    }
+
+    private List<List<Vector3Int>> Frontiers(Vector3Int from, int count)
     {
         var result = new List<List<Vector3Int>>();
         var prev = new Dictionary<Vector3Int, Vector3Int> { [from] = from };

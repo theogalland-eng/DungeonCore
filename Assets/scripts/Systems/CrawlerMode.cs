@@ -36,6 +36,11 @@ public class CrawlerMode : MonoBehaviour
     public CrawlerPlayer Player { get; private set; }
     public DungeonCore Core { get; private set; }
     public int gold = 40, potions = 2, recallStones, kills, weaponLvl, armorLvl, rank;
+    /// <summary>Satiété du héros (100 = repu). Elle baisse doucement ; affamé, il récupère mal et frappe moins fort.
+    /// Jamais mortelle. Rations : taverne, coffres, gibier chassé puis dépecé.</summary>
+    public float satiety = 100f;
+    public int rations = 2;
+    [Tooltip("Secondes pour passer de repu à affamé")] public float satietyDuration = 600f;
     /// <summary>Étage où se trouve le joueur (0 = dehors), et le plus profond atteint.</summary>
     public int floor, deepest, reportedDeepest;
 
@@ -57,7 +62,8 @@ public class CrawlerMode : MonoBehaviour
     private Canvas canvas;
     private RectTransform hud, shop;
     private TextMeshProUGUI title, stats, prompt, partyText, banner;
-    private RectTransform hpFill, skillFill, staminaFill;
+    private RectTransform hpFill, skillFill, staminaFill, satietyFill;
+    private Image satietyImg;
     private Image staminaImg;
     private Image fade;
     private float startTime;
@@ -240,6 +246,7 @@ public class CrawlerMode : MonoBehaviour
         var kb = Keyboard.current;
         if (shop != null && kb != null && (kb.escapeKey.wasPressedThisFrame || kb.eKey.wasPressedThisFrame)) { CloseShop(); return; }
         if (!Frozen && kb != null && kb.tKey.wasPressedThisFrame) UseRecall();
+        TickHunger();
         // entrer dans un bâtiment en marchant vers sa porte
         if (!Frozen && Player.MoveInput.y > 0.5f && InteriorSystem.Instance != null && !InteriorSystem.Instance.Inside)
         {
@@ -434,6 +441,45 @@ public class CrawlerMode : MonoBehaviour
         }, PotionSprite());
     }
 
+    /// <summary>Manger une ration (touche G ou bouton) : +45 de satiété.</summary>
+    public void Eat()
+    {
+        if (Player == null || Player.InGesture) return;
+        if (rations <= 0) { GameHUD.Toast("Plus de rations (taverne, coffres, chasse)", GameHUD.WarningColor); return; }
+        if (satiety >= 95f) { GameHUD.Toast("Vous n'avez pas faim", GameHUD.InfoColor); return; }
+        rations--;
+        Player.Gesture(true, 1.1f, () =>
+        {
+            satiety = Mathf.Min(100f, satiety + 45f);
+            FloatingText.Spawn(Player.transform.position + Vector3.up * 0.8f, "Miam", new Color(0.95f, 0.75f, 0.45f), 1f);
+        });
+    }
+
+    /// <summary>Dépecer une carcasse : des rations de viande (2 pour un cerf ou un sanglier).</summary>
+    private void Butcher(WildAnimal w)
+    {
+        int n = 0;
+        while (w != null && w.TakeMeat()) n++;
+        if (n == 0) return;
+        rations += n;
+        FloatingText.Spawn(Player.transform.position + Vector3.up * 0.8f, $"+{n} ration{(n > 1 ? "s" : "")} de viande", new Color(0.95f, 0.75f, 0.45f), 1.1f);
+    }
+
+    /// <summary>La faim monte doucement ; ses effets (jamais mortels) s'appliquent au héros.</summary>
+    private void TickHunger()
+    {
+        if (Player == null || Frozen) return;
+        bool indoors = InteriorSystem.Instance != null && InteriorSystem.Instance.Physical;
+        if (!indoors) satiety = Mathf.Max(0f, satiety - 100f / satietyDuration * Time.deltaTime * (Player.Running ? 1.6f : 1f));
+        Player.StaminaRegenMult = satiety <= 0f ? 0.4f : satiety < 25f ? 0.65f : 1f;
+        var c = Player.Combat;
+        c.damageMult = satiety <= 0f ? 0.8f : 1f;
+        // affamé : les PV ne dépassent plus 80 %
+        if (satiety <= 0f && c.currentHealth > c.maxHealth * 0.8f) c.currentHealth = c.maxHealth * 0.8f;
+        if (satiety < 25f && satiety + 100f / satietyDuration * Time.deltaTime >= 25f)
+            GameHUD.Toast("Votre ventre gargouille (G : manger)", GameHUD.WarningColor);
+    }
+
     private Sprite potionSprite;
     private Sprite PotionSprite()
     {
@@ -483,6 +529,13 @@ public class CrawlerMode : MonoBehaviour
             if (Vector2.Distance(interior.DoorInside, p) < 1.1f) { act = () => interior.ExitPhysical(); return "Sortir"; }
             return null;
         }
+        foreach (var w in WildAnimal.Carcasses)
+        {
+            if (w == null || w.Meat <= 0 || Vector2.Distance(w.transform.position, p) > 1.2f) continue;
+            var carcass = w;
+            act = () => Player.Gesture(true, 1.2f, () => Butcher(carcass));
+            return $"Dépecer : {WildAnimal.Name(w.species).ToLowerInvariant()}";
+        }
         foreach (var ch in TreasureChest.All)
         {
             if (ch == null || !ch.IsFull || Vector2.Distance(ch.transform.position, p) > 1.3f) continue;
@@ -529,6 +582,7 @@ public class CrawlerMode : MonoBehaviour
         Sfx.Play("coin", chest.transform.position);
         FloatingText.Spawn(chest.transform.position + Vector3.up * 0.8f, $"+{g} or", GameHUD.GoldColor, 1.4f);
         if (rng.Next(3) == 0) { potions++; FloatingText.Spawn(chest.transform.position + Vector3.up * 1.3f, "+1 potion", new Color(0.5f, 1f, 0.6f), 1.2f); }
+        else if (rng.Next(2) == 0) { rations++; FloatingText.Spawn(chest.transform.position + Vector3.up * 1.3f, "+1 ration", new Color(0.95f, 0.75f, 0.45f), 1.2f); }
         else if (depth >= 3 && rng.Next(4) == 0) { recallStones++; FloatingText.Spawn(chest.transform.position + Vector3.up * 1.3f, "+1 pierre de rappel", new Color(0.6f, 0.8f, 1f), 1.2f); }
     }
 
@@ -708,6 +762,8 @@ public class CrawlerMode : MonoBehaviour
                     foreach (var c in CrawlerCompanion.All) if (c != null && !c.IsDead) c.Combat.currentHealth = c.Combat.maxHealth;
                     GameHUD.Toast("Le groupe est reposé", GameHUD.InfoColor);
                 }, gold >= cost);
+                Button("Une soupe chaude (6 or) : satiété pleine", () => { if (Pay(6)) { satiety = 100f; Sfx.Play("coin"); GameHUD.Toast("Rassasié", GameHUD.InfoColor); } }, gold >= 6);
+                Button("Provisions : 3 rations (14 or)", () => { if (Pay(14)) { rations += 3; Sfx.Play("coin"); } }, gold >= 14);
                 foreach (var r in Rumors.Generate(1)) Line($"<color=#FFD9A0>{r.who}</color> : <i>« {r.text} »</i>", 80f);
                 break;
             case "forge_smith":
@@ -878,7 +934,7 @@ public class CrawlerMode : MonoBehaviour
         hud = UIKit.Stretch(UIKit.Rect("HUD", go.transform));
         SafeArea.Apply(hud);
 
-        var panel = UIKit.PanelBox("Statut", hud, new Vector2(0, 1), new Vector2(16, -16), new Vector2(600, 150));
+        var panel = UIKit.PanelBox("Statut", hud, new Vector2(0, 1), new Vector2(16, -16), new Vector2(600, 166));
         title = UIKit.LabelAt(panel, "", 26, UIKit.Gold, new Vector2(18, -10), new Vector2(570, 34));
         var bg = UIKit.PanelBox("PV", panel, new Vector2(0, 1), new Vector2(18, -52), new Vector2(560, 20), new Color(0.15f, 0.08f, 0.1f, 1f));
         hpFill = UIKit.Rect("Fill", bg);
@@ -889,9 +945,14 @@ public class CrawlerMode : MonoBehaviour
         staminaFill = UIKit.Rect("Fill", sbg);
         staminaImg = UIKit.Image(staminaFill, new Color(0.95f, 0.8f, 0.35f), false);
         staminaFill.anchorMin = Vector2.zero; staminaFill.anchorMax = new Vector2(1, 1); staminaFill.pivot = new Vector2(0, 0.5f); staminaFill.offsetMin = staminaFill.offsetMax = Vector2.zero;
-        stats = UIKit.LabelAt(panel, "", 20, UIKit.Text, new Vector2(18, -90), new Vector2(570, 60));
+        // faim : jauge brune sous l'endurance
+        var fbg = UIKit.PanelBox("Faim", panel, new Vector2(0, 1), new Vector2(18, -88), new Vector2(560, 9), new Color(0.1f, 0.09f, 0.08f, 1f));
+        satietyFill = UIKit.Rect("Fill", fbg);
+        satietyImg = UIKit.Image(satietyFill, new Color(0.78f, 0.55f, 0.3f), false);
+        satietyFill.anchorMin = Vector2.zero; satietyFill.anchorMax = new Vector2(1, 1); satietyFill.pivot = new Vector2(0, 0.5f); satietyFill.offsetMin = satietyFill.offsetMax = Vector2.zero;
+        stats = UIKit.LabelAt(panel, "", 20, UIKit.Text, new Vector2(18, -100), new Vector2(570, 60));
         stats.textWrappingMode = TextWrappingModes.Normal;
-        partyText = UIKit.LabelAt(hud, "", 20, UIKit.Text, new Vector2(22, -176), new Vector2(560, 120));
+        partyText = UIKit.LabelAt(hud, "", 20, UIKit.Text, new Vector2(22, -192), new Vector2(560, 120));
         partyText.textWrappingMode = TextWrappingModes.Normal;
 
         var menu = UIKit.BtnAt(hud, "Menu", () => MainMenu.Instance?.OpenPause(), new Vector2(1, 1), new Vector2(-16, -16), new Vector2(140, 60), 24);
@@ -934,6 +995,7 @@ public class CrawlerMode : MonoBehaviour
         Act("Potion", new Vector2(-450, 60), new Vector2(160, 80), new Color(0.2f, 0.45f, 0.3f, 0.9f), () => { if (Player) Player.touchPotion = true; });
         Act("Interagir", new Vector2(-40, 280), new Vector2(200, 80), new Color(0.45f, 0.38f, 0.15f, 0.9f), () => { if (Player) Player.touchInteract = true; });
         Act("Rappel", new Vector2(-450, 150), new Vector2(160, 80), new Color(0.2f, 0.3f, 0.5f, 0.9f), UseRecall);
+        Act("Manger", new Vector2(-450, 240), new Vector2(160, 80), new Color(0.45f, 0.3f, 0.16f, 0.9f), () => { if (Player) Player.touchEat = true; });
 
         fade = UIKit.Image(UIKit.Stretch(UIKit.Rect("Fondu", go.transform)), new Color(0f, 0f, 0f, 0f), false, false);
         fade.raycastTarget = false;
@@ -973,13 +1035,17 @@ public class CrawlerMode : MonoBehaviour
         title.text = $"{ClassNames[(int)Player.role]}  ·  rang {GuildSystem.RankTag(rank)}";
         hpFill.anchorMax = new Vector2(Mathf.Clamp01(c.currentHealth / c.maxHealth), 1f);
         staminaFill.anchorMax = new Vector2(Player.Stamina01, 1f);
+        satietyFill.anchorMax = new Vector2(Mathf.Clamp01(satiety / 100f), 1f);
+        satietyImg.color = satiety <= 0f ? Color.Lerp(new Color(0.85f, 0.35f, 0.25f), new Color(0.45f, 0.18f, 0.12f), Mathf.PingPong(Time.unscaledTime * 2f, 1f))
+                                         : satiety < 25f ? new Color(0.9f, 0.45f, 0.25f) : new Color(0.78f, 0.55f, 0.3f);
         // à bout de souffle : la jauge rougit et clignote
         staminaImg.color = Player.Exhausted ? Color.Lerp(new Color(0.9f, 0.3f, 0.25f), new Color(0.5f, 0.15f, 0.12f), Mathf.PingPong(Time.unscaledTime * 3f, 1f))
                                             : new Color(0.95f, 0.8f, 0.35f);
         var interior = InteriorSystem.Instance;
         string where = interior != null && interior.Physical ? interior.CurrentTitle
                      : floor > 0 ? $"Étage {floor}/{CrawlerDungeon.FloorCount} — {CrawlerDungeon.FloorNames[floor]}" : "La ville du donjon";
-        stats.text = $"PV {Mathf.CeilToInt(c.currentHealth)}/{Mathf.RoundToInt(c.maxHealth)}   ·   <color=#FFD966>{gold} or</color>   ·   Potions {potions}   ·   Rappel {recallStones}\n" +
+        string hungerTag = satiety <= 0f ? "   ·   <color=#FF8A7A>affamé</color>" : satiety < 25f ? "   ·   <color=#FFC266>faim</color>" : "";
+        stats.text = $"PV {Mathf.CeilToInt(c.currentHealth)}/{Mathf.RoundToInt(c.maxHealth)}   ·   <color=#FFD966>{gold} or</color>   ·   Potions {potions}   ·   Rations {rations}   ·   Rappel {recallStones}{hungerTag}\n" +
                      $"<size=85%><color=#B9B3CC>{where}   ·   record : étage {deepest}   ·   vaincus {kills}</color></size>";
         var sb = new System.Text.StringBuilder();
         foreach (var m in CrawlerCompanion.All)

@@ -27,7 +27,8 @@ public class AdventurerAI : MonoBehaviour
         Healing,
         WaitingGroup,
         Leaving,        // Quitte l'île
-        Looting         // Pille un coffre (appât)
+        Looting,        // Pille un coffre (appât)
+        Busy            // Occupé par sa vie (manger, boire, chasser, se bagarrer...) : AdventurerLife
     }
     private AdventurerState state = AdventurerState.Advancing;
     public AdventurerState State => state;
@@ -72,6 +73,17 @@ public class AdventurerAI : MonoBehaviour
     [Header("Components")]
     public Animator animator;
     public AdventurerCombat combat;
+
+    // ── Vie (faim, traits, humeurs) : AdventurerLife ──
+    public AdventurerLife Life { get; private set; }
+    [System.NonSerialized] public float moodSpeedMult = 1f;
+    [Tooltip("Ajouté à la probabilité de fuir (peureux +, courageux -)")]
+    [System.NonSerialized] public float fleeBias;
+    /// <summary>Direction de marche (pour placer la formation derrière le guerrier).</summary>
+    public Vector2 Heading => lastMoveDirection;
+    public Transform CurrentEnemy => currentEnemy;
+    public bool IsFighting => state == AdventurerState.Fighting;
+    public float HealthPct => combat != null && combat.maxHealth > 0f ? combat.currentHealth / combat.maxHealth : 0f;
 
     // ── Type / personnalité ──
     public int TierIndex { get; private set; } = 2;
@@ -204,6 +216,13 @@ public class AdventurerAI : MonoBehaviour
             if (Vector2.Distance(p.transform.position, rb.position) > detectionRange * 0.8f) continue;
             if (!ClearLine(rb.position, p.transform.position, obstacleLayer)) continue;
             SeenTraps.Add(new Vector2Int(Mathf.FloorToInt(p.transform.position.x), Mathf.FloorToInt(p.transform.position.y)));
+            // l'éclaireur (archer, chanceux) repère le piège et prévient toute l'expédition
+            bool scout = role == Role.Archer || (Life != null && Life.Has(AdventurerLife.Trait.Lucky));
+            if (scout && Map != null && DungeonBuilder.Instance != null && Random.value < 0.35f)
+            {
+                var cell = DungeonBuilder.Instance.floorTilemap.WorldToCell(p.transform.position);
+                if (Map.Traps.Add(cell)) { Map.Version++; Speak("Attention, un piège !", new Color(1f, 0.85f, 0.5f)); }
+            }
         }
         NemesisTick();
     }
@@ -431,6 +450,7 @@ public class AdventurerAI : MonoBehaviour
         }
 
         HealthBar.Attach(transform, () => combat.currentHealth / combat.maxHealth, new Color(0.9f, 0.25f, 0.2f));
+        if (!isLocal && !IsPrisoner) Life = GetComponent<AdventurerLife>() ?? gameObject.AddComponent<AdventurerLife>();
         InvokeRepeating(nameof(RepathTick), Random.Range(0f, 0.5f), 0.5f);
         InvokeRepeating(nameof(ObserveTick), Random.Range(0f, 0.7f), 0.7f);
     }
@@ -490,6 +510,7 @@ public class AdventurerAI : MonoBehaviour
             case AdventurerState.Healing: UpdateHealing(); break;
             case AdventurerState.WaitingGroup: UpdateWaitingGroup(); break;
             case AdventurerState.Leaving: UpdateLeaving(); break;
+            case AdventurerState.Busy: if (Life == null || !Life.BusyTick()) EndBusy(); break;
         }
 
         if (attackAnimTimer > 0f) attackAnimTimer -= Time.fixedDeltaTime;
@@ -612,6 +633,7 @@ public class AdventurerAI : MonoBehaviour
         }
 
         if (IsInsideDungeon && TryFindChest()) return;
+        if (FollowFormation()) return;
 
         // L'équipe d'évaluation mesure, elle ne conquiert pas : un tour d'horizon, puis elle rentre
         if (IsAssessor && IsInsideDungeon)
@@ -750,6 +772,11 @@ public class AdventurerAI : MonoBehaviour
             return;
         }
 
+        // Blessé : on recule derrière le guerrier (la soigneuse s'occupe de lui)
+        if (FallBackBehindTank(dist)) return;
+        // Tireurs : garder ses distances (on recule si le monstre colle)
+        if (IsRanged && dist < 2.1f && Kite()) return;
+
         // La soigneuse reste en retrait tant qu'un allié tient la ligne
         if (role == Role.Healer && dist > 1.6f && AllyEngaging(currentEnemy))
         {
@@ -835,6 +862,14 @@ public class AdventurerAI : MonoBehaviour
 
     private void EngageEnemy(Transform enemy)
     {
+        // le groupe se concentre sur la cible du guerrier quand elle est en vue
+        var tank = PartyTank();
+        if (tank != null && tank != this && tank.currentEnemy != null && tank.currentEnemy != enemy)
+        {
+            var td = tank.currentEnemy.GetComponent<IDamageable>();
+            if (td != null && td.IsAlive() && Vector2.Distance(tank.currentEnemy.position, rb.position) <= detectionRange && HasLineOfSight(tank.currentEnemy))
+                enemy = tank.currentEnemy;
+        }
         currentEnemy = enemy;
         state = AdventurerState.Fighting;
         SetFollow(enemy);
@@ -937,6 +972,7 @@ public class AdventurerAI : MonoBehaviour
     /// <summary>Appelé par AdventurerCombat à la mort.</summary>
     public void HandleDeath()
     {
+        AdventurerLife.OnDied(this);
         if (isDead || departed) return;
         isDead = true;
 
@@ -970,6 +1006,7 @@ public class AdventurerAI : MonoBehaviour
         var theme = IsInsideDungeon && DungeonLayers.Instance != null ? DungeonLayers.Instance.ThemeAt(rb.position) : null;
         if (theme != null) chance = Mathf.Clamp01(chance + theme.intruderFleeBonus);
         if (IslandEvents.Instance != null) chance = Mathf.Clamp01(chance + IslandEvents.Instance.FleeBonus);
+        chance = Mathf.Clamp01(chance + fleeBias);
         // À l'agonie, même les braves hésitent... une dernière fois
         if (hp <= healthThreshold * 0.5f && !lastStand)
         {
@@ -1082,6 +1119,7 @@ public class AdventurerAI : MonoBehaviour
         {
             targetChest.Loot(this);
             targetChest = null;
+            AdventurerLife.OnLooted(this);
             arrogance = Mathf.Min(1f, arrogance + 0.15f);   // la fortune rend téméraire
             ResumeAttack();
         }
@@ -1145,6 +1183,28 @@ public class AdventurerAI : MonoBehaviour
 
         if (!IsAware) OnSurprised(attacker);
         else if (state != AdventurerState.Fighting) EngageEnemy(attacker);
+        // un tireur ou la soigneuse est pris à partie : le guerrier vient s'interposer
+        if (role != Role.Warrior)
+        {
+            var tank = PartyTank();
+            if (tank != null && tank != this && Vector2.Distance(tank.transform.position, rb.position) < 7f &&
+                (tank.currentEnemy == null || tank.currentEnemy == attacker || Random.value < 0.6f))
+                tank.Protect(attacker);
+        }
+    }
+
+    /// <summary>Le guerrier se place entre le monstre et son allié (et l'attaque).</summary>
+    public void Protect(Transform attacker)
+    {
+        if (isDead || IsFleeing() || attacker == null) return;
+        if (state == AdventurerState.Busy) EndBusy();
+        if (currentEnemy != attacker)
+        {
+            currentEnemy = attacker;
+            state = AdventurerState.Fighting;
+            SetFollow(attacker);
+            Speak("À moi !", new Color(1f, 0.8f, 0.45f));
+        }
     }
 
     /// <summary>Appelé quand il prend des dégâts (piège, monstre...).</summary>
@@ -1152,6 +1212,15 @@ public class AdventurerAI : MonoBehaviour
     {
         if (isDead) return;
         damageTaken += amount;
+        // un piège vient de frapper ici : l'expédition s'en souviendra
+        if (Map != null && DungeonBuilder.Instance != null)
+            foreach (var p in PlacedObject.All)
+                if (p != null && p.kind == ItemKind.Trap && Vector2.Distance(p.transform.position, rb.position) < 0.9f)
+                {
+                    if (Map.Traps.Add(DungeonBuilder.Instance.floorTilemap.WorldToCell(p.transform.position))) Map.Version++;
+                    break;
+                }
+        Life?.OnHurt(amount);
         if (!IsAware && state != AdventurerState.Leaving && state != AdventurerState.Retreating)
         {
             IsAware = true;
@@ -1210,6 +1279,8 @@ public class AdventurerAI : MonoBehaviour
             if (d == null || !d.IsAlive()) continue;
 
             float dist = Vector2.Distance(rb.position, hit.transform.position);
+            // tapi dans l'ombre : invisible au-delà de deux pas (le chanceux a parfois l'œil)
+            if (d is GobelinAI g && g.IsAmbushing && dist > 1.6f && !(Life != null && Life.Has(AdventurerLife.Trait.Lucky) && dist < 3f)) continue;
             if (dist < closestDist)
             {
                 closestDist = dist;
@@ -1348,6 +1419,7 @@ public class AdventurerAI : MonoBehaviour
     {
         if (IsHeld) { Stop(); return; }
         if (Time.time < slowUntil) moveSpeed *= slowMult;
+        moveSpeed *= moodSpeedMult;
         if (path == null || path.vectorPath == null || currWp >= path.vectorPath.Count)
         {
             Stop();
@@ -1415,6 +1487,142 @@ public class AdventurerAI : MonoBehaviour
     // ═══════════════════════════════════════════
     // ANIMATOR
     // ═══════════════════════════════════════════
+
+    // ═══════════════════════════════════════════
+    // GROUPE : FORMATION ET TACTIQUE
+    // ═══════════════════════════════════════════
+
+    /// <summary>Compagnons d'expédition (même carte partagée), vivants et pas en fuite.</summary>
+    public void Party(List<AdventurerAI> into)
+    {
+        into.Clear();
+        if (Map == null) return;
+        foreach (var a in All)
+            if (a != null && a != this && !a.isDead && a.Map == Map && !a.IsFleeing() && !a.Spared) into.Add(a);
+    }
+
+    private static readonly List<AdventurerAI> partyBuf = new List<AdventurerAI>();
+
+    /// <summary>Le guerrier de tête du groupe (le plus robuste), ou null.</summary>
+    public AdventurerAI PartyTank()
+    {
+        if (role == Role.Warrior && !IsFleeing()) return this;
+        Party(partyBuf);
+        AdventurerAI best = null;
+        float bestHp = 0f;
+        foreach (var a in partyBuf)
+            if (a.role == Role.Warrior && a.combat != null && a.combat.currentHealth > bestHp &&
+                Vector2.Distance(a.transform.position, rb.position) < 12f) { bestHp = a.combat.currentHealth; best = a; }
+        return best;
+    }
+
+    private float nextSlotUpdate;
+
+    /// <summary>
+    /// Formation : le guerrier ouvre la marche, les tireurs suivent à deux pas derrière lui (l'archer à gauche,
+    /// le mage à droite), la soigneuse au centre, un peu plus loin.
+    /// </summary>
+    private bool FollowFormation()
+    {
+        if (role == Role.Warrior || !IsInsideDungeon || !IsAware || IsAssessor) return false;
+        var tank = PartyTank();
+        if (tank == null || tank == this || tank.state != AdventurerState.Advancing) return false;
+        float distToCore = Vector2.Distance(rb.position, dungeonCoreTarget.position);
+        if (distToCore <= combat.attackRange + 0.5f) return false;   // le cristal est à portée : on tire
+        Vector2 h = tank.Heading.sqrMagnitude > 0.01f ? tank.Heading.normalized : Vector2.up;
+        Vector2 side = new Vector2(-h.y, h.x);
+        float back = role == Role.Healer ? 2.4f : 1.6f;
+        float lateral = role == Role.Archer ? 0.7f : role == Role.Mage ? -0.7f : 0f;
+        Vector2 slot = (Vector2)tank.transform.position - h * back + side * lateral;
+        if (!ClearLine(tank.transform.position, slot, obstacleLayer)) slot = (Vector2)tank.transform.position - h * 1.1f;
+        float d = Vector2.Distance(rb.position, slot);
+        if (d < 0.45f) { Stop(); lastMoveDirection = h; return true; }
+        if (Time.time >= nextSlotUpdate || path == null) { nextSlotUpdate = Time.time + 0.5f; SetDestination(slot); }
+        MoveAlongPath(speed * (d > 3f ? 1.15f : 1f));
+        return true;
+    }
+
+    /// <summary>Tireur au contact : il recule (en gardant la ligne de vue), puis reprend le tir.</summary>
+    private bool Kite()
+    {
+        Vector2 away = (rb.position - (Vector2)currentEnemy.position).normalized;
+        Vector2 to = rb.position + away * 1.2f;
+        if (!ClearLine(rb.position, to, obstacleLayer))
+        {
+            // mur derrière : on essaie en biais
+            Vector2 alt = rb.position + (away + new Vector2(-away.y, away.x)).normalized * 1.2f;
+            if (!ClearLine(rb.position, alt, obstacleLayer)) return false;
+            to = alt;
+        }
+        movement = (to - rb.position).normalized * speed * moodSpeedMult;
+        rb.linearVelocity = movement;
+        lastMoveDirection = -away;    // il recule en faisant face
+        return true;
+    }
+
+    /// <summary>Blessé (et pas le guerrier) : se replie derrière le guerrier qui tient la ligne.</summary>
+    private bool FallBackBehindTank(float distToEnemy)
+    {
+        if (role == Role.Warrior || HealthPct > 0.35f || distToEnemy > 3f) return false;
+        var tank = PartyTank();
+        if (tank == null || tank == this || !tank.IsFighting || tank.currentEnemy == null) return false;
+        Vector2 fromEnemy = ((Vector2)tank.transform.position - (Vector2)tank.currentEnemy.position).normalized;
+        Vector2 spot = (Vector2)tank.transform.position + fromEnemy * 1.8f;
+        if (Vector2.Distance(rb.position, spot) < 0.5f) return false;   // à l'abri : il peut tirer / soigner
+        if (Time.time >= nextSlotUpdate || path == null) { nextSlotUpdate = Time.time + 0.4f; SetDestination(spot); }
+        MoveAlongPath(speed * 1.1f);
+        return true;
+    }
+
+    // ═══════════════════════════════════════════
+    // API POUR LA VIE DE L'INTRUS (AdventurerLife)
+    // ═══════════════════════════════════════════
+
+    public bool CanBeBusy => !isDead && !Spared && !IsPrisoner && !departed &&
+        (state == AdventurerState.Advancing || state == AdventurerState.Wandering || state == AdventurerState.Healing || state == AdventurerState.WaitingGroup);
+    public bool IsBusy => state == AdventurerState.Busy;
+
+    public bool BeginBusy()
+    {
+        if (!CanBeBusy) return false;
+        currentEnemy = null;
+        state = AdventurerState.Busy;
+        path = null;
+        Stop();
+        return true;
+    }
+
+    public void EndBusy()
+    {
+        if (state != AdventurerState.Busy) return;
+        Stop();
+        if (IsAware || IsInsideDungeon) ResumeAttack();
+        else { state = AdventurerState.Wandering; PickWanderPoint(); }
+    }
+
+    public void LifeGoTo(Vector2 p) => SetDestination(p);
+    public void LifeFollow(Transform t) => SetFollow(t);
+    public void LifeMove(float mult = 1f) => MoveAlongPath(speed * mult);
+    public void LifeStop() => Stop();
+    public bool LifeArrived => ReachedPathEnd();
+    public void LifeFace(Vector2 p) { Vector2 d = p - rb.position; if (d.sqrMagnitude > 0.0001f) lastMoveDirection = d.normalized; }
+    public void LifeAttack(Transform t) => AttackTarget(t);
+    public void LifeGesture(float seconds) => attackAnimTimer = seconds;
+    public void LifeLeave() => LeaveIsland();
+    public void LifePanic() => StartRetreat();
+    public bool LifeSees(Transform t) => t != null && HasLineOfSight(t);
+    public Transform LifeNearestMonster() => DetectNearestEnemy();
+    public void Embolden(float seconds) => braveUntil = Mathf.Max(braveUntil, Time.time + seconds);
+    public void LifeEngage(Transform monster) { if (state == AdventurerState.Busy) state = AdventurerState.Advancing; EngageEnemy(monster); }
+
+    private float nextSpeak;
+    /// <summary>Petite phrase au-dessus de la tête (limitée pour ne pas inonder l'écran).</summary>
+    public void Speak(string text, Color c, bool force = false)
+    {
+        if (!force && Time.time < nextSpeak) return;
+        nextSpeak = Time.time + 2.5f;
+        FloatingText.Spawn(transform.position + Vector3.up * 0.85f, text, c, 0.9f);
+    }
 
     private void UpdateAnimator()
     {

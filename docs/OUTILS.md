@@ -42,7 +42,7 @@ Relancer un générateur reproduit le même résultat : la carte utilise une gra
 | **8. Relief de l'île (2.5D)** | `Editor/ReliefBuilder.cs` | Exporte le masque de la montagne, puis assemble les bandes de relief. |
 | ~~9. Routes pavées~~ | `Editor/RoadBuilder.cs` | Ancien pavage du sentier généré. Obsolète : le sentier naît désormais du passage et la colonie le pave elle-même (`TrailWear`). |
 | **10 / 11. APK Android** | `Editor/ApkBuilder.cs` | IL2CPP, ARM64 → `Builds/DungeonCore.apk` ; le menu 11 installe directement en USB. |
-| **12. Créer les polices (Cinzel)** | `Editor/FontMaker.cs` | Polices TextMesh Pro des titres et matériau lumineux. |
+| **12. Créer les polices (Cinzel, Alegreya Sans)** | `Editor/FontMaker.cs` | Polices TextMesh Pro des titres (Cinzel, matériau lumineux) et du texte courant (Alegreya Sans, avec gras et italique). |
 | **13. Importer les icônes de l'interface** | `Editor/UIArt.cs` | Icônes pixel du HUD (cœur, mana, menu, colonie, volcan, verrou…). |
 | Configurer pour mobile (paysage) | `Editor/ProjectSetup.cs` | Orientation paysage et réglages du lecteur. |
 
@@ -63,6 +63,7 @@ Prérequis : Python 3 avec **Pillow**, **NumPy** et **SciPy**. À lancer depuis 
 | `make_water.py` | Mer animée raccordable. |
 | `make_terrain.py` | **Terrain de l'île** : tuiles auto-raccordées « blob » (47 cas × 9 phases) pour le sable noir, la roche, l'herbe, la jungle, la lave et les sentiers (foulé, terre, pavés), eau animée, front de falaise et petits décors (roseaux, nénuphars, fleurs, récifs, faille de la grotte). |
 | `make_ui_icons.py` | Icônes pixel de l'interface, dessinées en « ASCII art ». |
+| `make_props.py` | Objets dessinés pour le projet (garde-manger). |
 | `make_8dir.py` | **Personnages en 8 directions** : diagonales recomposées à partir des calques des packs (corps + tête de deux directions voisines), roulade, gestes. Épéistes, rôles et 45 monstres. |
 | `make_roles.py` | Archer, mage et soigneuse sur les **9 paliers d'armure**, **recomposés à partir des calques des épéistes** (étoffes recolorées, arc et bâton dessinés). |
 | `make_palettes.py` | Couleurs de cheveux, peau et tenue de chaque apparence du héros (personnalisation). |

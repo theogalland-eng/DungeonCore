@@ -661,7 +661,7 @@ public static class IslandGenerator
                         break;
                     case K.Reef:
                         Put(blocked, c, sea, Color.white);
-                        if (rng.NextDouble() < 0.55) Put(decor, c, D("reef_" + rng.Next(3)), Color.white);
+                        rng.NextDouble();   // (récifs sans rochers dessinés : ils se lisaient comme des taches sombres)
                         break;
                     case K.Lake:
                         Put(blocked, c, stoneA, Color.white);

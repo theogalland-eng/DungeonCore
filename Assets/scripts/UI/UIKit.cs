@@ -9,7 +9,26 @@ using UnityEngine.UI;
 /// </summary>
 public static class UIKit
 {
-    private static TMP_FontAsset titleFont, headFont;
+    private static TMP_FontAsset titleFont, headFont, bodyFont;
+
+    /// <summary>Alegreya Sans (texte courant) : devient la police par défaut de tous les textes créés en jeu.</summary>
+    public static TMP_FontAsset BodyFont => bodyFont != null ? bodyFont : (bodyFont = Resources.Load<TMP_FontAsset>("Fonts/Body SDF"));
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    private static void UseBodyFont()
+    {
+        var body = BodyFont;
+        if (body == null) return;
+        var old = TMP_Settings.defaultFontAsset;
+        if (old == body) return;
+        // l'ancienne police reste en secours pour les symboles absents d'Alegreya
+        if (old != null)
+        {
+            if (body.fallbackFontAssetTable == null) body.fallbackFontAssetTable = new System.Collections.Generic.List<TMP_FontAsset>();
+            if (!body.fallbackFontAssetTable.Contains(old)) body.fallbackFontAssetTable.Add(old);
+        }
+        TMP_Settings.defaultFontAsset = body;
+    }
     private static Material titleGlow;
     private static Sprite hGradient;
 

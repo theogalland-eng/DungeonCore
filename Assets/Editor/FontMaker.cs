@@ -7,10 +7,11 @@ using UnityEngine.TextCore.LowLevel;
 /// Polices TextMeshPro du jeu (dynamiques) à partir des TTF d'Assets/Fonts (Cinzel, licence OFL) :
 ///   - Resources/Fonts/Title SDF : Cinzel Decorative Bold (titres)
 ///   - Resources/Fonts/Head SDF  : Cinzel (en-têtes, boutons du menu)
+///   - Resources/Fonts/Body SDF  : Alegreya Sans Medium (texte courant ; gras et italique liés)
 /// </summary>
 public static class FontMaker
 {
-    [MenuItem("DungeonCore/12. Créer les polices (Cinzel)")]
+    [MenuItem("DungeonCore/12. Créer les polices (Cinzel, Alegreya Sans)")]
     public static string Make()
     {
         if (!AssetDatabase.IsValidFolder("Assets/Resources/Fonts")) AssetDatabase.CreateFolder("Assets/Resources", "Fonts");
@@ -32,8 +33,26 @@ public static class FontMaker
             m.SetFloat("_FaceDilate", 0.08f);
             AssetDatabase.CreateAsset(m, "Assets/Resources/Fonts/Title Glow.mat");
         }
+        string c = MakeBody();
         AssetDatabase.SaveAssets();
-        return a + " | " + b;
+        return a + " | " + b + " | " + c;
+    }
+
+    /// <summary>Texte courant : Alegreya Sans (humaniste, très lisible petit), avec ses graisses grasse et italique.</summary>
+    public static string MakeBody()
+    {
+        string r = Create("Assets/Fonts/AlegreyaSans/AlegreyaSans-Medium.ttf", "Assets/Resources/Fonts/Body SDF.asset");
+        Create("Assets/Fonts/AlegreyaSans/AlegreyaSans-Bold.ttf", "Assets/Resources/Fonts/Body Bold SDF.asset");
+        Create("Assets/Fonts/AlegreyaSans/AlegreyaSans-Italic.ttf", "Assets/Resources/Fonts/Body Italic SDF.asset");
+        var body = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Resources/Fonts/Body SDF.asset");
+        var bold = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Resources/Fonts/Body Bold SDF.asset");
+        var italic = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Resources/Fonts/Body Italic SDF.asset");
+        if (body == null) return r;
+        var table = body.fontWeightTable;
+        table[7].regularTypeface = bold;     // <b> → Alegreya Sans Bold
+        table[4].italicTypeface = italic;    // <i> → Alegreya Sans Italic
+        EditorUtility.SetDirty(body);
+        return r;
     }
 
     static string Create(string ttf, string path)

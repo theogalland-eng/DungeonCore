@@ -125,3 +125,15 @@ Mise en ligne du projet sur GitHub (ce dépôt), avec cette documentation.
 - 🎮 **Tactiques des monstres** : le gobelin **charge** (armement visible, ruée, coup renforcé), le gnoll **bondit** sur sa cible, les rats **contournent** pour prendre l'intrus de flanc.
 - 🎨 **Armure selon le rang** : les aventuriers des expéditions portent la tenue de leur rang de Guilde, de la toile (F) à l'armure dorée (SSS).
 - 🎵 **Musiques** publiées : composées par l'auteur avec Gemini Music.
+
+### Des aventuriers et une faune qui vivent
+
+**Retours clés :** *« les animaux boivent autour des points d'eau, suivent le jour et la nuit, les aventuriers veulent en manger »*, *« parfois ils se battent entre eux, certains boivent, sont dépressifs, peureux, chanceux »*, *« tank en première ligne, prêtre et mage en arrière »*.
+
+- 🎨 **Interface** : police **Alegreya Sans** pour le texte courant, **fenêtre Colonie** refaite (tuiles de chiffres, jauge de relation en pixels, sections à icônes), **fiche d'intrus** au toucher.
+- 🦌 **Faune vivante** (`WildAnimal`, `FreshWater`) : troupeaux de cerfs et de sangliers, **boire aux lacs** à l'aube et au crépuscule, **sommeil** serré la nuit, **renard** qui chasse lièvres et tétras la nuit, **sanglier** qui charge son agresseur, **naissances** chaque matin et retour d'une espèce disparue après quelques jours.
+- 🍖 **Faim des intrus** (`AdventurerLife`) : rations à l'arrivée, faim qui monte sur l'île ; à sec, ils **chassent** le gibier et le **font griller** sur un feu de camp, ou rentrent. Affamés, ils frappent moins fort. Nouvel appât : le **garde-manger** — l'affamé se goinfre, immobile, le temps d'une embuscade.
+- 🍞 **Faim du héros** (mode Aventurier) : jauge douce, jamais mortelle (endurance et force en baisse) ; rations à la taverne, dans les coffres, ou en **chassant et dépeçant** le gibier (touche G : manger).
+- 🎭 **Caractères** : ivrogne, dépressif, peureux, chanceux, bagarreur, glouton, courageux, cupide. Ils se **révèlent** en observant l'intrus. **Bagarres** (alcool, partage du butin), parfois **à mort**.
+- ⚔️ **Combat de groupe** : le guerrier ouvre la marche, tireurs et soigneuse suivent derrière, **focalisation** sur la cible du guerrier, le guerrier **s'interpose** et provoque, les blessés **se replient** derrière lui, l'éclaireur **repère les pièges** pour toute l'expédition. Mêmes règles pour les **compagnons** du héros.
+- 👹 **Monstres** : tireurs qui gardent leurs distances, **meutes** qui encerclent, **mur de boucliers** (orcs, golems), **fuite** vers les alliés à l'agonie, **embuscades** des monstres postés.

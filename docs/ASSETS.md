@@ -22,6 +22,7 @@
 | Bruitages et ambiances | `Assets/Resources/Audio/Sfx`, `…/Ambience` | Synthétisés par `make_sfx.py` et `make_ambience.py` |
 | Mouette de l'intro, bannière | `Assets/Resources/FX/gull_32x32.png`, `docs/banner.png` | Dessinées par `make_gull.py` et `make_banner.py` |
 | Polices Cinzel et Cinzel Decorative | `Assets/Fonts`, `Assets/Resources/Fonts` | © The Cinzel Project Authors — [SIL Open Font License 1.1](../Assets/Fonts/OFL.txt) |
+| Police Alegreya Sans (texte courant) | `Assets/Fonts/AlegreyaSans`, `Assets/Resources/Fonts/Body*` | © The Alegreya Sans Project Authors — [SIL Open Font License 1.1](../Assets/Fonts/AlegreyaSans/OFL.txt) |
 
 ## ❌ Non inclus (à récupérer)
 

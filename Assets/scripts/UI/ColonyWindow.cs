@@ -12,7 +12,7 @@ public class ColonyWindow : MonoBehaviour
 
     private Canvas canvas;
     private RectTransform window;
-    private TextMeshProUGUI colonyText, relationState, relationEffects, punitiveText, spareText, raidText;
+    private TextMeshProUGUI relationState, relationEffects, punitiveText, spareText, raidText;
     private RectTransform gaugeMarker;
     private Button bribeBtn, truceBtn, spareBtn, terrorBtn, bloodBtn;
     private float refresh;
@@ -33,6 +33,7 @@ public class ColonyWindow : MonoBehaviour
         go.AddComponent<GraphicRaycaster>();
         Build(UIKit.Stretch(UIKit.Rect("Root", go.transform)));
         window.gameObject.SetActive(false);
+        blocker.gameObject.SetActive(false);
     }
 
     private void OnDestroy()
@@ -50,80 +51,130 @@ public class ColonyWindow : MonoBehaviour
     public void Open()
     {
         window.gameObject.SetActive(true);
+        blocker.gameObject.SetActive(true);
+        window.localScale = Vector3.one * 0.96f;
         Refresh();
     }
 
     public void Close()
     {
         window.gameObject.SetActive(false);
+        blocker.gameObject.SetActive(false);
         PointerUtil.BlockWorldInput(0.2f);
+    }
+
+    private TextMeshProUGUI stageText, emptyText;
+    private RectTransform blocker;
+    private readonly System.Collections.Generic.Dictionary<string, TextMeshProUGUI> stats = new System.Collections.Generic.Dictionary<string, TextMeshProUGUI>();
+    private RectTransform statRow;
+
+    /// <summary>Carte de section : fond plus clair, liseré discret, titre en Cinzel avec icône.</summary>
+    private static RectTransform Section(RectTransform parent, string name, string title, string icon, float y, float h)
+    {
+        var card = UIKit.PanelBox(name, parent, new Vector2(0.5f, 1), new Vector2(0, y), new Vector2(812, h), UIKit.Card);
+        card.pivot = new Vector2(0.5f, 1);
+        card.Find("Liseré").GetComponent<Image>().color = UIKit.TrimSoft;
+        UIKit.Icon(card, icon, new Vector2(18, -14), 30);
+        var t = UIKit.LabelAt(card, title, 24, UIKit.Gold, new Vector2(58, -14), new Vector2(460, 34));
+        UIKit.StyleHead(t);
+        return card;
+    }
+
+    /// <summary>Tuile de statistique : icône, valeur en grand, libellé dessous.</summary>
+    private void StatTile(string key, string icon, string label, int index)
+    {
+        var tile = UIKit.Place(UIKit.Rect("Stat_" + key, statRow), new Vector2(0, 1), new Vector2(index * 136f, 0), new Vector2(128, 96));
+        UIKit.Image(tile, new Color(0.05f, 0.045f, 0.08f, 0.9f), true, false);
+        UIKit.Icon(tile, icon, new Vector2(0, -8), 34, new Vector2(0.5f, 1));
+        var v = UIKit.LabelAt(tile, "-", 24, UIKit.Text, new Vector2(0, -42), new Vector2(124, 30), TextAlignmentOptions.Top, new Vector2(0.5f, 1));
+        UIKit.StyleHead(v);   // chiffres alignés (Cinzel)
+        UIKit.LabelAt(tile, label, 15, UIKit.Sub, new Vector2(0, -70), new Vector2(124, 22), TextAlignmentOptions.Top, new Vector2(0.5f, 1));
+        stats[key] = v;
     }
 
     private void Build(RectTransform root)
     {
-        window = UIKit.PanelBox("ColonyWindow", root, new Vector2(0.5f, 0.5f), new Vector2(0, -20), new Vector2(820, 900));
+        blocker = UIKit.Blocker(root, 0.55f);
+        blocker.gameObject.AddComponent<Button>().onClick.AddListener(Close);
+        window = UIKit.PanelBox("ColonyWindow", root, new Vector2(0.5f, 0.5f), new Vector2(0, -10), new Vector2(860, 984));
         window.pivot = new Vector2(0.5f, 0.5f);
-        UIKit.LabelAt(window, "Colonie & relations", 38, UIKit.Gold, new Vector2(28, -20), new Vector2(600, 50));
-        UIKit.BtnAt(window, "Fermer", Close, new Vector2(1, 1), new Vector2(-18, -18), new Vector2(130, 50), 22);
 
-        colonyText = UIKit.LabelAt(window, "", 22, UIKit.Text, new Vector2(28, -80), new Vector2(764, 64));
+        // ── En-tête
+        var title = UIKit.LabelAt(window, "Colonie", 40, UIKit.Gold, new Vector2(30, -20), new Vector2(560, 52));
+        UIKit.StyleTitle(title);
+        stageText = UIKit.LabelAt(window, "", 20, UIKit.Sub, new Vector2(32, -72), new Vector2(700, 28));
+        var close = UIKit.BtnAt(window, "", Close, new Vector2(1, 1), new Vector2(-20, -20), new Vector2(60, 60));
+        UIKit.Icon(close.transform, "close", Vector2.zero, 26, new Vector2(0.5f, 0.5f));
+        var sep = UIKit.Place(UIKit.Rect("Séparateur", window), new Vector2(0.5f, 1), new Vector2(0, -108), new Vector2(812, 2));
+        UIKit.Image(sep, new Color(UIKit.Trim.r, UIKit.Trim.g, UIKit.Trim.b, 0.35f), false, false);
+
+        // ── Chiffres de la colonie
+        statRow = UIKit.Place(UIKit.Rect("Stats", window), new Vector2(0.5f, 1), new Vector2(0, -124), new Vector2(808, 96));
+        StatTile("pop", "people", "habitants", 0);
+        StatTile("mood", "mood", "moral", 1);
+        StatTile("prosp", "coin", "prospérité", 2);
+        StatTile("wood", "log", "bois", 3);
+        StatTile("stone", "rock", "pierre", 4);
+        StatTile("food", "fish", "vivres", 5);
+        emptyText = UIKit.LabelAt(window, "Aucune colonie humaine sur l'île pour l'instant. Elle apparaîtra quand le monde découvrira votre existence.",
+            20, UIKit.Sub, new Vector2(0, -132), new Vector2(760, 80), TextAlignmentOptions.Center, new Vector2(0.5f, 1));
 
         // ── Relation
-        var rel = UIKit.PanelBox("Relation", window, new Vector2(0.5f, 1), new Vector2(0, -150), new Vector2(772, 300), UIKit.Card);
-        rel.pivot = new Vector2(0.5f, 1);
-        UIKit.LabelAt(rel, "Relation avec la colonie", 26, UIKit.Text, new Vector2(20, -14), new Vector2(420, 34));
-        relationState = UIKit.LabelAt(rel, "", 26, UIKit.Gold, new Vector2(-20, -14), new Vector2(300, 34), TextAlignmentOptions.TopRight, new Vector2(1, 1));
-        var gauge = UIKit.Place(UIKit.Rect("Gauge", rel), new Vector2(0, 1), new Vector2(20, -58), new Vector2(732, 20));
-        UIKit.Image(gauge, new Color(0, 0, 0, 0.5f), false, false);
-        // dégradé rouge → vert
-        for (int i = 0; i < 20; i++)
+        var rel = Section(window, "Relation", "Relation", "people", -236, 272);
+        relationState = UIKit.LabelAt(rel, "", 24, UIKit.Gold, new Vector2(-20, -16), new Vector2(320, 32), TextAlignmentOptions.TopRight, new Vector2(1, 1));
+        var gauge = UIKit.Place(UIKit.Rect("Gauge", rel), new Vector2(0, 1), new Vector2(20, -62), new Vector2(772, 22));
+        UIKit.Image(gauge, new Color(0.03f, 0.025f, 0.05f, 0.95f), true, false);
+        // dégradé rouge → vert, en segments de pixels
+        for (int i = 0; i < 24; i++)
         {
             var seg = UIKit.Rect("Seg", gauge);
-            seg.anchorMin = new Vector2(i / 20f, 0); seg.anchorMax = new Vector2((i + 1) / 20f, 1);
-            seg.offsetMin = new Vector2(1, 3); seg.offsetMax = new Vector2(-1, -3);
-            UIKit.Image(seg, Color.Lerp(new Color(0.85f, 0.25f, 0.2f, 0.55f), new Color(0.3f, 0.85f, 0.45f, 0.55f), i / 19f), false, false);
+            seg.anchorMin = new Vector2(i / 24f, 0); seg.anchorMax = new Vector2((i + 1) / 24f, 1);
+            seg.offsetMin = new Vector2(i == 0 ? 5 : 1, 5); seg.offsetMax = new Vector2(i == 23 ? -5 : -1, -5);
+            UIKit.Image(seg, Color.Lerp(new Color(0.85f, 0.33f, 0.29f, 0.85f), new Color(0.47f, 0.66f, 0.27f, 0.85f), i / 23f), false, false);
         }
         gaugeMarker = UIKit.Rect("Marker", gauge);
         gaugeMarker.anchorMin = gaugeMarker.anchorMax = new Vector2(0.5f, 0.5f);
-        gaugeMarker.sizeDelta = new Vector2(8, 34);
-        UIKit.Image(gaugeMarker, Color.white, false, false);
+        gaugeMarker.sizeDelta = new Vector2(10, 36);
+        UIKit.Image(gaugeMarker, UIKit.Text, true, false);
         var trucePos = UIKit.Rect("TruceMark", gauge);
         trucePos.anchorMin = trucePos.anchorMax = new Vector2(0.8f, 0.5f);
-        trucePos.sizeDelta = new Vector2(3, 28);
+        trucePos.sizeDelta = new Vector2(3, 30);
         UIKit.Image(trucePos, new Color(0.6f, 1f, 0.7f, 0.8f), false, false);
+        UIKit.LabelAt(rel, "haine", 14, UIKit.Sub, new Vector2(20, -88), new Vector2(120, 20));
+        UIKit.LabelAt(rel, "trêve", 14, UIKit.Sub, new Vector2(20 + 772 * 0.8f - 20, -88), new Vector2(120, 20));
+        UIKit.LabelAt(rel, "respect", 14, UIKit.Sub, new Vector2(-20, -88), new Vector2(120, 20), TextAlignmentOptions.TopRight, new Vector2(1, 1));
 
-        relationEffects = UIKit.LabelAt(rel, "", 19, UIKit.Sub, new Vector2(20, -90), new Vector2(732, 110));
-        bribeBtn = UIKit.BtnAt(rel, "Pot-de-vin", () => { RelationSystem.Instance?.Bribe(); Refresh(); }, new Vector2(0, 0), new Vector2(20, 18), new Vector2(360, 66), 22);
+        relationEffects = UIKit.LabelAt(rel, "", 19, UIKit.Sub, new Vector2(20, -114), new Vector2(772, 96));
+        bribeBtn = UIKit.BtnAt(rel, "Pot-de-vin", () => { RelationSystem.Instance?.Bribe(); Refresh(); }, new Vector2(0, 0), new Vector2(20, 18), new Vector2(378, 66), 21);
         truceBtn = UIKit.BtnAt(rel, "Proposer une trêve", () =>
         {
             var r = RelationSystem.Instance;
             if (r == null) return;
             if (r.truce) r.BreakTruce(); else if (r.ProposeTruce()) Close();
             Refresh();
-        }, new Vector2(1, 0), new Vector2(-20, 18), new Vector2(360, 66), 22);
-        punitiveText = UIKit.LabelAt(window, "", 22, GameHUD.DangerColor, new Vector2(28, -458), new Vector2(764, 34));
+        }, new Vector2(1, 0), new Vector2(-20, 18), new Vector2(378, 66), 21);
+        punitiveText = UIKit.LabelAt(window, "", 20, GameHUD.DangerColor, new Vector2(0, -514), new Vector2(800, 30), TextAlignmentOptions.Top, new Vector2(0.5f, 1));
 
         // ── Intrus
-        var intr = UIKit.PanelBox("Intrus", window, new Vector2(0.5f, 1), new Vector2(0, -496), new Vector2(772, 118), UIKit.Card);
-        intr.pivot = new Vector2(0.5f, 1);
-        spareText = UIKit.LabelAt(intr, "", 20, UIKit.Sub, new Vector2(20, -14), new Vector2(380, 90));
-        spareBtn = UIKit.BtnAt(intr, "Laisser partir les intrus", () => { RelationSystem.Instance?.SpareAll(); Refresh(); }, new Vector2(1, 0.5f), new Vector2(-20, 0), new Vector2(340, 66), 21,
-            new Color(0.2f, 0.4f, 0.28f, 1f));
+        var intr = Section(window, "Intrus", "Intrus sur l'île", "skull", -548, 150);
+        spareText = UIKit.LabelAt(intr, "", 19, UIKit.Sub, new Vector2(20, -54), new Vector2(420, 84));
+        spareBtn = UIKit.BtnAt(intr, "Laisser partir", () => { RelationSystem.Instance?.SpareAll(); Refresh(); }, new Vector2(1, 0), new Vector2(-20, 18), new Vector2(320, 66), 21,
+            new Color(0.2f, 0.38f, 0.27f, 1f));
 
         // ── Raids
-        var raid = UIKit.PanelBox("Raids", window, new Vector2(0.5f, 1), new Vector2(0, -626), new Vector2(772, 250), UIKit.Card);
-        raid.pivot = new Vector2(0.5f, 1);
-        UIKit.LabelAt(raid, "Raids nocturnes", 26, UIKit.Text, new Vector2(20, -14), new Vector2(420, 34));
-        raidText = UIKit.LabelAt(raid, "", 19, UIKit.Sub, new Vector2(20, -52), new Vector2(732, 104));
-        terrorBtn = UIKit.BtnAt(raid, "Raid de terreur", () => { if (RaidSystem.Instance != null && RaidSystem.Instance.Launch(false)) Close(); }, new Vector2(0, 0), new Vector2(20, 18), new Vector2(360, 66), 22,
+        var raid = Section(window, "Raids", "Raids nocturnes", "torch", -710, 246);
+        raidText = UIKit.LabelAt(raid, "", 18, UIKit.Sub, new Vector2(20, -52), new Vector2(772, 100));
+        terrorBtn = UIKit.BtnAt(raid, "Raid de terreur", () => { if (RaidSystem.Instance != null && RaidSystem.Instance.Launch(false)) Close(); }, new Vector2(0, 0), new Vector2(20, 18), new Vector2(378, 66), 21,
             new Color(0.42f, 0.3f, 0.12f, 1f));
-        bloodBtn = UIKit.BtnAt(raid, "Raid sanglant", () => { if (RaidSystem.Instance != null && RaidSystem.Instance.Launch(true)) Close(); }, new Vector2(1, 0), new Vector2(-20, 18), new Vector2(360, 66), 22,
+        bloodBtn = UIKit.BtnAt(raid, "Raid sanglant", () => { if (RaidSystem.Instance != null && RaidSystem.Instance.Launch(true)) Close(); }, new Vector2(1, 0), new Vector2(-20, 18), new Vector2(378, 66), 21,
             new Color(0.5f, 0.13f, 0.14f, 1f));
     }
 
     private void Update()
     {
         if (!IsOpen) return;
+        // petite apparition
+        if (window.localScale.x < 1f) window.localScale = Vector3.one * Mathf.MoveTowards(window.localScale.x, 1f, Time.unscaledDeltaTime * 0.5f);
         refresh -= Time.unscaledDeltaTime;
         if (refresh <= 0f) Refresh();
     }
@@ -136,13 +187,20 @@ public class ColonyWindow : MonoBehaviour
         var raids = RaidSystem.Instance;
         bool exists = colony != null && colony.enabled && colony.stage > 0;
 
+        statRow.gameObject.SetActive(exists);
+        emptyText.gameObject.SetActive(!exists);
         if (exists)
         {
             string mood = colony.morale < 25 ? "<color=#FF8A7A>terrifiée</color>" : colony.morale < 45 ? "<color=#FFC266>inquiète</color>" : "<color=#9CF0A8>sereine</color>";
-            colonyText.text = $"<b>{colony.StageName}</b> · {colony.Population}/{colony.Capacity} habitants · moral {colony.morale:0} ({mood})\n" +
-                              $"<size=88%><color=#B9B3CC>Prospérité {colony.prosperity:0} · bois {colony.wood} · pierre {colony.stone} · vivres {colony.food}</color></size>";
+            stageText.text = $"{colony.StageName} · population {mood}";
+            stats["pop"].text = $"{colony.Population}<size=70%><color=#A59FB6>/{colony.Capacity}</color></size>";
+            stats["mood"].text = $"{colony.morale:0}";
+            stats["prosp"].text = $"{colony.prosperity:0}";
+            stats["wood"].text = colony.wood.ToString();
+            stats["stone"].text = colony.stone.ToString();
+            stats["food"].text = colony.food < colony.Population * 3 ? $"<color=#FF8A7A>{colony.food}</color>" : colony.food.ToString();
         }
-        else colonyText.text = "<color=#9A96B0>Aucune colonie humaine sur l'île pour l'instant. Elle apparaîtra quand le monde découvrira votre existence.</color>";
+        else stageText.text = "Pas encore de colonie";
 
         if (rel != null)
         {

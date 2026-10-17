@@ -25,6 +25,7 @@ public class AdventurerCombat : MonoBehaviour, IDamageable
     private Color baseColor = Color.white;
     private Coroutine flashRoutine;
     private AdventurerAI ai;
+    public AdventurerAI AI => ai;
 
     private void Awake()
     {
@@ -48,10 +49,20 @@ public class AdventurerCombat : MonoBehaviour, IDamageable
     /// <summary>Jusqu'à cet instant, les coups ne portent pas (roulade du héros).</summary>
     [System.NonSerialized] public float invulnerableUntil;
 
+    // Modificateurs d'humeur et d'état (AdventurerLife) : ivresse, faim, chance...
+    [System.NonSerialized] public float damageMult = 1f;
+    [System.NonSerialized] public float missChance;
+    [System.NonSerialized] public float dodgeChance;
+
     public void TakeDamage(float amount)
     {
         if (currentHealth <= 0f) return;
         if (Time.time < invulnerableUntil)
+        {
+            FloatingText.Spawn(transform.position + Vector3.up * 0.6f, "Esquive !", new Color(0.7f, 0.9f, 1f), 0.8f);
+            return;
+        }
+        if (dodgeChance > 0f && Random.value < dodgeChance)
         {
             FloatingText.Spawn(transform.position + Vector3.up * 0.6f, "Esquive !", new Color(0.7f, 0.9f, 1f), 0.8f);
             return;
@@ -142,9 +153,17 @@ public class AdventurerCombat : MonoBehaviour, IDamageable
 
     private void Hit(IDamageable target)
     {
-        target.TakeDamage(attackDamage);
+        if (missChance > 0f && Random.value < missChance)
+        {
+            var t = (target as Component)?.transform;
+            FloatingText.Spawn((t != null ? t.position : transform.position) + Vector3.up * 0.5f, "Raté", new Color(0.75f, 0.72f, 0.8f), 0.8f);
+            return;
+        }
+        float dmg = attackDamage * damageMult;
+        if (target is WildAnimal beast) beast.TakeDamage(dmg, transform);
+        else target.TakeDamage(dmg);
         if (target is GobelinAI goblin) goblin.OnAttackedBy(transform);
-        DLog.Log($"{adventurerName} attaque {target.GetName()} pour {attackDamage} dégâts");
+        DLog.Log($"{adventurerName} attaque {target.GetName()} pour {dmg} dégâts");
     }
 
     private void OnDrawGizmosSelected()

@@ -129,6 +129,24 @@ public static class CatalogBuilder
     }
 
     /// <summary>Sprite de la cellule (Resources/Prison, dessiné par Claude) : 32 px par unité, filtrage net.</summary>
+    /// <summary>Objet dessiné pour le projet (Assets/Art/Generated/Props, PPU 16).</summary>
+    private static Sprite PropSprite(string name)
+    {
+        string path = $"Assets/Art/Generated/Props/{name}.png";
+        var imp = (TextureImporter)AssetImporter.GetAtPath(path);
+        if (imp != null && (imp.textureType != TextureImporterType.Sprite || imp.spritePixelsPerUnit != 16f || imp.filterMode != FilterMode.Point))
+        {
+            imp.textureType = TextureImporterType.Sprite;
+            imp.spriteImportMode = SpriteImportMode.Single;
+            imp.spritePixelsPerUnit = 16f;
+            imp.filterMode = FilterMode.Point;
+            imp.textureCompression = TextureImporterCompression.Uncompressed;
+            imp.mipmapEnabled = false;
+            imp.SaveAndReimport();
+        }
+        return AssetDatabase.LoadAssetAtPath<Sprite>(path);
+    }
+
     private static Sprite PrisonSprite(string name)
     {
         string path = $"Assets/Resources/Prison/{name}.png";
@@ -201,6 +219,11 @@ public static class CatalogBuilder
 
         var barrel = SavePrefab(Decor("Tonneau", traps.GetValueOrDefault("full_traps_195"), 0.95f));
         var supplies = SavePrefab(Decor("Reserves", traps.GetValueOrDefault("full_traps_260"), 1.1f));
+        // Garde-manger (Tools~/make_props.py) : appât des intrus affamés
+        var foodSprite = PropSprite("food_cache");
+        var foodGo = Decor("GardeManger", foodSprite, 1.15f);
+        foodGo.AddComponent<FoodBait>();
+        var foodPrefab = SavePrefab(foodGo);
         var banner = SavePrefab(Decor("Banniere", traps.GetValueOrDefault("full_traps_200"), 1.5f));
         var helm = SavePrefab(Decor("Heaume", traps.GetValueOrDefault("full_traps_199"), 0.9f));
         var rack = SavePrefab(Decor("Ratelier", traps.GetValueOrDefault("full_traps_218"), 1.2f));
@@ -524,6 +547,7 @@ public static class CatalogBuilder
         Add("torch", "Torche", CatalogCategory.Decor, ItemKind.Decor, torchPrefab, 15, 1, dungeon.GetValueOrDefault("dungeon_tiles_196"), "Éclaire les couloirs (surtout la nuit).", 1f);
         Add("chest", "Coffre au trésor", CatalogCategory.Decor, ItemKind.Decor, chestPrefab, 60, 1, dungeon.GetValueOrDefault("dungeon_tiles_170"), "Appât : les intrus cupides font un détour pour le piller. Chaque jour, le Noyau le remplit (butin pris aux morts, ou richesses nées du mana).", 2f); U(4);
         Add("barrel", "Tonneau", CatalogCategory.Decor, ItemKind.Decor, barrel, 8, 1, traps.GetValueOrDefault("full_traps_195"), "Simple décor.", 0.5f);
+        Add("food_cache", "Garde-manger", CatalogCategory.Decor, ItemKind.Decor, foodPrefab, 40, 1, foodSprite, "Appât : un intrus affamé qui le voit accourt et se goinfre, immobile et sans méfiance. Regarni chaque matin.", 0.5f);
         Add("supplies", "Réserves", CatalogCategory.Decor, ItemKind.Decor, supplies, 12, 1, traps.GetValueOrDefault("full_traps_260"), "Caisses et tonneaux.", 0.7f);
         Add("banner", "Bannière", CatalogCategory.Decor, ItemKind.Decor, banner, 20, 2, traps.GetValueOrDefault("full_traps_200"), "Un donjon qui a du style attire les curieux.", 1.5f);
         Add("helm", "Heaume trophée", CatalogCategory.Decor, ItemKind.Decor, helm, 20, 2, traps.GetValueOrDefault("full_traps_199"), "Souvenir d'un chevalier malchanceux.", 1.5f);

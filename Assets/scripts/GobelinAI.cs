@@ -104,6 +104,8 @@ public class GobelinAI : MonoBehaviour, IDamageable
     private Vector2 savedAnchorPosition;
 
     private Transform missionTarget;
+    /// <summary>Celui qu'il poursuit (null : aucun).</summary>
+    public Transform MissionTarget => missionTarget;
     private Vector2 missionDestination;
     private float attackAnimTimer;
     private float outOfCombatTimer;
@@ -319,6 +321,7 @@ public class GobelinAI : MonoBehaviour, IDamageable
 
     private void FixedUpdate()
     {
+        UpdateAmbush();
         if (isDead) return;
         if (attackAnimTimer > 0f) attackAnimTimer -= Time.fixedDeltaTime;
         UnstuckFromWalls();
@@ -458,6 +461,10 @@ public class GobelinAI : MonoBehaviour, IDamageable
         float dist = Vector2.Distance(rb.position, missionTarget.position);
         // une charge ou un bond en cours va jusqu'au bout
         if (tacticPhase > 0) { StepTactic(dist); return; }
+        // presque mort : il file chercher de l'aide (une fois)
+        if (UpdateFleeToAllies()) return;
+        // tireurs (diablotins, liches) : ils reculent si on les colle
+        if (attackRange >= 2.5f && dist < 1.8f && KiteFrom(missionTarget)) { if (CanAttack() && dist <= attackRange) Attack(); return; }
 
         switch (combatState)
         {
@@ -470,7 +477,7 @@ public class GobelinAI : MonoBehaviour, IDamageable
                 {
                     if (!TryStartTactic(dist))
                     {
-                        FollowPath(chaseSpeed);
+                        if (!PackSlot(dist)) FollowPath(chaseSpeed);
                         Flank(dist);
                     }
                 }
@@ -581,6 +588,8 @@ public class GobelinAI : MonoBehaviour, IDamageable
     private void EndMission()
     {
         if (tacticPhase > 0) EndTactic();
+        fledOnce = false;
+        fleeTo = null;
         isOnMission = false;
         currentMission = MissionType.None;
         missionTarget = null;
@@ -633,7 +642,20 @@ public class GobelinAI : MonoBehaviour, IDamageable
     {
         outOfCombatTimer = 0f;
         if (IsPossessed || isDead || attacker == null) return;
-        if (currentMission == MissionType.ChaseEnemy && missionTarget != null) return;
+        if (ambushing) { ambushing = false; RevealAmbush(); }
+        if (currentMission == MissionType.ChaseEnemy && missionTarget != null)
+        {
+            // provocation : le guerrier qui frappe détourne le monstre des tireurs et de la soigneuse
+            var att = attacker.GetComponent<AdventurerAI>();
+            var cur = missionTarget.GetComponent<AdventurerAI>();
+            if (att != null && cur != null && att != cur && att.role == AdventurerAI.Role.Warrior && cur.role != AdventurerAI.Role.Warrior
+                && tacticPhase == 0 && Random.value < 0.6f)
+            {
+                missionTarget = attacker;
+                combatState = CombatState.Approaching;
+            }
+            return;
+        }
         StartMission(MissionType.ChaseEnemy, attacker);
     }
 
@@ -1006,6 +1028,131 @@ public class GobelinAI : MonoBehaviour, IDamageable
         lastMoveDirection = movement.normalized;
     }
 
+    // ── Meute, tireurs, mur de boucliers, fuite et embuscade ──
+
+    private bool IsShield { get { string f = Family; return f == "orc" || f == "golem"; } }
+    private static readonly System.Collections.Generic.HashSet<string> Fearless =
+        new System.Collections.Generic.HashSet<string> { "skeleton", "zombie", "golem", "slime", "ghost", "temple_spirit", "lich" };
+    private bool fledOnce;
+    private float fleeUntil;
+    private Transform fleeTo;
+
+    /// <summary>À moins d'un quart de ses PV, il fuit vers le monstre le plus proche et donne l'alerte (une fois par combat).</summary>
+    private bool UpdateFleeToAllies()
+    {
+        if (fleeTo != null)
+        {
+            if (Time.time > fleeUntil || Vector2.Distance(rb.position, fleeTo.position) < 1.4f)
+            {
+                fleeTo = null;
+                AlertNearbyGoblins();
+                if (missionTarget != null) foreach (var g in All) if (g != this && g != null && Vector2.Distance(g.transform.position, rb.position) < 3f) g.OnAttackedBy(missionTarget);
+                return false;
+            }
+            FollowPath(chaseSpeed * 1.15f);
+            return true;
+        }
+        if (fledOnce || IsPossessed || maxHealth <= 0f || currentHealth / maxHealth > 0.25f || Fearless.Contains(Family) || IsGuardianUnit) return false;
+        GobelinAI best = null;
+        float bd = 12f;
+        foreach (var g in All)
+        {
+            if (g == this || g == null || g.isDead || g.currentMission == MissionType.ChaseEnemy) continue;
+            float d = Vector2.Distance(g.transform.position, rb.position);
+            if (d < bd && d > 2f) { bd = d; best = g; }
+        }
+        if (best == null) return false;
+        fledOnce = true;
+        fleeTo = best.transform;
+        fleeUntil = Time.time + 4f;
+        ForceRecalculatePath(best.transform.position);
+        FloatingText.Spawn(transform.position + Vector3.up * 0.7f, "À l'aide !", new Color(0.8f, 0.9f, 1f), 0.9f);
+        return true;
+    }
+
+    private bool IsGuardianUnit { get { var m = GetComponent<MonsterMind>(); return m != null && m.IsGuardian; } }
+
+    /// <summary>Recule face à la cible (sans traverser les murs).</summary>
+    private bool KiteFrom(Transform t)
+    {
+        Vector2 away = (rb.position - (Vector2)t.position).normalized;
+        Vector2 to = rb.position + away * 1.2f;
+        if (!AdventurerAI.ClearLine(rb.position, to, obstacleLayer))
+        {
+            Vector2 alt = rb.position + (away + new Vector2(-away.y, away.x)).normalized * 1.2f;
+            if (!AdventurerAI.ClearLine(rb.position, alt, obstacleLayer)) return false;
+            to = alt;
+        }
+        movement = (to - rb.position).normalized * chaseSpeed;
+        rb.linearVelocity = movement;
+        lastMoveDirection = -away;
+        return true;
+    }
+
+    private static readonly System.Collections.Generic.List<GobelinAI> packBuf = new System.Collections.Generic.List<GobelinAI>();
+
+    /// <summary>
+    /// Meute : les monstres d'une même famille qui chassent la même proie se répartissent autour d'elle
+    /// (chacun son angle) au lieu de faire la queue dans le couloir.
+    /// </summary>
+    private bool PackSlot(float dist)
+    {
+        if (missionTarget == null || dist > 3.5f || dist < attackRange * 0.8f || attackRange >= 2.5f) return false;
+        string f = Family;
+        if (string.IsNullOrEmpty(f) || f == "rat") return false;
+        packBuf.Clear();
+        foreach (var g in All)
+            if (g != null && !g.isDead && g.missionTarget == missionTarget && g.Family == f) packBuf.Add(g);
+        if (packBuf.Count < 2) return false;
+        packBuf.Sort((a, b) => a.GetInstanceID().CompareTo(b.GetInstanceID()));
+        int idx = packBuf.IndexOf(this);
+        Vector2 tp = missionTarget.position;
+        Vector2 baseDir = (rb.position - tp).normalized;
+        float spread = Mathf.Min(140f, 55f * (packBuf.Count - 1));
+        float ang = (packBuf.Count == 1 ? 0f : -spread * 0.5f + spread * idx / (packBuf.Count - 1)) * Mathf.Deg2Rad;
+        // l'angle est mesuré depuis la direction moyenne de la meute : on encercle sans tourner autour
+        Vector2 avg = Vector2.zero;
+        foreach (var g in packBuf) avg += ((Vector2)g.transform.position - tp).normalized;
+        if (avg.sqrMagnitude < 0.01f) avg = baseDir;
+        avg.Normalize();
+        Vector2 dir = new Vector2(avg.x * Mathf.Cos(ang) - avg.y * Mathf.Sin(ang), avg.x * Mathf.Sin(ang) + avg.y * Mathf.Cos(ang));
+        Vector2 slot = tp + dir * attackRange * 0.85f;
+        if (!AdventurerAI.ClearLine(tp, slot, obstacleLayer)) return false;
+        Vector2 to = slot - rb.position;
+        if (to.magnitude < 0.2f) { StopMoving(); FaceTowards(tp); return true; }
+        if (!AdventurerAI.ClearLine(rb.position, slot, obstacleLayer)) return false;
+        movement = to.normalized * chaseSpeed;
+        rb.linearVelocity = movement;
+        lastMoveDirection = movement.normalized;
+        return true;
+    }
+
+    // Embuscade : un monstre posté (« Tenir ») et au repos depuis un moment se tapit dans l'ombre.
+    private bool ambushing;
+    private float stillSince = -1f;
+    /// <summary>Tapis dans l'ombre : les intrus ne le voient qu'à bout portant.</summary>
+    public bool IsAmbushing => ambushing;
+    private static readonly System.Collections.Generic.HashSet<string> Ambushers =
+        new System.Collections.Generic.HashSet<string> { "goblin", "gnoll", "lizard", "vampire", "imp", "rat", "orc" };
+
+    private void UpdateAmbush()
+    {
+        bool calm = currentBehavior == GoblinBehavior.Stay && !isOnMission && !IsPossessed && movement.sqrMagnitude < 0.01f && Ambushers.Contains(Family);
+        if (!calm) { stillSince = -1f; if (ambushing) { ambushing = false; RevealAmbush(); } return; }
+        if (stillSince < 0f) stillSince = Time.time;
+        if (!ambushing && Time.time - stillSince > 5f)
+        {
+            ambushing = true;
+            if (spriteRenderer != null) { var c = spriteRenderer.color; c.a = 0.55f; spriteRenderer.color = c; }   // repère pour le joueur
+        }
+    }
+
+    private void RevealAmbush()
+    {
+        stillSince = -1f;
+        if (spriteRenderer != null) { var c = spriteRenderer.color; c.a = baseColor.a; spriteRenderer.color = c; }
+    }
+
     public bool CanAttack() => Time.time - lastAttackTime >= attackCooldown;
 
     public void Attack()
@@ -1016,7 +1163,9 @@ public class GobelinAI : MonoBehaviour, IDamageable
         if (damageable != null && damageable.IsAlive())
         {
             attackAnimTimer = 0.4f;
-            float dmg = attackDamage * ThemeDamageMult() * (IslandEvents.Instance != null ? IslandEvents.Instance.MonsterDamageMult : 1f)
+            float ambushMult = ambushing ? 1.5f : 1f;
+            if (ambushing) { ambushing = false; RevealAmbush(); FloatingText.Spawn(transform.position + Vector3.up * 0.7f, "Embuscade !", new Color(1f, 0.55f, 0.35f), 1f); }
+            float dmg = ambushMult * attackDamage * ThemeDamageMult() * (IslandEvents.Instance != null ? IslandEvents.Instance.MonsterDamageMult : 1f)
                         * ThemedRooms.DamageMult(rb.position, Family);
             damageable.TakeDamage(dmg);
             Sfx.Play("hit_claw", transform.position, 0.8f);
@@ -1131,6 +1280,9 @@ public class GobelinAI : MonoBehaviour, IDamageable
     public void TakeDamage(float amount)
     {
         if (isDead) return;
+        // mur de boucliers : un orc ou un golem campé sur ses appuis encaisse mieux
+        if (IsShield && movement.sqrMagnitude < 0.05f) amount *= 0.65f;
+        if (ambushing) { ambushing = false; RevealAmbush(); }
         currentHealth -= amount;
         outOfCombatTimer = 0f;
         FloatingText.Spawn(transform.position + Vector3.up * 0.5f, Mathf.RoundToInt(amount).ToString(), new Color(1f, 0.4f, 0.4f), 0.9f);

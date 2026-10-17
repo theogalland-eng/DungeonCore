@@ -75,11 +75,26 @@ public class CrawlerCompanion : MonoBehaviour
         if (role == AdventurerAI.Role.Healer && TryHeal()) { Animate(); return; }
 
         var target = FindTarget(me, lp);
+        bool ranged = role == AdventurerAI.Role.Archer || role == AdventurerAI.Role.Mage;
+        // blessé (et pas guerrier) : il se replie derrière le héros
+        if (target != null && role != AdventurerAI.Role.Warrior && Combat.currentHealth < Combat.maxHealth * 0.35f)
+        {
+            Vector2 away = (lp - (Vector2)target.transform.position).normalized;
+            Vector2 safe = lp + away * 1.8f;
+            if (Vector2.Distance(me, safe) > 0.6f) { Steer(safe); Animate(); return; }
+        }
         if (target != null)
         {
             Vector2 tp = target.transform.position;
             float d = Vector2.Distance(me, tp);
             facing = (tp - me).normalized;
+            // tireurs et soigneuse : garder ses distances
+            if ((ranged || role == AdventurerAI.Role.Healer) && d < 1.8f)
+            {
+                Vector2 back = me + (me - tp).normalized * 1.2f;
+                if (AdventurerAI.ClearLine(me, back, 1 << 6)) { move = (back - me).normalized; Animate(); return; }
+            }
+            if (role == AdventurerAI.Role.Healer && d > Combat.attackRange) { Vector2 slotPos2 = lp + Offset(); if (Vector2.Distance(me, slotPos2) > 1.2f) Steer(slotPos2); Animate(); return; }
             if (d <= Combat.attackRange && AdventurerAI.ClearLine(me, tp, 1 << 6))
             {
                 if (Combat.CanAttack()) { Combat.Attack(target); target.OnAttackedBy(transform); attackAnim = 0.35f; }
@@ -94,18 +109,40 @@ public class CrawlerCompanion : MonoBehaviour
         Animate();
     }
 
+    /// <summary>Place dans la formation : le guerrier devant le héros, les tireurs derrière sur les côtés,
+    /// la soigneuse au centre, en retrait.</summary>
     private Vector2 Offset()
     {
         var p = CrawlerMode.Instance.Player;
         Vector2 f = p != null ? p.Facing : Vector2.down;
         Vector2 side = new Vector2(-f.y, f.x);
         float s = slot == 0 ? -0.8f : slot == 1 ? 0.8f : 0f;
-        float back = slot == 2 ? 1.6f : 1.0f;
-        return -f * back + side * s;
+        switch (role)
+        {
+            case AdventurerAI.Role.Warrior: return f * 0.9f + side * (slot == 1 ? -0.6f : 0.6f);
+            case AdventurerAI.Role.Healer: return -f * 1.8f + side * s * 0.4f;
+            default: return -f * 1.1f + side * (s == 0f ? 0.8f : s);
+        }
     }
 
     private GobelinAI FindTarget(Vector2 me, Vector2 lp)
     {
+        // le guerrier protège : priorité au monstre qui s'en prend à un tireur, à la soigneuse ou au héros
+        if (role == AdventurerAI.Role.Warrior)
+        {
+            GobelinAI threat = null;
+            float td = 6f;
+            foreach (var g in GobelinAI.All)
+            {
+                if (g == null || !g.IsAlive() || g.MissionTarget == null || g.MissionTarget == transform) continue;
+                var mate = g.MissionTarget.GetComponent<CrawlerCompanion>();
+                bool onWeak = (mate != null && mate.role != AdventurerAI.Role.Warrior) || g.MissionTarget.GetComponent<CrawlerPlayer>() != null;
+                if (!onWeak) continue;
+                float d = Vector2.Distance(me, g.transform.position);
+                if (d < td && AdventurerAI.ClearLine(me, g.transform.position, 1 << 6)) { td = d; threat = g; }
+            }
+            if (threat != null) return threat;
+        }
         GobelinAI best = null;
         float bestD = float.MaxValue;
         float reach = role == AdventurerAI.Role.Archer || role == AdventurerAI.Role.Mage ? 6f : 5f;

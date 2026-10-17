@@ -534,6 +534,20 @@ MonoBehaviour:
     unlockLevel: 1
     prestige: 0.5
     upkeep: 0
+  - id: food_cache
+    displayName: Garde-manger
+    description: "App\xE2t : un intrus affam\xE9 qui le voit accourt et se goinfre,
+      immobile et sans m\xE9fiance. Regarni chaque matin."
+    category: 3
+    kind: 3
+    tool: 0
+    icon: {fileID: 21300000, guid: f8485110395f4a24dbdafebbf281f3c1, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 3883910597551348084, guid: c718b6b3d9e53a74fb7071f1c4bfae42, type: 3}
+    cost: 40
+    unlockLevel: 1
+    prestige: 0.5
+    upkeep: 0
   - id: supplies
     displayName: "R\xE9serves"
     description: 'Caisses et tonneaux. Encombrant : bloque le passage (contre un

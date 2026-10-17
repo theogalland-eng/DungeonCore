@@ -182,6 +182,20 @@ public class MonsterSelector : MonoBehaviour
             return;
         }
 
+        // un intrus touché : sa fiche (traits observés, faim, ce qu'il fait)
+        if (selectedGoblins.Count == 0)
+        {
+            AdventurerAI tapped = null;
+            float bd = 0.7f;
+            foreach (var adv in AdventurerAI.All)
+            {
+                if (adv == null || adv.IsDead) continue;
+                float d = Vector2.Distance((Vector2)adv.transform.position + Vector2.up * 0.3f, worldPos);
+                if (d < bd) { bd = d; tapped = adv; }
+            }
+            if (tapped != null) { IntruderCard.Show(tapped); return; }
+        }
+
         if (selectedGoblins.Count > 0)
         {
             OrderMoveToPosition(worldPos);

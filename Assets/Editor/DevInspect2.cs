@@ -715,6 +715,42 @@ public static class DevInspect3
         }
         return $"{n} monstres";
     }
-    public static string TacticsCount() => $"tactiques lancées : {GobelinAI.TacticsUsed}";
+    public static string CardFirst()
+    {
+        foreach (var a in AdventurerAI.All)
+            if (a != null && !a.IsDead && a.Life != null)
+            {
+                foreach (var t in a.Life.traits) a.Life.Reveal(t);
+                IntruderCard.Show(a);
+                var cam = Camera.main; cam.transform.position = new Vector3(a.transform.position.x, a.transform.position.y, -10f);
+                return a.name;
+            }
+        return "aucun";
+    }
+    public static string ColonyOpen()
+    {
+        var sm = SettlementManager.Instance;
+        if (sm != null && sm.stage < 2) sm.BuildInstantly(2);
+        ColonyWindow.Instance?.Open();
+        return $"colonie stade {sm?.stage}";
+    }
+    public static string GodCore() { var c = Object.FindFirstObjectByType<DungeonCore>(); c.maxHealth = 1e6f; c.currentHealth = 1e6f; return "cristal invulnérable"; }
+    public static string Starve() { int n = 0; foreach (var a in AdventurerAI.All) if (a != null && a.Life != null) { a.Life.hunger = 88f; a.Life.rations = 0; n++; } return $"{n} affamés"; }
+    public static string LifeReport()
+    {
+        var sb = new System.Text.StringBuilder();
+        foreach (var a in AdventurerAI.All)
+        {
+            if (a == null || a.Life == null) continue;
+            var l = a.Life;
+            sb.Append($"[{a.combat.adventurerName.Split(' ')[0]} {a.State} {l.Activity} faim={l.hunger:0} rat={l.rations} ivre={l.drunk:0.0} traits={string.Join("/", l.traits)} vus={l.revealed.Count}] ");
+        }
+        var sp = new System.Collections.Generic.Dictionary<string, int>();
+        foreach (var w in WildAnimal.All) if (w != null && !w.IsDead) { string k = w.species.ToString(); sp[k] = (sp.TryGetValue(k, out int n) ? n : 0) + 1; }
+        sb.Append($" | faune {string.Join(",", System.Linq.Enumerable.Select(sp, kv => kv.Key + "=" + kv.Value))} carcasses={WildAnimal.Carcasses.Count} lacs={FreshWater.Lakes.Count}");
+        sb.Append($" | chasses={AdventurerLife.Hunts} bagarres={AdventurerLife.Brawls} intrus={AdventurerAI.All.Count} | tactiques={GobelinAI.TacticsUsed} temps x{Time.timeScale} jour {GameManager.Instance?.CurrentDay} {GameManager.Instance?.DayProgress:0.00}");
+        return sb.ToString();
+    }
+    public static string TacticsCount() =>$"tactiques lancées : {GobelinAI.TacticsUsed}";
 }
 #endif
