@@ -1,0 +1,246 @@
+{
+  "name": "aventurier",
+  "prompt": "jeune épéiste aventurier, cheveux sombres en bataille, tunique brune, écharpe rouge sombre, pantalon gris-violet, bottes, épée courte — même allure que l'épéiste craftpix niveau 2",
+  "rig": "humanoid",
+  "style": {
+    "height": 2.0,
+    "head": 0.46,
+    "build": "slim",
+    "legs": 0.42,
+    "shoulders": 0.95
+  },
+  "colors": {
+    "skin": "#e8b878",
+    "hair": "#4d3945",
+    "torso": "#5a4630",
+    "arms": "#5a4630",
+    "hands": "#e1b26e",
+    "legs": "#4a435b",
+    "boots": "#2b2023",
+    "belt": "#552d24",
+    "eyes": "#211a1c"
+  },
+  "hair": false,
+  "eyes": true,
+  "accessories": [
+    {
+      "type": "sword",
+      "color": "#e6dcae",
+      "guard": "#a07a4c",
+      "grip": "#3b2c33",
+      "hand": "right"
+    }
+  ],
+  "parts": [
+    {
+      "attach": "head",
+      "shape": "sphere",
+      "size": [
+        1.06,
+        1.06,
+        0.82
+      ],
+      "pos": [
+        0,
+        0.1,
+        0.18
+      ],
+      "rot": [
+        0,
+        0,
+        0
+      ],
+      "color": "#4d3945",
+      "bevel": 0
+    },
+    {
+      "attach": "head",
+      "shape": "cone",
+      "size": [
+        0.24,
+        0.24,
+        0.4
+      ],
+      "pos": [
+        0.25,
+        0.05,
+        0.5
+      ],
+      "rot": [
+        -10,
+        35,
+        0
+      ],
+      "color": "#4d3945",
+      "bevel": 0
+    },
+    {
+      "attach": "head",
+      "shape": "cone",
+      "size": [
+        0.24,
+        0.24,
+        0.4
+      ],
+      "pos": [
+        -0.25,
+        0.08,
+        0.5
+      ],
+      "rot": [
+        -10,
+        -35,
+        0
+      ],
+      "color": "#4d3945",
+      "bevel": 0
+    },
+    {
+      "attach": "head",
+      "shape": "cone",
+      "size": [
+        0.26,
+        0.26,
+        0.46
+      ],
+      "pos": [
+        0.0,
+        0.0,
+        0.62
+      ],
+      "rot": [
+        -15,
+        0,
+        0
+      ],
+      "color": "#4d3945",
+      "bevel": 0
+    },
+    {
+      "attach": "head",
+      "shape": "cone",
+      "size": [
+        0.24,
+        0.24,
+        0.4
+      ],
+      "pos": [
+        0.15,
+        0.35,
+        0.42
+      ],
+      "rot": [
+        -60,
+        20,
+        0
+      ],
+      "color": "#4d3945",
+      "bevel": 0
+    },
+    {
+      "attach": "head",
+      "shape": "cone",
+      "size": [
+        0.24,
+        0.24,
+        0.4
+      ],
+      "pos": [
+        -0.15,
+        0.35,
+        0.42
+      ],
+      "rot": [
+        -60,
+        -20,
+        0
+      ],
+      "color": "#4d3945",
+      "bevel": 0
+    },
+    {
+      "attach": "head",
+      "shape": "cone",
+      "size": [
+        0.18,
+        0.18,
+        0.3
+      ],
+      "pos": [
+        0.3,
+        -0.35,
+        0.3
+      ],
+      "rot": [
+        40,
+        30,
+        0
+      ],
+      "color": "#4d3945",
+      "bevel": 0
+    },
+    {
+      "attach": "head",
+      "shape": "cone",
+      "size": [
+        0.2,
+        0.2,
+        0.32
+      ],
+      "pos": [
+        -0.05,
+        -0.42,
+        0.38
+      ],
+      "rot": [
+        55,
+        -10,
+        0
+      ],
+      "color": "#4d3945",
+      "bevel": 0
+    },
+    {
+      "attach": "chest",
+      "shape": "torus",
+      "size": [
+        0.6,
+        0.6,
+        0.24
+      ],
+      "pos": [
+        0,
+        0,
+        0.32
+      ],
+      "rot": [
+        0,
+        0,
+        0
+      ],
+      "color": "#8a3328",
+      "bevel": 0
+    },
+    {
+      "attach": "chest",
+      "shape": "box",
+      "size": [
+        0.18,
+        0.08,
+        0.42
+      ],
+      "pos": [
+        0.14,
+        0.3,
+        0.1
+      ],
+      "rot": [
+        15,
+        0,
+        10
+      ],
+      "color": "#8a3328",
+      "bevel": 0
+    }
+  ]
+}

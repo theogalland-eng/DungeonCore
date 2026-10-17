@@ -535,9 +535,84 @@ public class MainMenu : MonoBehaviour
             card.pivot = new Vector2(0.5f, 1);
             UIKit.LabelAt(card, CrawlerMode.ClassNames[i], 32, UIKit.Gold, new Vector2(24, -14), new Vector2(700, 42));
             UIKit.LabelAt(card, CrawlerMode.ClassDescs[i], 21, UIKit.Text, new Vector2(24, -60), new Vector2(760, 70));
-            UIKit.BtnAt(card, "Partir", () => StartCrawler(role), new Vector2(1, 0.5f), new Vector2(-24, 0), new Vector2(200, 64), 26, UIKit.Accent);
+            UIKit.BtnAt(card, "Choisir", () => ShowCustomize(role), new Vector2(1, 0.5f), new Vector2(-24, 0), new Vector2(200, 64), 26, UIKit.Accent);
             y += 156f;
         }
+    }
+
+    // ── Mode Aventurier : apparence et nom du héros
+    private void ShowCustomize(AdventurerAI.Role role)
+    {
+        HeroLook.Load();
+        var box = OpenModal("Votre aventurier", new Vector2(1180, 820));
+        string[] looks = { "swordsman_1", "adv_archer_1", "adv_mage_1", "adv_healer_1" };
+        var cat = DungeonCatalog.Get();
+        Sprite baseSprite = cat != null && cat.lookPreview != null && cat.lookPreview.Length > (int)role ? cat.lookPreview[(int)role] : null;
+
+        // aperçu
+        var frame = UIKit.PanelBox("Apercu", box, new Vector2(0, 1), new Vector2(40, -96), new Vector2(380, 470), UIKit.Card);
+        frame.pivot = new Vector2(0, 1);
+        var pv = UIKit.Rect("Heros", frame);
+        pv.anchorMin = pv.anchorMax = pv.pivot = new Vector2(0.5f, 0.55f);
+        pv.sizeDelta = new Vector2(340, 340);
+        var img = pv.gameObject.AddComponent<Image>();
+        img.preserveAspect = true;
+        img.raycastTarget = false;
+        UIKit.LabelAt(frame, CrawlerMode.ClassNames[(int)role], 30, UIKit.Gold, new Vector2(0, -410), new Vector2(380, 44), TextAlignmentOptions.Center);
+        Sprite shown = null;
+        void Preview()
+        {
+            if (shown != null && shown != baseSprite) { Destroy(shown.texture); }
+            var m = HeroLook.Customized ? HeroLook.Mapping.Build(looks[(int)role], HeroLook.Hair, HeroLook.Skin, HeroLook.Outfit) : null;
+            shown = m != null ? HeroLook.RecolorSprite(baseSprite, m) : baseSprite;
+            img.sprite = shown;
+            img.enabled = shown != null;
+        }
+
+        // nom
+        float x0 = 460f;
+        UIKit.LabelAt(box, "Nom", 24, UIKit.Sub, new Vector2(x0, -96), new Vector2(200, 34));
+        var name = UIKit.Input(box, "Sans nom, on vous appellera par votre classe", new Vector2(0, 1), new Vector2(x0, -134), new Vector2(660, 64), 26);
+        ((RectTransform)name.transform).pivot = new Vector2(0, 1);
+        name.characterLimit = 18;
+        name.text = HeroLook.HeroName;
+        name.onValueChanged.AddListener(v => HeroLook.HeroName = v.Trim());
+
+        // nuanciers
+        float y = 230f;
+        void Row(string label, Color[] choices, System.Func<Color?> get, System.Action<Color?> set)
+        {
+            UIKit.LabelAt(box, label, 24, UIKit.Sub, new Vector2(x0, -y), new Vector2(200, 34));
+            var buttons = new System.Collections.Generic.List<(Button b, Color? c)>();
+            void Mark()
+            {
+                foreach (var (b, c) in buttons)
+                {
+                    bool on = get().HasValue == c.HasValue && (!c.HasValue || get().Value == c.Value);
+                    b.transform.localScale = Vector3.one * (on ? 1.18f : 1f);
+                    UIKit.SetLabel(b, on ? "<b>•</b>" : "");
+                }
+            }
+            for (int i = 0; i <= choices.Length; i++)
+            {
+                Color? c = i == 0 ? (Color?)null : choices[i - 1];
+                var b = UIKit.BtnAt(box, i == 0 ? "" : "", () => { set(c); Mark(); Preview(); }, new Vector2(0, 1),
+                    new Vector2(x0 + 30 + i * 84, -(y + 44)), new Vector2(68, 68), 30, c ?? new Color(0.25f, 0.22f, 0.32f, 1f));
+                if (i == 0) UIKit.SetLabel(b, "—");
+                buttons.Add((b, c));
+            }
+            Mark();
+            if (!get().HasValue) UIKit.SetLabel(buttons[0].b, "<b>—</b>");
+            y += 140f;
+        }
+        Row("Cheveux", HeroLook.HairChoices, () => HeroLook.Hair, c => HeroLook.Hair = c);
+        Row("Peau", HeroLook.SkinChoices, () => HeroLook.Skin, c => HeroLook.Skin = c);
+        Row("Tenue", HeroLook.OutfitChoices, () => HeroLook.Outfit, c => HeroLook.Outfit = c);
+        UIKit.LabelAt(box, "« — » : couleur d'origine. Les cheveux disparaissent sous le casque des armures lourdes.", 18, UIKit.Sub, new Vector2(x0, -y + 20), new Vector2(680, 50));
+
+        UIKit.BtnAt(box, "Retour", ShowClassSelect, new Vector2(0, 0), new Vector2(40, 36), new Vector2(220, 70), 26);
+        UIKit.BtnAt(box, "Partir à l'aventure", () => { HeroLook.Save(); StartCrawler(role); }, new Vector2(1, 0), new Vector2(-40, 36), new Vector2(380, 70), 28, UIKit.Accent);
+        Preview();
     }
 
     private void StartCrawler(AdventurerAI.Role role)

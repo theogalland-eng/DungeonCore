@@ -75,6 +75,11 @@ public class DungeonCatalog : ScriptableObject
     public List<GameObject> adventurerPrefabs = new List<GameObject>();
     [Tooltip("Rôles des groupes d'aventuriers : archer, mage, soigneuse")]
     public GameObject archerPrefab, magePrefab, healerPrefab;
+    /// <summary>Apparence du héros du mode Aventurier par palier d'armure (1 à 9) : contrôleurs d'animation.</summary>
+    /// <summary>Portrait de départ (palier 1, de face) de chaque classe : aperçu de la personnalisation.</summary>
+    public Sprite[] lookPreview = new Sprite[4];
+    public List<RuntimeAnimatorController> lookWarrior = new List<RuntimeAnimatorController>(), lookArcher = new List<RuntimeAnimatorController>(),
+        lookMage = new List<RuntimeAnimatorController>(), lookHealer = new List<RuntimeAnimatorController>();
     [Tooltip("Animaux sauvages de l'île")]
     public List<GameObject> wildlifePrefabs = new List<GameObject>();
     [Tooltip("Colons de la colonie humaine")]

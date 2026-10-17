@@ -36,11 +36,33 @@ public static class CharacterImporter
         public Dictionary<string, int> rows;
         public string rowFile;
         public System.Action<GameObject> configure;
+        /// <summary>Planches 8 directions (Tools~/make_8dir.py) : lignes S, SE, E, NE, N, NW, W, SW.</summary>
+        public bool dirs8;
     }
 
-    static readonly string[] States = { "Idle", "Walk", "Run", "Attack", "Hurt", "Death" };
+    static readonly string[] States = { "Idle", "Walk", "Run", "Attack", "WalkAttack", "RunAttack", "Hurt", "Death", "Roll", "Crouch", "Use" };
     static readonly Dictionary<string, float> Fps = new Dictionary<string, float>
-        { { "Idle", 8 }, { "Walk", 10 }, { "Run", 12 }, { "Attack", 14 }, { "Hurt", 12 }, { "Death", 10 } };
+        { { "Idle", 8 }, { "Walk", 10 }, { "Run", 12 }, { "Attack", 14 }, { "WalkAttack", 12 }, { "RunAttack", 14 },
+          { "Hurt", 12 }, { "Death", 10 }, { "Roll", 14 }, { "Crouch", 6 }, { "Use", 8 } };
+    static readonly string[] Dir8Names = { "S", "SE", "E", "NE", "N", "NW", "W", "SW" };
+    static readonly Vector2[] Dir8Vectors =
+    {
+        new Vector2(0, -1), new Vector2(0.7071f, -0.7071f), new Vector2(1, 0), new Vector2(0.7071f, 0.7071f),
+        new Vector2(0, 1), new Vector2(-0.7071f, 0.7071f), new Vector2(-1, 0), new Vector2(-0.7071f, -0.7071f),
+    };
+    public const string Dir8Root = "Assets/Art/Characters8";
+
+    /// <summary>Planches 8 directions d'un personnage, si Tools~/make_8dir.py les a produites.</summary>
+    static Dictionary<string, string> Files8(string id)
+    {
+        var d = new Dictionary<string, string>();
+        foreach (var st in States)
+        {
+            string p = $"{Dir8Root}/{id}/{id}_{st}.png";
+            if (File.Exists(p)) d[st] = p;
+        }
+        return d.ContainsKey("Idle") ? d : null;
+    }
 
     static Dictionary<string, string> Files(params string[] kv)
     {
@@ -167,10 +189,12 @@ public static class CharacterImporter
                 int s = stage;
                 var files = new Dictionary<string, string>();
                 foreach (var st in StdStates) files[st] = fa.file(s, st);
+                // planches 8 directions (Tools~/make_8dir.py) quand elles existent
+                var f8 = Files8($"{fa.id}_{s}");
                 list.Add(new Spec
                 {
                     id = $"{fa.id}_{s}", displayName = fa.names[s - 1], kind = Kind.Monster, dirOrder = fa.dirOrder, frame = fa.frame,
-                    files = files,
+                    files = f8 ?? files, dirs8 = f8 != null,
                     configure = go =>
                     {
                         Gob(go, fa.names[s - 1], Mathf.Round(fa.hp * HpMult[s - 1]), Mathf.Round(fa.dmg * DmgMult[s - 1]), fa.range,
@@ -237,12 +261,15 @@ public static class CharacterImporter
             int n = i;
             string p = n <= 3 ? $"Swordsman_lvl{n}_" : $"lvl{n}_";
             string atk = n <= 3 ? $"{p}attack_with_shadow.png" : $"{p}attack_with_shadow.png";
-            list.Add(new Spec
+            var spec = new Spec
             {
                 id = $"swordsman_{n}", displayName = $"Épéiste niv. {n}", kind = Kind.Adventurer, dirOrder = "DLRU",
                 files = Files("Idle", $"{p}Idle_with_shadow.png", "Walk", $"{p}Walk_with_shadow.png", "Run", $"{p}Run_with_shadow.png",
                               "Attack", atk, "Hurt", $"{p}Hurt_with_shadow.png", "Death", $"{p}Death_with_shadow.png"),
-            });
+            };
+            var f8 = Files8(spec.id);
+            if (f8 != null) { spec.files = f8; spec.dirs8 = true; }
+            list.Add(spec);
         }
 
         // ── Colons : citoyens du marché (lignes : bas, gauche, droite, haut)
@@ -265,13 +292,22 @@ public static class CharacterImporter
         foreach (var r in new[] { ("archer", "Archer"), ("mage", "Mage"), ("healer", "Soigneuse") })
         {
             string n = r.Item1;
-            list.Add(new Spec
+            var spec = new Spec
             {
                 id = "adv_" + n, displayName = r.Item2, kind = Kind.Adventurer, dirOrder = "DLRU",
                 files = Files("Idle", $"Roles/{n}_Idle_with_shadow.png", "Walk", $"Roles/{n}_Walk_with_shadow.png",
                               "Run", $"Roles/{n}_Run_with_shadow.png", "Attack", $"Roles/{n}_Attack_with_shadow.png",
                               "Hurt", $"Roles/{n}_Hurt_with_shadow.png", "Death", $"Roles/{n}_Death_with_shadow.png"),
-            });
+            };
+            var f8 = Files8(spec.id);
+            if (f8 != null) { spec.files = f8; spec.dirs8 = true; }
+            list.Add(spec);
+            // paliers d'armure du héros (mode Aventurier)
+            for (int t = 1; t <= 9; t++)
+            {
+                var f = Files8($"adv_{n}_{t}");
+                if (f != null) list.Add(new Spec { id = $"adv_{n}_{t}", displayName = $"{r.Item2} (palier {t})", kind = Kind.Adventurer, dirs8 = true, files = f });
+            }
         }
 
         // ── Faune de l'île
@@ -313,6 +349,39 @@ public static class CharacterImporter
     }
 
     public static string ImportRoles() => ImportOnly("adv_archer", "adv_mage", "adv_healer");
+    public static string ImportRoles8()
+    {
+        var ids = new List<string>();
+        foreach (var n in new[] { "archer", "mage", "healer" })
+        {
+            ids.Add("adv_" + n);
+            for (int t = 1; t <= 9; t++) ids.Add($"adv_{n}_{t}");
+        }
+        return ImportOnly(ids.ToArray());
+    }
+    /// <summary>Tous les personnages 8 directions (épéistes, rôles et leurs paliers, monstres) en une passe.</summary>
+    public static string ImportEverything8()
+    {
+        var ids = new List<string>();
+        for (int n = 1; n <= 9; n++) ids.Add($"swordsman_{n}");
+        foreach (var r in new[] { "archer", "mage", "healer" })
+        {
+            ids.Add("adv_" + r);
+            for (int t = 1; t <= 9; t++) ids.Add($"adv_{r}_{t}");
+        }
+        foreach (var f in Families()) for (int s = 3; s >= 1; s--) ids.Add($"{f.id}_{s}");
+        var res = ImportOnly(ids.ToArray());
+        int errors = res.Split('|').Count(x => !x.Contains("états"));
+        return $"{ids.Count} personnages, {errors} anomalies : " + string.Join(" | ", res.Split('|').Where(x => !x.Contains("états")));
+    }
+    public static string ImportMonsters8()
+    {
+        var ids = new List<string>();
+        foreach (var f in Families()) for (int s = 1; s <= 3; s++) ids.Add($"{f.id}_{s}");
+        return ImportOnly(ids.ToArray());
+    }
+    public static string ImportSwordsmen() => ImportOnly("swordsman_1", "swordsman_2", "swordsman_3", "swordsman_4", "swordsman_5",
+        "swordsman_6", "swordsman_7", "swordsman_8", "swordsman_9");
     public static string ImportGolems() => ImportOnly("golem_3", "golem_2", "golem_1");
     public static string ImportGoblinOrc() => ImportOnly("goblin_3", "goblin_2", "goblin_1", "orc_3", "orc_2", "orc_1");
 
@@ -335,6 +404,7 @@ public static class CharacterImporter
     /// <summary>Fichier d'une planche : nom seul, ou fragment de chemin ("Goblin2/With_shadow/Idle_with_shadow.png").</summary>
     static string FindPng(Dictionary<string, string> index, string file)
     {
+        if (file.StartsWith("Assets/")) return File.Exists(file) ? file : null;
         if (!file.Contains("/")) return index.GetValueOrDefault(file.ToLowerInvariant());
         string frag = "/" + file.ToLowerInvariant();
         foreach (var p in allPngs) if (p.ToLowerInvariant().EndsWith(frag)) return p;
@@ -389,6 +459,18 @@ public static class CharacterImporter
                 string path = FindPng(index, file);
                 if (path == null) { Debug.LogWarning($"[CharacterImporter] {spec.id}: {file} introuvable"); continue; }
                 var grid = Slice(path, spec.frame, spec.frameH > 0 ? spec.frameH : spec.frame, spec.ppu);
+                if (spec.dirs8)
+                {
+                    var arr8 = new AnimationClip[8];
+                    bool loop = st != "Hurt" && st != "Death" && st != "Roll" && st != "WalkAttack" && st != "RunAttack" && st != "Use";
+                    for (int r = 0; r < grid.Count && r < 8; r++)
+                    {
+                        arr8[r] = MakeClip($"{dir}/{spec.id}_{st}_{Dir8Names[r]}.anim", grid[r], Fps[st], loop);
+                        if (st == "Idle" && r == 0 && grid[r].Length > 0) firstSprite = grid[r][0];
+                    }
+                    clips[st] = arr8;
+                    continue;
+                }
                 var arr = new AnimationClip[4];
                 for (int r = 0; r < grid.Count && r < spec.dirOrder.Length; r++)
                 {
@@ -467,6 +549,7 @@ public static class CharacterImporter
         imp.filterMode = FilterMode.Point;
         imp.textureCompression = TextureImporterCompression.Uncompressed;
         imp.mipmapEnabled = false;
+        imp.isReadable = path.StartsWith(Dir8Root);   // le héros est recoloré à l'exécution (personnalisation)
 #pragma warning disable 0618
         imp.spritesheet = metas.ToArray();
 #pragma warning restore 0618
@@ -511,6 +594,7 @@ public static class CharacterImporter
         ctrl.AddParameter("IsAttacking", AnimatorControllerParameterType.Bool);
         ctrl.AddParameter("Hurt", AnimatorControllerParameterType.Trigger);
         ctrl.AddParameter("Dead", AnimatorControllerParameterType.Bool);
+        ctrl.AddParameter("Running", AnimatorControllerParameterType.Bool);
         var sm = ctrl.layers[0].stateMachine;
 
         AnimatorState Make(string name)
@@ -526,16 +610,28 @@ public static class CharacterImporter
             tree.blendType = BlendTreeType.SimpleDirectional2D;
             tree.blendParameter = "MoveX";
             tree.blendParameterY = "MoveY";
-            for (int d = 0; d < 4; d++)
+            var vectors = arr.Length == 8 ? Dir8Vectors : DirVectors;
+            for (int d = 0; d < arr.Length; d++)
             {
                 var c = arr[d] ?? arr.FirstOrDefault(x => x != null);
-                if (c != null) tree.AddChild(c, DirVectors[d]);
+                if (c != null) tree.AddChild(c, vectors[d]);
             }
             return st;
         }
 
         var idle = Make("Idle");
         var walk = Make("Walk");
+        // accroupi (fouiller, prier) : boucle tant que le geste dure, le héros revient au repos par Animator.Play
+        Make("Crouch");
+        // états joués directement par le héros du mode Aventurier (Animator.Play) ; sans transition automatique
+        AnimatorState run = clips.ContainsKey("Run") && clips["Run"] != clips["Walk"] ? Make("Run") : null;
+        foreach (var extra in new[] { "WalkAttack", "RunAttack", "Roll", "Use" })
+        {
+            var s = Make(extra);
+            if (s == null) continue;
+            var back = s.AddTransition(idle);
+            back.hasExitTime = true; back.exitTime = 1f; back.duration = 0f;
+        }
         var attack = Make("Attack");
         var hurt = Make("Hurt");
         var death = Make("Death");
@@ -550,6 +646,12 @@ public static class CharacterImporter
         }
         T(idle, walk).AddCondition(AnimatorConditionMode.Greater, 0.01f, "Speed");
         T(walk, idle).AddCondition(AnimatorConditionMode.Less, 0.01f, "Speed");
+        if (run != null)
+        {
+            T(walk, run).AddCondition(AnimatorConditionMode.If, 0, "Running");
+            T(run, walk).AddCondition(AnimatorConditionMode.IfNot, 0, "Running");
+            T(run, idle).AddCondition(AnimatorConditionMode.Less, 0.01f, "Speed");
+        }
 
         var toAtk = sm.AddAnyStateTransition(attack);
         toAtk.hasExitTime = false; toAtk.duration = 0f; toAtk.canTransitionToSelf = false;

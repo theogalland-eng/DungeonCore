@@ -182,6 +182,10 @@ MonoBehaviour:
   coreDiscoveryRange: 4
   animator: {fileID: 1376011592504801968}
   combat: {fileID: 0}
+  role: 0
+  healRange: 5
+  healCooldown: 3.5
+  isLocal: 0
 --- !u!50 &4228012202202541306
 Rigidbody2D:
   serializedVersion: 5
@@ -228,6 +232,8 @@ MonoBehaviour:
   attackCooldown: 1
   lastAttackTime: 0
   attackRange: 1.25
+  role: 0
+  splashRadius: 0
 --- !u!58 &1723905282817970115
 CircleCollider2D:
   m_ObjectHideFlags: 0

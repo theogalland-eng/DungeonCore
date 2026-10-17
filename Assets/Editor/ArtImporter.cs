@@ -20,6 +20,8 @@ public static class ArtImporter
     public const string LootDir = "Assets/Resources/Loot";
     public const string FxDir = "Assets/Resources/FX";
     public const string InteriorDir = "Assets/Resources/Interiors";
+    /// <summary>Détails de sol procéduraux (Tools~/make_decals.py) : une case = 16 px.</summary>
+    public const string DecalDir = "Assets/Resources/Decals";
     static readonly Regex GridName = new Regex(@"^(.*)_(\d+)x(\d+)$");
 
     [MenuItem("DungeonCore/7. Importer colonie, pièges et décors")]
@@ -31,6 +33,7 @@ public static class ArtImporter
         n += ImportFolder(LootDir);
         n += ImportFolder(FxDir);
         n += ImportFolder(InteriorDir);
+        n += ImportFolder(DecalDir);
         ImportSea();
         var art = BuildSettlementArt();
         AssetDatabase.SaveAssets();
@@ -46,6 +49,7 @@ public static class ArtImporter
 
     static float PpuFor(string dir, string name)
     {
+        if (dir == DecalDir) return 16f;
         // Pièges : une image = une case de large (ils ne débordent plus sur les murs voisins)
         if (name.StartsWith("trap_"))
         {
@@ -71,7 +75,7 @@ public static class ArtImporter
 
     static Vector2 PivotFor(string dir, string name)
     {
-        if (name.StartsWith("loot_") || dir == FxDir) return new Vector2(0.5f, 0.5f);
+        if (name.StartsWith("loot_") || dir == FxDir || dir == DecalDir) return new Vector2(0.5f, 0.5f);
         if (name.StartsWith("door_")) return new Vector2(0.5f, 0f);
         if (name.StartsWith("stairs_")) return new Vector2(0.5f, 0.5f);
         if (dir == InteriorDir) return name.StartsWith("floor_") || name.EndsWith("_rug") || name == "mag_circle" ? new Vector2(0.5f, 0.5f) : new Vector2(0.5f, 0f);

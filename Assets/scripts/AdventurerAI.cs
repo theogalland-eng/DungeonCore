@@ -302,6 +302,7 @@ public class AdventurerAI : MonoBehaviour
     private bool hasRetreated;
     private bool triedGroup;
     private bool isDead;
+    public bool IsDead => isDead;
     private bool departed;
     private AdventurerGroup myGroup;
     private Transform currentEnemy;

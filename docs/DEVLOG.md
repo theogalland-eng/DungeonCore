@@ -96,3 +96,16 @@ Un premier donjon de test dans `SampleScene` : un gobelin, un aventurier, un pi�
 ## 📦 14 octobre — Le dépôt
 
 Mise en ligne du projet sur GitHub (ce dépôt), avec cette documentation.
+
+## 🧭 17 octobre — Huit directions, armures visibles et ambiance
+
+**Retours clés :** *« ce serait plus naturel en diagonale »*, *« rends le jeu beaucoup plus joli »*.
+
+- 🎨 **Tous les personnages en 8 directions** (`Tools~/make_8dir.py`) : les packs ne dessinent que 4 directions, mais chaque personnage y est découpé en calques. Les diagonales sont recomposées en associant un corps et une tête de deux directions voisines (corps de face + tête de profil, corps de profil + tête de dos). Le style dessiné à la main est intact. 9 épéistes, 30 archers/mages/soigneuses, 45 monstres. Les quadrupèdes et les golems gardent le profil en diagonale.
+- 🐛 Au passage : les planches d'attaque des épéistes 7 à 9 sont vides dans le pack (ils devenaient invisibles en attaquant), la tête manquait sur certaines images de dos en diagonale.
+- 🎮 **Héros du mode Aventurier** : course avec **jauge d'endurance**, **roulade** (bouton Esquive, courte invulnérabilité, images rémanentes), attaques en marchant ou en courant, animation de mort réparée, **gestes** (s'accroupir pour fouiller un coffre ou prier, tendre la main pour ouvrir ou boire une potion).
+- 🎨 **Armure visible** : chaque renfort acheté à la forge change l'apparence du héros, sur 9 paliers (toile, cuir, mailles, plates, chevalier doré). Archer, mage et soigneuse ont leurs 9 paliers (`make_roles.py` : étoffes à la couleur du rôle, arc ou bâton redessiné, chapeau de mage).
+- 🎨 **Personnalisation** : nom, couleur des cheveux, de la peau et de la tenue, avec aperçu ; recoloration à la volée (`HeroLook`, palettes de `make_palettes.py`).
+- 🎨 **Atmosphère** (`Atmosphere`) : pénombre sous la montagne, **torches portées par les intrus** (on voit leur lueur approcher), lanterne du héros, lanternes et fumée de cheminée dans la colonie, **détails de sol** procéduraux (fissures, cailloux, ossements, mousse, flaques — `make_decals.py`) et **ombre de contact** au pied des murs.
+- 🎮 **Sensations de combat** : flash blanc à l'impact (shader maison), micro-pause sur les coups du héros, étincelles, secousse quand il achève, chiffres de dégâts qui jaillissent.
+- 🐛 Ponton : les planches ne couvraient pas toute la zone praticable.

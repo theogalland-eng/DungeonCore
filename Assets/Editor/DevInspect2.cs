@@ -439,5 +439,172 @@ public static class DevInspect3
         DevInspect.shotX = beach.x; DevInspect.shotY = beach.y; DevInspect.shotSize = 9;
         return $"beach={beach} sea={sea} sails={sails} dock={dock} d={Vector2.Distance(beach, dock):0.0} " + DevInspect.Custom();
     }
+    // ── Héros 8 directions (2026-10-17) ──
+    static CrawlerPlayer Hero => CrawlerMode.Instance != null ? CrawlerMode.Instance.Player : null;
+    public static string HeroWalkSE() { VirtualJoystick.Value = new Vector2(0.55f, -0.55f); return HeroState(); }
+    public static string HeroWalkNW() { VirtualJoystick.Value = new Vector2(-0.55f, 0.55f); return HeroState(); }
+    public static string HeroRunNE() { VirtualJoystick.Value = new Vector2(0.69f, 0.69f); return HeroState(); }
+    public static string HeroRunW() { VirtualJoystick.Value = new Vector2(-1f, 0f); return HeroState(); }
+    public static string HeroStop() { VirtualJoystick.Value = Vector2.zero; return HeroState(); }
+    public static string HeroRoll() { Hero.touchRoll = true; return "roll"; }
+    public static string HeroAttack() { Hero.touchAttack = true; return "attack"; }
+    public static string HeroState()
+    {
+        var h = Hero;
+        if (h == null) return "pas de héros";
+        var a = h.GetComponent<Animator>();
+        var ci = a.GetCurrentAnimatorClipInfo(0);
+        string clip = ci.Length > 0 ? ci[0].clip.name : "-";
+        return $"clip={clip} sprite={h.GetComponent<SpriteRenderer>().sprite?.name} facing={h.Facing} run={h.Running} roll={h.Rolling} stamina={h.Stamina:0} exhausted={h.Exhausted} v={h.GetComponent<Rigidbody2D>().linearVelocity} ctrl={a.runtimeAnimatorController?.name}";
+    }
+    public static string HeroCloseShot()
+    {
+        var cam = Camera.main;
+        cam.orthographicSize = 2.2f;
+        var p = Hero.transform.position;
+        cam.transform.position = new Vector3(p.x, p.y + 0.3f, cam.transform.position.z);
+        return DevInspect.GameShot();
+    }
+    public static string SeaProbe()
+    {
+        var h = Hero;
+        var sb = new System.Text.StringBuilder();
+        var col = h.GetComponent<Collider2D>();
+        sb.Append($"hero layer={LayerMask.LayerToName(h.gameObject.layer)} col={col?.GetType().Name} trigger={col?.isTrigger} rbType={h.GetComponent<Rigidbody2D>().bodyType} excl={col?.excludeLayers.value}\n");
+        foreach (var tm in Object.FindObjectsByType<UnityEngine.Tilemaps.TilemapCollider2D>(FindObjectsSortMode.None))
+            sb.Append($"  tmcol {tm.name} layer={LayerMask.LayerToName(tm.gameObject.layer)} enabled={tm.enabled} trigger={tm.isTrigger} hit={Physics2D.GetIgnoreLayerCollision(h.gameObject.layer, tm.gameObject.layer)}\n");
+        var p = (Vector2)h.transform.position;
+        foreach (var off in new[] { new Vector2(1, 0), new Vector2(-1, 0), new Vector2(0, -1), new Vector2(1, -1) })
+        {
+            var hits = Physics2D.OverlapPointAll(p + off);
+            sb.Append($"  at {p + off}: ");
+            foreach (var c in hits) sb.Append($"{c.name}({LayerMask.LayerToName(c.gameObject.layer)}) ");
+            sb.Append("\n");
+        }
+        return sb.ToString();
+    }
+    /// <summary>Déclenche une action du héros puis capture l'écran en plein mouvement (après 'delay' secondes).</summary>
+    static string MidShot(System.Action act, float delay, string tag)
+    {
+        var cam = Camera.main;
+        cam.orthographicSize = 2.4f;
+        act();
+        CrawlerMode.Instance.StartCoroutine(ShotLater(delay, tag));
+        return "ok " + tag;
+    }
+    static System.Collections.IEnumerator ShotLater(float delay, string tag)
+    {
+        yield return new WaitForSeconds(delay);
+        string path = System.IO.Path.GetFullPath($"Temp/mid_{tag}.png");
+        ScreenCapture.CaptureScreenshot(path);
+        midLog = HeroState();
+    }
+    static string midLog = "";
+    public static string MidLog() => midLog;
+    public static string HeroRollShot() => MidShot(() => Hero.touchRoll = true, 0.14f, "roll");
+    public static string HeroWalkAtkShot() => MidShot(() => { VirtualJoystick.Value = new Vector2(0.5f, -0.5f); Hero.touchAttack = true; }, 0.2f, "walkatk");
+    public static string HeroRunAtkShot() => MidShot(() => { VirtualJoystick.Value = new Vector2(-0.7f, -0.7f); Hero.touchAttack = true; }, 0.22f, "runatk");
+    static string traceLog = "";
+    public static string TraceLog() => traceLog;
+    /// <summary>Marche en diagonale imparfaite et note le sprite affiché à chaque image.</summary>
+    public static string HeroDiagTrace()
+    {
+        VirtualJoystick.Value = new Vector2(0.62f, -0.45f);
+        CrawlerMode.Instance.StartCoroutine(Trace());
+        return "trace";
+    }
+    static System.Collections.IEnumerator Trace()
+    {
+        var sb = new System.Text.StringBuilder();
+        var sr = Hero.GetComponent<SpriteRenderer>();
+        var a = Hero.GetComponent<Animator>();
+        yield return new WaitForSeconds(0.3f);
+        for (int i = 0; i < 40; i++)
+        {
+            var infos = a.GetCurrentAnimatorClipInfo(0);
+            string w = "";
+            foreach (var ci in infos) w += ci.clip.name.Replace("swordsman_1_", "") + ":" + ci.weight.ToString("0.00") + " ";
+            sb.Append(sr.sprite != null ? sr.sprite.name.Replace("swordsman_1_", "") : "null").Append(" [").Append(w).Append("] en=").Append(sr.enabled).Append(" a=").Append(sr.color.a.ToString("0.0")).Append(" | ");
+            yield return null;
+        }
+        VirtualJoystick.Value = Vector2.zero;
+        traceLog = sb.ToString();
+    }
+    // ── Personnalisation, paliers, gestes (2026-10-17) ──
+    public static string CustomizeOpen()
+    {
+        HeroLook.Hair = HeroLook.HairChoices[1]; HeroLook.Skin = HeroLook.SkinChoices[2]; HeroLook.Outfit = HeroLook.OutfitChoices[1];
+        HeroLook.HeroName = "Aldric"; HeroLook.Save();
+        typeof(MainMenu).GetMethod("ShowCustomize", NP).Invoke(MainMenu.Instance, new object[] { AdventurerAI.Role.Warrior });
+        return DevInspect.GameShot();
+    }
+    public static string CustomizeGo()
+    {
+        typeof(MainMenu).GetMethod("StartCrawler", NP).Invoke(MainMenu.Instance, new object[] { AdventurerAI.Role.Warrior });
+        return "go";
+    }
+    public static string ArmorUp()
+    {
+        var c = CrawlerMode.Instance;
+        var f = typeof(CrawlerMode).GetField("armorLvl");
+        f.SetValue(c, (int)f.GetValue(c) + 3);
+        typeof(CrawlerMode).GetMethod("RefreshStats", NP).Invoke(c, new object[] { false });
+        return $"armor={f.GetValue(c)} tier={Hero.Tier} ctrl={Hero.GetComponent<Animator>().runtimeAnimatorController.name}";
+    }
+    public static string DrinkShot() => MidShot(() => { var c = Hero.Combat; c.currentHealth = c.maxHealth * 0.4f; CrawlerMode.Instance.UsePotion(); }, 0.35f, "drink");
+    public static string LookProbe()
+    {
+        var cat = DungeonCatalog.Get();
+        var sp = cat.lookPreview != null && cat.lookPreview.Length > 0 ? cat.lookPreview[0] : null;
+        var ta = Resources.Load<TextAsset>("HeroPalettes/swordsman_1");
+        var m = HeroLook.Mapping.Build("swordsman_1", HeroLook.HairChoices[1], HeroLook.SkinChoices[2], HeroLook.OutfitChoices[1]);
+        var f = TMPro.TMP_Settings.defaultFontAsset;
+        return $"preview={sp?.name} tex={sp?.texture?.name} readable={sp?.texture?.isReadable} json={(ta != null ? ta.text.Length : -1)} map={(m != null ? m.map.Count : -1)} " +
+               $"font={f?.name} atlas={f?.atlasTexture?.width}x{f?.atlasTexture?.height} mode={f?.atlasPopulationMode}";
+    }
+    public static string DecalsOff() { var g = GameObject.Find("Détails du sol"); if (g != null) g.SetActive(false); return DevInspect.GameShot(); }
+    public static string DecalsOn() { foreach (var t in Resources.FindObjectsOfTypeAll<Transform>()) if (t.name == "Détails du sol") t.gameObject.SetActive(true); return DevInspect.GameShot(); }
+    public static string RebuildCatalog() { CatalogBuilder.BuildCatalog(); var c = DungeonCatalog.Get(); return "preview=" + string.Join(",", System.Linq.Enumerable.Select(c.lookPreview, x => x != null ? x.name : "null")); }
+    public static float pickX = 0.88f, pickY = 0.2f;
+    /// <summary>Ce qui est dessiné au point de l'écran (pickX, pickY en fraction de l'écran).</summary>
+    public static string Pick()
+    {
+        var cam = Camera.main;
+        Vector3 w = cam.ViewportToWorldPoint(new Vector3(pickX, pickY, 10f));
+        var sb = new System.Text.StringBuilder($"monde={w} ");
+        foreach (var r in Object.FindObjectsByType<SpriteRenderer>(FindObjectsSortMode.None))
+            if (r.enabled && r.gameObject.activeInHierarchy && r.bounds.Contains(new Vector3(w.x, w.y, r.bounds.center.z)))
+                sb.Append($"[SR {r.name} parent={r.transform.parent?.name} sprite={r.sprite?.name} col={r.color} order={r.sortingOrder}] ");
+        foreach (var tm in Object.FindObjectsByType<UnityEngine.Tilemaps.Tilemap>(FindObjectsSortMode.None))
+        {
+            var c = tm.WorldToCell(w);
+            var t = tm.GetTile(c);
+            if (t != null) sb.Append($"[TM {tm.name} {t.name} col={tm.GetColor(c)}] ");
+        }
+        return sb.ToString();
+    }
+    /// <summary>Flash d'impact longuement maintenu sur le héros, pour le photographier.</summary>
+    public static string FlashTest()
+    {
+        var sr = Hero.GetComponent<SpriteRenderer>();
+        HitFlashFx.Flash(sr, 2f);
+        return MidShot(() => { }, 0.1f, "flash");
+    }
+    public static string DockProbe()
+    {
+        var sb = new System.Text.StringBuilder();
+        var hero = Hero.transform.position;
+        foreach (var tm in Object.FindObjectsByType<UnityEngine.Tilemaps.Tilemap>(FindObjectsSortMode.None))
+            sb.Append($"[{tm.name} pos={tm.transform.position} anchor={tm.tileAnchor} grid={tm.layoutGrid?.transform.position}] ");
+        var decor = GameObject.Find("Decor").GetComponent<UnityEngine.Tilemaps.Tilemap>();
+        var c = decor.WorldToCell(hero);
+        sb.Append($" hero={hero} cell={c} ");
+        for (int dx = -3; dx <= 2; dx++)
+        {
+            var k = c + new Vector3Int(dx, 0, 0);
+            sb.Append($" x{k.x}:decor={decor.GetTile(k)?.name}");
+        }
+        return sb.ToString();
+    }
 }
 #endif

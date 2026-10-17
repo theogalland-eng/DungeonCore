@@ -1,27 +1,36 @@
 """
-Archer, mage et soigneuse dessinés à partir de l'épéiste niveau 2 (mêmes proportions, même visage, mêmes
-animations que les aventuriers 1-9) : on recompose ses calques (ombre, épée dans le dos, corps, tête, épée,
-traînée) en recolorant la tenue et en remplaçant l'épée, image par image, par l'arme du rôle :
-  - archer   : tunique vert forêt, écharpe de cuir, arc (tracé à la place de l'épée)
-  - mage     : robe indigo, chapeau pointu, bâton surmonté d'un orbe bleu, traînée magique violette
-  - soigneuse: robe blanche et or, cheveux blonds, bâton à l'orbe doré, traînée dorée
-Sortie : Assets/imports/Roles/<rôle>_<État>_with_shadow.png (planches 64×64, rangées bas/gauche/droite/haut)
-Usage : python "Tools~/make_roles.py"   puis   CharacterImporter.ImportRoles (menu DungeonCore/4)
+Archer, mage et soigneuse sur les 9 paliers d'armure, dérivés des épéistes craftpix (mêmes proportions, mêmes
+animations). On travaille calque par calque (ombre, épée dans le dos, corps, tête, épée, traînée...) :
+  - les étoffes colorées prennent la couleur du rôle ; métal, or des paliers lourds, peau et yeux sont conservés ;
+  - l'épée est remplacée, image par image, par l'arme du rôle (arc, bâton à orbe) orientée comme elle ;
+    les images où l'épée n'est qu'une traînée de mouvement sont simplement teintées à la couleur du rôle ;
+  - mage et soigneuse changent de cheveux (paliers 1-3) ; le mage porte un chapeau pointu quand la tête est nue ;
+  - les paliers 4-9 utilisent les attaques « normales » (sans l'onde dorée du guerrier).
+Sortie : Assets/imports/Roles/Parts/<rôle>_<n>/<rôle>_<n>_<Anim>_<calque>.png, assemblés ensuite en 8 directions
+par Tools~/make_8dir.py (personnages adv_<rôle>_<n>).
+Usage : python "Tools~/make_roles.py" [rôle...]
 """
-import colorsys, math, os
+import colorsys
+import importlib.util
+import math
+import os
+import sys
+
 import numpy as np
 from PIL import Image
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-BASE = os.path.join(ROOT, 'Assets', 'imports', 'craftpix-net-180537-free-swordsman-1-3-level-pixel-top-down-sprite-character',
-                    'PNG', 'Swordsman_lvl2', 'Parts', 'Swordsman_lvl2_')
-OUT = os.path.join(ROOT, 'Assets', 'imports', 'Roles')
-STATES = {'Idle': 'Idle', 'Walk': 'Walk', 'Run': 'Run', 'Attack': 'attack', 'Hurt': 'Hurt', 'Death': 'Death'}
-ORDER = ['shadow', 'sword_back', 'body', 'head', 'sword', 'swing', 'red']
+OUT = os.path.join(ROOT, 'Assets', 'imports', 'Roles', 'Parts')
 F = 64
+_spec = importlib.util.spec_from_file_location('m8', os.path.join(ROOT, 'Tools~', 'make_8dir.py'))
+M8 = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(M8)
 
-# couleurs de peau (jamais recolorées)
-SKIN = {(225, 178, 110), (190, 134, 95), (164, 111, 89), (246, 202, 116), (121, 80, 72), (85, 45, 36), (90, 50, 41)}
+ANIMS = ['Idle', 'Walk', 'Run', 'attack', 'Walk_Attack', 'Run_Attack', 'Hurt', 'Death']
+WEAPON_LAYERS = ('sword', 'sword_back')
+
+# couleurs de peau et des yeux (jamais recolorées)
+SKIN = [(225, 178, 110), (190, 134, 95), (164, 111, 89), (246, 202, 116), (121, 80, 72), (85, 45, 36), (90, 50, 41)]
 EYES = {(63, 106, 212), (55, 74, 143), (210, 221, 232), (17, 11, 0)}
 
 ROLES = {
@@ -29,7 +38,7 @@ ROLES = {
         tunic=[(18, 34, 22), (34, 66, 36), (58, 104, 50), (104, 150, 72)],
         accent=[(44, 26, 18), (88, 54, 32), (138, 94, 56)],
         legs=[(30, 22, 18), (58, 42, 30), (88, 66, 44)],
-        hair=None, weapon='bow', swing=None),
+        hair=None, weapon='bow', swing=(196, 230, 160)),
     'mage': dict(
         tunic=[(24, 16, 44), (50, 32, 96), (86, 58, 158), (138, 112, 214)],
         accent=[(70, 40, 18), (150, 104, 30), (226, 184, 72)],
@@ -53,74 +62,79 @@ def ramp(stops, t):
     return tuple(int(round(a[j] + (b[j] - a[j]) * k)) for j in range(3))
 
 
-def load(state, layer, width):
-    p = BASE + state + '_' + layer + '.png'
-    if not os.path.exists(p):
-        return None
-    im = Image.open(p).convert('RGBA')
-    if im.width != width:   # quelques calques (ombre) sont plus courts
-        pad = Image.new('RGBA', (width, im.height))
-        pad.paste(im, (0, 0))
-        im = pad
-    return im
-
-
 def lum(c):
     return (0.3 * c[0] + 0.59 * c[1] + 0.11 * c[2]) / 255.0
 
 
-def recolor_body(im, role):
-    """Tunique (bruns) → couleur du rôle, écharpe (rouges) → accent, pantalon (bleu-violet) → jambes."""
+def is_skin(c):
+    return c in EYES or any(abs(c[0] - s[0]) + abs(c[1] - s[1]) + abs(c[2] - s[2]) < 18 for s in SKIN)
+
+
+# ─────────────────────────────────────────────
+# Recoloration
+# ─────────────────────────────────────────────
+
+def recolor_cloth(im, role, tier):
+    """Étoffes colorées → couleurs du rôle. Métal (peu saturé), or (paliers 7+), peau et contours restent."""
     a = np.array(im)
     out = a.copy()
-    h, w = a.shape[:2]
-    for y in range(h):
-        for x in range(w):
-            r, g, b, al = a[y, x]
-            if al == 0:
-                continue
-            c = (int(r), int(g), int(b))
-            if c in SKIN or c in EYES:
-                continue
-            hh, ss, vv = colorsys.rgb_to_hsv(r / 255, g / 255, b / 255)
-            L = lum(c)
-            if vv < 0.17:            # contours très sombres : on les assombrit dans la teinte du rôle
-                out[y, x, :3] = ramp(role['tunic'], 0.0)
-                continue
-            if 0.55 < hh < 0.85:     # pantalon
-                out[y, x, :3] = ramp(role['legs'], (L - 0.15) / 0.3)
-            elif hh < 0.04 or hh > 0.95:   # écharpe rouge
-                out[y, x, :3] = ramp(role['accent'], (L - 0.12) / 0.3)
-            else:                    # tunique
-                out[y, x, :3] = ramp(role['tunic'], (L - 0.12) / 0.4)
+    ys, xs = np.nonzero(a[:, :, 3] > 0)
+    cache = {}
+    for y, x in zip(ys, xs):
+        c = tuple(int(v) for v in a[y, x, :3])
+        if c not in cache:
+            cache[c] = cloth_color(c, role, tier)
+        n = cache[c]
+        if n is not None:
+            out[y, x, :3] = n
     return Image.fromarray(out)
+
+
+def cloth_color(c, role, tier):
+    if is_skin(c):
+        return None
+    hh, ss, vv = colorsys.rgb_to_hsv(c[0] / 255, c[1] / 255, c[2] / 255)
+    if vv < 0.17:
+        return ramp(role['tunic'], 0.0) if tier <= 3 else None     # contours de toile teintés, contours d'armure gardés
+    if tier >= 4 and ss < 0.28:
+        return None                                                 # métal
+    if tier >= 7 and 0.08 < hh < 0.17 and ss > 0.5 and vv > 0.55:
+        return None                                                 # dorures des armures lourdes
+    L = lum(c)
+    if 0.55 < hh < 0.85:
+        return ramp(role['legs'], (L - 0.15) / 0.3)
+    if hh < 0.04 or hh > 0.95:
+        return ramp(role['accent'], (L - 0.12) / 0.3)
+    return ramp(role['tunic'], (L - 0.12) / 0.4)
 
 
 def recolor_hair(im, stops):
     a = np.array(im)
     out = a.copy()
-    for y in range(a.shape[0]):
-        for x in range(a.shape[1]):
-            r, g, b, al = a[y, x]
-            if al == 0:
-                continue
-            c = (int(r), int(g), int(b))
-            if c in SKIN or c in EYES:
-                continue
-            out[y, x, :3] = ramp(stops, (lum(c) - 0.08) / 0.42)
+    ys, xs = np.nonzero(a[:, :, 3] > 0)
+    for y, x in zip(ys, xs):
+        c = tuple(int(v) for v in a[y, x, :3])
+        if is_skin(c):
+            continue
+        out[y, x, :3] = ramp(stops, (lum(c) - 0.08) / 0.42)
     return Image.fromarray(out)
 
 
-def blobs(im):
-    """Pixels opaques de chaque image (liste par case 64×64)."""
-    a = np.array(im)[:, :, 3]
-    cols, rows = im.width // F, im.height // F
-    res = {}
-    for r in range(rows):
-        for c in range(cols):
-            ys, xs = np.nonzero(a[r * F:(r + 1) * F, c * F:(c + 1) * F] > 0)
-            res[(r, c)] = list(zip(xs.tolist(), ys.tolist()))
-    return res
+def tint(im, col):
+    a = np.array(im)
+    m = a[:, :, 3] > 0
+    a[m, 0], a[m, 1], a[m, 2] = col
+    return Image.fromarray(a)
+
+
+# ─────────────────────────────────────────────
+# Armes
+# ─────────────────────────────────────────────
+
+def cell_points(im, r, c):
+    a = np.array(im.crop((c * F, r * F, (c + 1) * F, (r + 1) * F)))[:, :, 3]
+    ys, xs = np.nonzero(a > 0)
+    return list(zip(xs.tolist(), ys.tolist()))
 
 
 def put(px, x, y, col, w, h):
@@ -152,10 +166,9 @@ def draw_weapon(canvas, cell, pts, body_c, role):
         wood = [(52, 32, 20), (104, 68, 38), (150, 104, 60)] if role is not ROLES['healer'] else [(110, 76, 24), (190, 146, 60), (236, 204, 120)]
         a = (H[0] - ux * 3, H[1] - uy * 3)
         b = (H[0] + ux * (ln + 3), H[1] + uy * (ln + 3))
-        line(px, (a[0] + 1, a[1]), (b[0] + 1, b[1]), wood[0], w, h)   # ombre du bâton
+        line(px, (a[0] + 1, a[1]), (b[0] + 1, b[1]), wood[0], w, h)
         line(px, a, b, wood[1], w, h)
         put(px, int(round(b[0])), int(round(b[1])), wood[2], w, h)
-        # orbe au bout
         orb = role['orb']
         cx, cy = int(round(b[0] + ux * 1.5)), int(round(b[1] + uy * 1.5))
         for ddx in range(-1, 2):
@@ -163,7 +176,6 @@ def draw_weapon(canvas, cell, pts, body_c, role):
                 put(px, cx + ddx, cy + ddy, orb[0] if abs(ddx) + abs(ddy) == 2 else orb[1], w, h)
         put(px, cx - 1, cy - 1, orb[2], w, h)
     else:
-        # arc : courbe perpendiculaire à l'épée, centrée sur la poignée, corde claire
         nx, ny = -uy, ux
         R, bend = 5, 2.5
         prev = None
@@ -183,6 +195,30 @@ def draw_weapon(canvas, cell, pts, body_c, role):
             put(px, q[0], q[1], (54, 34, 20), w, h)
 
 
+def weapon_layer(src, body, role):
+    """Calque d'arme du rôle à partir du calque d'épée (traînées teintées, épées remplacées)."""
+    W, Hh = src.size
+    out = Image.new('RGBA', (W, Hh))
+    rows, cols = Hh // F, W // F
+    for r in range(rows):
+        counts = [len(cell_points(src, r, c)) for c in range(cols)]
+        nz = sorted(n for n in counts if n > 0)
+        med = nz[len(nz) // 2] if nz else 0
+        for c in range(cols):
+            pts = cell_points(src, r, c)
+            if not pts:
+                continue
+            if med and len(pts) > 1.8 * med and len(pts) > 40:
+                # traînée de mouvement : teintée à la couleur du rôle
+                piece = tint(src.crop((c * F, r * F, (c + 1) * F, (r + 1) * F)), role['swing'])
+                out.alpha_composite(piece, (c * F, r * F))
+                continue
+            bp = cell_points(body, r, c) if body is not None else []
+            bc = (sum(p[0] for p in bp) / len(bp), sum(p[1] for p in bp) / len(bp)) if bp else (32, 40)
+            draw_weapon(out, (c * F, r * F), pts, bc, role)
+    return out
+
+
 def draw_hat(canvas, head_pts, cell, role):
     """Chapeau pointu de mage sur le haut de la tête."""
     if not head_pts:
@@ -197,77 +233,96 @@ def draw_hat(canvas, head_pts, cell, role):
     half = max(4, (max(allx) - min(allx)) // 2 + 1)
     stops = role['tunic']
     brim_y = top + 2
-    for x in range(cx - half - 1, cx + half + 2):   # bord
+    for x in range(cx - half - 1, cx + half + 2):
         put(px, ox + x, oy + brim_y, stops[0], w, h)
         put(px, ox + x, oy + brim_y - 1, stops[1], w, h)
     height = 8
-    for k in range(height):                          # cône, pointe légèrement rejetée en arrière
+    for k in range(height):
         y = brim_y - 2 - k
         hw = max(0, int(round((half - 1) * (1 - k / height))))
         shift = int(k * 0.35)
         for x in range(cx - hw + shift, cx + hw + 1 + shift):
             edge = x in (cx - hw + shift, cx + hw + shift)
             put(px, ox + x, oy + y, stops[0] if edge else stops[2 if x < cx + shift else 1], w, h)
-    # bande dorée
     for x in range(cx - half + 1, cx + half):
         put(px, ox + x, oy + brim_y - 2, role['accent'][2], w, h)
 
 
-def tint_swing(im, col):
-    a = np.array(im)
-    m = a[:, :, 3] > 0
-    a[m, 0], a[m, 1], a[m, 2] = col
-    return Image.fromarray(a)
+# ─────────────────────────────────────────────
+# Construction
+# ─────────────────────────────────────────────
+
+def source_layers(n, anim):
+    """Calques de l'épéiste n pour une animation (variante « normale » des attaques des paliers 4-9).
+    Le pack range par erreur la blessure du niveau 2 dans le dossier du niveau 3 : on la reprend au niveau 2."""
+    ch = M8.CHARACTERS[f'swordsman_{n}']
+    layers = {}
+    normal = {}
+    for f in os.listdir(ch['parts']):
+        if not f.endswith('.png') or not f.startswith(ch['prefix']):
+            continue
+        rest = f[len(ch['prefix']):-4]
+        a = next((x for x in M8.ANIM_NAMES if rest.startswith(x + '_')), None)
+        if a != anim:
+            continue
+        part = rest[len(a) + 1:]
+        img = Image.open(os.path.join(ch['parts'], f)).convert('RGBA')
+        for pre in ('normal_', 'nornal_'):
+            if part.startswith(pre):
+                normal[part[len(pre):]] = img
+                break
+        else:
+            layers[part] = img
+    if n >= 4 and 'body' in normal:
+        layers = {k: v for k, v in layers.items() if k in ('red',)}
+        layers.update(normal)
+    if 'body' not in layers and n == 3:
+        return source_layers(2, anim)
+    return layers
 
 
-def build(role_name):
+def build(role_name, n):
     role = ROLES[role_name]
-    os.makedirs(OUT, exist_ok=True)
-    for st, src in STATES.items():
-        ref = Image.open(BASE + src + '_body.png')
-        W, Hh = ref.size
-        layers = {l: load(src, l, W) for l in ORDER}
-        body = layers['body']
-        body_blobs = blobs(body)
-        canvas = Image.new('RGBA', (W, Hh))
-        if layers['shadow'] is not None:
-            canvas = Image.alpha_composite(canvas, layers['shadow'])
-        # arme dans le dos (derrière le corps)
-        for key in ('sword_back',):
-            lay = layers[key]
-            if lay is None:
-                continue
-            wl = Image.new('RGBA', (W, Hh))
-            for cell, pts in blobs(lay).items():
-                bp = body_blobs.get(cell) or [(32, 40)]
-                bc = (sum(p[0] for p in bp) / len(bp), sum(p[1] for p in bp) / len(bp))
-                draw_weapon(wl, (cell[1] * F, cell[0] * F), pts, bc, role)
-            canvas = Image.alpha_composite(canvas, wl)
-        canvas = Image.alpha_composite(canvas, recolor_body(body, role))
-        head = layers['head']
-        if head is not None:
-            hd = recolor_hair(head, role['hair']) if role.get('hair') else head
-            if role.get('hat'):
+    cid = f'{role_name}_{n}'
+    out_dir = os.path.join(OUT, cid)
+    os.makedirs(out_dir, exist_ok=True)
+    for anim in ANIMS:
+        L = source_layers(n, anim)
+        if 'body' not in L:
+            continue
+        body = L['body']
+        res = {}
+        if 'shadow' in L:
+            res['shadow'] = L['shadow']
+        res['body'] = recolor_cloth(body, role, n)
+        if 'head' in L:
+            head = L['head']
+            if n <= 3 and role.get('hair'):
+                hd = recolor_hair(head, role['hair'])
+            else:
+                hd = recolor_cloth(head, role, n)
+            if role.get('hat') and n <= 3:
                 hd = hd.copy()
-                for cell, pts in blobs(head).items():
-                    draw_hat(hd, pts, (cell[1] * F, cell[0] * F), role)
-            canvas = Image.alpha_composite(canvas, hd)
-        lay = layers['sword']
-        if lay is not None:
-            wl = Image.new('RGBA', (W, Hh))
-            for cell, pts in blobs(lay).items():
-                bp = body_blobs.get(cell) or [(32, 40)]
-                bc = (sum(p[0] for p in bp) / len(bp), sum(p[1] for p in bp) / len(bp))
-                draw_weapon(wl, (cell[1] * F, cell[0] * F), pts, bc, role)
-            canvas = Image.alpha_composite(canvas, wl)
-        if layers['swing'] is not None and role.get('swing'):
-            canvas = Image.alpha_composite(canvas, tint_swing(layers['swing'], role['swing']))
-        if layers['red'] is not None:
-            canvas = Image.alpha_composite(canvas, layers['red'])
-        canvas.save(os.path.join(OUT, f'{role_name}_{st}_with_shadow.png'))
-    print('ok', role_name)
+                for r in range(head.height // F):
+                    for c in range(head.width // F):
+                        pts = cell_points(head, r, c)
+                        draw_hat(hd, pts, (c * F, r * F), role)
+            res['head'] = hd
+        for wl in WEAPON_LAYERS:
+            if wl in L:
+                res[wl] = weapon_layer(L[wl], body, role)
+        for fx in ('swing', 'aoe'):
+            if fx in L:
+                res[fx] = tint(L[fx], role['swing'])
+        if 'red' in L:
+            res['red'] = L['red']
+        for part, img in res.items():
+            img.save(os.path.join(out_dir, f'{cid}_{anim}_{part}.png'))
+    print('ok', cid)
 
 
 if __name__ == '__main__':
-    for r in ROLES:
-        build(r)
+    roles = sys.argv[1:] or list(ROLES)
+    for r in roles:
+        for n in range(1, 10):
+            build(r, n)

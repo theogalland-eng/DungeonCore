@@ -25,6 +25,8 @@ public class GameManager : MonoBehaviour
     public Color nightTint = new Color(0.55f, 0.6f, 1f);
     /// <summary>Météo (IslandEvents) : assombrissement / teinte appliqués par-dessus le cycle jour-nuit.</summary>
     [HideInInspector] public float weatherIntensity = 1f;
+    /// <summary>Pénombre souterraine (Atmosphere) : 1 dehors, moins sous la montagne.</summary>
+    [HideInInspector] public float caveIntensity = 1f;
     [HideInInspector] public Color weatherTint = Color.white;
 
     [Header("Vitesse")]
@@ -161,6 +163,7 @@ public class GameManager : MonoBehaviour
         }
 
         AdventurerAI.FixGraphCorners();
+        Atmosphere.Ensure();
         dayTimer = dayLengthSeconds * 0.05f;
         OnNewDay?.Invoke(CurrentDay);
     }
@@ -204,7 +207,7 @@ public class GameManager : MonoBehaviour
         else n = 1f;
         n = Mathf.SmoothStep(0f, 1f, n);
 
-        globalLight.intensity = Mathf.Lerp(baseLightIntensity, baseLightIntensity * nightLightMultiplier, n) * weatherIntensity;
+        globalLight.intensity = Mathf.Lerp(baseLightIntensity, baseLightIntensity * nightLightMultiplier, n) * weatherIntensity * caveIntensity;
         globalLight.color = Color.Lerp(baseLightColor, baseLightColor * nightTint, n) * weatherTint;
     }
 

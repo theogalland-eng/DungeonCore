@@ -1024,6 +1024,7 @@ public class GobelinAI : MonoBehaviour, IDamageable
         {
             StopCoroutine(nameof(Flash));
             StartCoroutine(nameof(Flash));
+            HitFlashFx.Flash(spriteRenderer);
         }
         if (currentHealth <= 0) Die();
         else UnitAnim.Hurt(animator);

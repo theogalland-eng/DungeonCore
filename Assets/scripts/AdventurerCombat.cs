@@ -45,9 +45,17 @@ public class AdventurerCombat : MonoBehaviour, IDamageable
     public float GetCurrentHealth() => currentHealth;
     public string GetName() => adventurerName;
 
+    /// <summary>Jusqu'à cet instant, les coups ne portent pas (roulade du héros).</summary>
+    [System.NonSerialized] public float invulnerableUntil;
+
     public void TakeDamage(float amount)
     {
         if (currentHealth <= 0f) return;
+        if (Time.time < invulnerableUntil)
+        {
+            FloatingText.Spawn(transform.position + Vector3.up * 0.6f, "Esquive !", new Color(0.7f, 0.9f, 1f), 0.8f);
+            return;
+        }
 
         currentHealth -= amount;
         Sfx.Play("hit_flesh", transform.position, 0.6f);
@@ -57,6 +65,7 @@ public class AdventurerCombat : MonoBehaviour, IDamageable
         {
             if (flashRoutine != null) StopCoroutine(flashRoutine);
             flashRoutine = StartCoroutine(Flash());
+            HitFlashFx.Flash(spriteRenderer);
         }
 
         if (currentHealth <= 0f) Die();

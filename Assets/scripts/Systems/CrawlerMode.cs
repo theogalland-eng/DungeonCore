@@ -57,7 +57,8 @@ public class CrawlerMode : MonoBehaviour
     private Canvas canvas;
     private RectTransform hud, shop;
     private TextMeshProUGUI title, stats, prompt, partyText, banner;
-    private RectTransform hpFill, skillFill;
+    private RectTransform hpFill, skillFill, staminaFill;
+    private Image staminaImg;
     private Image fade;
     private float startTime;
 
@@ -192,9 +193,12 @@ public class CrawlerMode : MonoBehaviour
         var go = SpawnAdventurer(role, at, "Joueur");
         Player = go.AddComponent<CrawlerPlayer>();
         Player.Setup(role);
-        Player.Combat.adventurerName = $"{ClassNames[(int)role]} (vous)";
+        HeroLook.Load();
+        Player.SetTier(1 + armorLvl);
+        Player.ApplyLook();
+        Player.Combat.adventurerName = string.IsNullOrWhiteSpace(HeroLook.HeroName) ? $"{ClassNames[(int)role]} (vous)" : HeroLook.HeroName;
         HealthBar.Attach(go.transform, () => Player.Combat.currentHealth / Player.Combat.maxHealth, new Color(0.35f, 0.9f, 0.4f));
-        NemesisSystem.AddTag(go.transform, "Vous", new Color(0.6f, 0.9f, 1f));
+        NemesisSystem.AddTag(go.transform, string.IsNullOrWhiteSpace(HeroLook.HeroName) ? "Vous" : HeroLook.HeroName, new Color(0.6f, 0.9f, 1f));
         var cam = Camera.main;
         if (cam != null) { cam.orthographicSize = 6f; cam.transform.position = new Vector3(at.x, at.y, cam.transform.position.z); }
         if (CameraController.Instance != null) CameraController.Instance.cinematic = true;
@@ -223,7 +227,7 @@ public class CrawlerMode : MonoBehaviour
             new StoryManager.Line("Maître de guilde", "Encore un qui veut sa part du donjon ? Il a DIX étages, et chaque marche vers le bas est pire que la précédente."),
             new StoryManager.Line("Maître de guilde", "Passe à la forge, à la tour des mages, et viens au hall : on y forme des groupes. Seul, tu ne passeras pas le quatrième étage."),
             new StoryManager.Line("Maître de guilde", "Le cristal est tout au fond. Brise-le, et ton nom sera chanté dans toutes les tavernes."),
-            new StoryManager.Line(StoryManager.SystemName, "Déplacement : ZQSD / flèches ou joystick. Attaque : Espace, clic ou bouton. Compétence : R. Potion : F. Interagir (portes, habitants, coffres, escaliers) : E. Pierre de rappel : T."));
+            new StoryManager.Line(StoryManager.SystemName, "Déplacement : ZQSD / flèches ou joystick. Attaque : Espace, clic ou bouton. Courir : Maj ou joystick à fond. Roulade : Ctrl, clic droit ou bouton Esquive. Compétence : R. Potion : F. Interagir (portes, habitants, coffres, escaliers) : E. Pierre de rappel : T."));
     }
 
     // ─────────────────────────────────────────────
@@ -418,11 +422,23 @@ public class CrawlerMode : MonoBehaviour
         if (potions <= 0) { GameHUD.Toast("Plus de potions (tour des mages)", GameHUD.WarningColor); return; }
         var c = Player.Combat;
         if (c.currentHealth >= c.maxHealth) return;
+        if (Player.InGesture) return;
         potions--;
         float heal = c.maxHealth * 0.5f;
-        c.currentHealth = Mathf.Min(c.maxHealth, c.currentHealth + heal);
-        Sfx.Play("heal", Player.transform.position);
-        FloatingText.Spawn(Player.transform.position + Vector3.up * 0.8f, $"+{Mathf.RoundToInt(heal)}", new Color(0.45f, 1f, 0.5f), 1.2f);
+        Player.Gesture(false, 0.7f, () =>
+        {
+            c.currentHealth = Mathf.Min(c.maxHealth, c.currentHealth + heal);
+            Sfx.Play("heal", Player.transform.position);
+            Fx.Play("heal", Player.transform.position, 1.2f, 14f, 16, null, false, Player.transform, new Color(0.4f, 1f, 0.5f));
+            FloatingText.Spawn(Player.transform.position + Vector3.up * 0.8f, $"+{Mathf.RoundToInt(heal)}", new Color(0.45f, 1f, 0.5f), 1.2f);
+        }, PotionSprite());
+    }
+
+    private Sprite potionSprite;
+    private Sprite PotionSprite()
+    {
+        if (potionSprite == null) potionSprite = Resources.Load<Sprite>("Loot/loot_mana_potion");
+        return potionSprite;
     }
 
     private SettlementBuilding DoorNear(float radius)
@@ -471,7 +487,7 @@ public class CrawlerMode : MonoBehaviour
         {
             if (ch == null || !ch.IsFull || Vector2.Distance(ch.transform.position, p) > 1.3f) continue;
             var chest = ch;
-            act = () => OpenChest(chest);
+            act = () => Player.Gesture(true, 0.8f, () => OpenChest(chest));
             return "Ouvrir le coffre";
         }
         foreach (var st in CrawlerStairs.All)
@@ -479,7 +495,7 @@ public class CrawlerMode : MonoBehaviour
             if (st == null || Vector2.Distance(st.transform.position, p) > 1.2f) continue;
             int t = st.Target;
             bool down = st.down;
-            act = () => GoToFloor(t, down);
+            act = () => Player.Gesture(false, 0.35f, () => GoToFloor(t, down));
             return down ? $"Descendre : étage {t} — {CrawlerDungeon.FloorNames[t]}" : $"Remonter à l'étage {t}";
         }
         if (checkpointCircle != null && checkpointCircle.activeSelf && Vector2.Distance(checkpointCircle.transform.position, p) < 1.2f)
@@ -489,13 +505,14 @@ public class CrawlerMode : MonoBehaviour
             return $"Cercle de passage : descendre à l'étage {cp}";
         }
         var b = DoorNear(1.4f);
-        if (b != null) { act = () => EnterBuilding(b); return $"Entrer : {b.def.name}"; }
+        if (b != null) { act = () => Player.Gesture(false, 0.35f, () => EnterBuilding(b)); return $"Entrer : {b.def.name}"; }
         return null;
     }
 
     public void Interact()
     {
         if (shop != null) { CloseShop(); return; }
+        if (Player != null && Player.InGesture) return;
         InteractionLabel(out var act);
         act?.Invoke();
     }
@@ -582,7 +599,11 @@ public class CrawlerMode : MonoBehaviour
     private float DmgMult => (1f + 0.22f * weaponLvl) * (1f + 0.08f * rank);
     public int PartyCount { get { int n = 0; foreach (var c in CrawlerCompanion.All) if (c != null && !c.IsDead) n++; return n; } }
 
-    private void RefreshStats(bool heal) => Player.ApplyStats(HpMult, DmgMult, heal);
+    private void RefreshStats(bool heal)
+    {
+        Player.ApplyStats(HpMult, DmgMult, heal);
+        Player.SetTier(1 + armorLvl);   // chaque renfort d'armure se voit
+    }
 
     private static string ShopTitle(string key)
     {
@@ -863,7 +884,12 @@ public class CrawlerMode : MonoBehaviour
         hpFill = UIKit.Rect("Fill", bg);
         UIKit.Image(hpFill, new Color(0.35f, 0.85f, 0.4f), false);
         hpFill.anchorMin = Vector2.zero; hpFill.anchorMax = new Vector2(1, 1); hpFill.pivot = new Vector2(0, 0.5f); hpFill.offsetMin = hpFill.offsetMax = Vector2.zero;
-        stats = UIKit.LabelAt(panel, "", 20, UIKit.Text, new Vector2(18, -82), new Vector2(570, 60));
+        // endurance : fine jauge sous les PV
+        var sbg = UIKit.PanelBox("Endurance", panel, new Vector2(0, 1), new Vector2(18, -76), new Vector2(560, 9), new Color(0.1f, 0.1f, 0.12f, 1f));
+        staminaFill = UIKit.Rect("Fill", sbg);
+        staminaImg = UIKit.Image(staminaFill, new Color(0.95f, 0.8f, 0.35f), false);
+        staminaFill.anchorMin = Vector2.zero; staminaFill.anchorMax = new Vector2(1, 1); staminaFill.pivot = new Vector2(0, 0.5f); staminaFill.offsetMin = staminaFill.offsetMax = Vector2.zero;
+        stats = UIKit.LabelAt(panel, "", 20, UIKit.Text, new Vector2(18, -90), new Vector2(570, 60));
         stats.textWrappingMode = TextWrappingModes.Normal;
         partyText = UIKit.LabelAt(hud, "", 20, UIKit.Text, new Vector2(22, -176), new Vector2(560, 120));
         partyText.textWrappingMode = TextWrappingModes.Normal;
@@ -900,13 +926,14 @@ public class CrawlerMode : MonoBehaviour
             return b;
         }
         Act("Attaque", new Vector2(-40, 60), new Vector2(200, 200), new Color(0.55f, 0.2f, 0.22f, 0.9f), () => { if (Player) Player.touchAttack = true; });
-        var sk = Act("Compétence", new Vector2(-260, 60), new Vector2(170, 110), new Color(0.3f, 0.25f, 0.55f, 0.9f), () => { if (Player) Player.touchSkill = true; });
+        Act("Esquive", new Vector2(-260, 60), new Vector2(170, 110), new Color(0.18f, 0.42f, 0.5f, 0.9f), () => { if (Player) Player.touchRoll = true; });
+        var sk = Act("Compétence", new Vector2(-260, 185), new Vector2(170, 110), new Color(0.3f, 0.25f, 0.55f, 0.9f), () => { if (Player) Player.touchSkill = true; });
         skillFill = UIKit.Rect("Recharge", (RectTransform)sk.transform);
         UIKit.Image(skillFill, new Color(1f, 1f, 1f, 0.18f), false).raycastTarget = false;
         skillFill.anchorMin = Vector2.zero; skillFill.anchorMax = new Vector2(1, 0); skillFill.pivot = new Vector2(0.5f, 0); skillFill.offsetMin = skillFill.offsetMax = Vector2.zero;
-        Act("Potion", new Vector2(-260, 180), new Vector2(170, 80), new Color(0.2f, 0.45f, 0.3f, 0.9f), () => { if (Player) Player.touchPotion = true; });
+        Act("Potion", new Vector2(-450, 60), new Vector2(160, 80), new Color(0.2f, 0.45f, 0.3f, 0.9f), () => { if (Player) Player.touchPotion = true; });
         Act("Interagir", new Vector2(-40, 280), new Vector2(200, 80), new Color(0.45f, 0.38f, 0.15f, 0.9f), () => { if (Player) Player.touchInteract = true; });
-        Act("Rappel", new Vector2(-260, 280), new Vector2(170, 80), new Color(0.2f, 0.3f, 0.5f, 0.9f), UseRecall);
+        Act("Rappel", new Vector2(-450, 150), new Vector2(160, 80), new Color(0.2f, 0.3f, 0.5f, 0.9f), UseRecall);
 
         fade = UIKit.Image(UIKit.Stretch(UIKit.Rect("Fondu", go.transform)), new Color(0f, 0f, 0f, 0f), false, false);
         fade.raycastTarget = false;
@@ -945,6 +972,10 @@ public class CrawlerMode : MonoBehaviour
         var c = Player.Combat;
         title.text = $"{ClassNames[(int)Player.role]}  ·  rang {GuildSystem.RankTag(rank)}";
         hpFill.anchorMax = new Vector2(Mathf.Clamp01(c.currentHealth / c.maxHealth), 1f);
+        staminaFill.anchorMax = new Vector2(Player.Stamina01, 1f);
+        // à bout de souffle : la jauge rougit et clignote
+        staminaImg.color = Player.Exhausted ? Color.Lerp(new Color(0.9f, 0.3f, 0.25f), new Color(0.5f, 0.15f, 0.12f), Mathf.PingPong(Time.unscaledTime * 3f, 1f))
+                                            : new Color(0.95f, 0.8f, 0.35f);
         var interior = InteriorSystem.Instance;
         string where = interior != null && interior.Physical ? interior.CurrentTitle
                      : floor > 0 ? $"Étage {floor}/{CrawlerDungeon.FloorCount} — {CrawlerDungeon.FloorNames[floor]}" : "La ville du donjon";

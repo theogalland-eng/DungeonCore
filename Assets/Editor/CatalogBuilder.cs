@@ -297,6 +297,27 @@ public static class CatalogBuilder
         cat.archerPrefab = C("adv_archer");
         cat.magePrefab = C("adv_mage");
         cat.healerPrefab = C("adv_healer");
+        RuntimeAnimatorController Ctrl(string id) =>
+            AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>($"{CharacterImporter.AnimDir}/{id}/{id}.controller");
+        cat.lookWarrior.Clear(); cat.lookArcher.Clear(); cat.lookMage.Clear(); cat.lookHealer.Clear();
+        var previews = new[] { "swordsman_1", "adv_archer_1", "adv_mage_1", "adv_healer_1" };
+        cat.lookPreview = new Sprite[4];
+        for (int i = 0; i < 4; i++)
+        {
+            // première image du repos, de face, sur la planche 8 directions (texture lisible : recoloration de l'aperçu)
+            string sheet = $"{CharacterImporter.Dir8Root}/{previews[i]}/{previews[i]}_Idle.png";
+            Sprite first = null;
+            foreach (var o in AssetDatabase.LoadAllAssetsAtPath(sheet))
+                if (o is Sprite s0 && s0.name.EndsWith("_0_0")) first = s0;
+            cat.lookPreview[i] = first;
+        }
+        for (int t = 1; t <= 9; t++)
+        {
+            cat.lookWarrior.Add(Ctrl($"swordsman_{t}"));
+            cat.lookArcher.Add(Ctrl($"adv_archer_{t}"));
+            cat.lookMage.Add(Ctrl($"adv_mage_{t}"));
+            cat.lookHealer.Add(Ctrl($"adv_healer_{t}"));
+        }
         cat.tierVariants.Clear();
         int[][] variants = { new[] { 0 }, new[] { 0 }, new[] { 1, 2, 3 }, new[] { 3, 4, 5, 6 }, new[] { 7, 8, 9 } };
         for (int t = 0; t < variants.Length; t++)

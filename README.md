@@ -73,6 +73,8 @@ Trois intentions guident tout le développement :
 - Explorer la ville **à pied**, entrer dans les bâtiments, parler aux PNJ, acheter armes et potions.
 - Former un **groupe** à la Guilde.
 - Descendre un **donjon procédural de 10 étages**, gardiens nommés (Grukk, Sa'Veth), points de passage, pierres de rappel.
+- **8 directions**, course avec **endurance**, **roulade** d'esquive, gestes (fouiller, boire, prier).
+- **Armure visible** sur 9 paliers et **personnalisation** (nom, cheveux, peau, tenue).
 
 </td>
 <td valign="top">
@@ -80,6 +82,7 @@ Trois intentions guident tout le développement :
 ### 🎬 Atmosphère
 - **Cinématiques** : naissance du cristal (7 scènes, adaptée du chapitre 1 du roman), premier bateau, alerte à la Guilde (scène d'intérieur avec dialogues), verdict, croissance de la colonie.
 - **Événements** d'île : tempêtes, brouillard, éruptions, lune de sang, naufrages.
+- **Pénombre souterraine**, torches des intrus qui approchent dans le noir, détails de sol et ombres au pied des murs, flash et micro-pause à l'impact.
 - **Musique adaptative** (un morceau calme va toujours au bout ; le combat coupe), ambiances et bruitages **générés procéduralement**.
 - Profils, sauvegardes (auto + 3 emplacements), 4 difficultés dont *Impitoyable*, succès.
 

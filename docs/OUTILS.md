@@ -60,7 +60,10 @@ Prérequis : Python 3 avec **Pillow**, **NumPy** et **SciPy**. À lancer depuis 
 | `make_walls.py` | Atlas de 128 variantes de murs auto-raccordés par thème. |
 | `make_relief.py` | Relief 2.5D du volcan, calculé à partir de la forme de la montagne (distance au bord, ombrage, strates). |
 | `make_water.py` | Mer animée raccordable. |
-| `make_roles.py` | Archer, mage et soigneuse **recomposés à partir des calques de l'épéiste** (tenue recolorée, arc et bâton dessinés). |
+| `make_8dir.py` | **Personnages en 8 directions** : diagonales recomposées à partir des calques des packs (corps + tête de deux directions voisines), roulade, gestes. Épéistes, rôles et 45 monstres. |
+| `make_roles.py` | Archer, mage et soigneuse sur les **9 paliers d'armure**, **recomposés à partir des calques des épéistes** (étoffes recolorées, arc et bâton dessinés). |
+| `make_palettes.py` | Couleurs de cheveux, peau et tenue de chaque apparence du héros (personnalisation). |
+| `make_decals.py` | Détails de sol du donjon (fissures, cailloux, ossements, mousse, flaques), entièrement procéduraux. |
 | `make_gull.py` | La mouette de la cinématique d'intro (vol, chute, posée). |
 | `make_sfx.py` · `make_ambience.py` | **Bruitages et ambiances entièrement synthétisés** (coups, sorts, pièges, ressac, souffle de caverne, battements de cœur). |
 | `make_banner.py` | La bannière de ce README. |

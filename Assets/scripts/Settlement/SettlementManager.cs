@@ -112,6 +112,7 @@ public class SettlementManager : MonoBehaviour
             else if (tm.name == "Decor") decor = tm;
             else if (tm.name == "trees_trunk") trunks = tm;
         }
+        WidenPier();
         root = new GameObject("Colonie").transform;
         var forest = GameObject.Find("Forêt");
         if (forest != null)
@@ -650,6 +651,27 @@ public class SettlementManager : MonoBehaviour
     // PORT
     // ─────────────────────────────────────────────
 
+    /// <summary>
+    /// Les planches du ponton ne couvrent que 11 px sur 16 de chaque case (une bande d'eau de chaque côté) :
+    /// on les élargit jusqu'aux bords de la zone praticable, pour ne plus avoir l'air de marcher sur l'eau.
+    /// </summary>
+    private void WidenPier()
+    {
+        var art = SettlementArt.Get();
+        if (art == null || decor == null || art.pierLeft == null || art.pierRight == null) return;
+        const float scale = 16f / 11f, shift = 0.5f * scale - 0.5f;   // le bord extérieur des planches revient au bord de la case
+        var b = decor.cellBounds;
+        foreach (var c in b.allPositionsWithin)
+        {
+            var t = decor.GetTile(c);
+            bool left = t == art.pierLeft && decor.GetTile(c + Vector3Int.right) == art.pierRight;
+            bool right = t == art.pierRight && decor.GetTile(c + Vector3Int.left) == art.pierLeft;
+            if (!left && !right) continue;
+            decor.SetTileFlags(c, TileFlags.None);
+            decor.SetTransformMatrix(c, Matrix4x4.TRS(new Vector3(left ? -shift : shift, 0f, 0f), Quaternion.identity, new Vector3(scale, 1f, 1f)));
+        }
+    }
+
     private void BuildPier()
     {
         var art = SettlementArt.Get();
@@ -660,6 +682,7 @@ public class SettlementManager : MonoBehaviour
             sol.SetTile(c, art.seaFloor);
             if (decor != null) decor.SetTile(c, (c.x - Site.landing.x) % 2 == 0 ? art.pierLeft : art.pierRight);
         }
+        WidenPier();
         if (blocked != null)
         {
             var tc = blocked.GetComponent<TilemapCollider2D>();
