@@ -606,5 +606,115 @@ public static class DevInspect3
         }
         return sb.ToString();
     }
+    /// <summary>Cases de l'île sans aucune tuile au sol (on y voit le fond noir de la caméra).</summary>
+    public static string Holes()
+    {
+        UnityEngine.Tilemaps.Tilemap sol = null, blk = null;
+        foreach (var tm in Object.FindObjectsByType<UnityEngine.Tilemaps.Tilemap>(FindObjectsSortMode.None))
+        { if (tm.name == "Sol") sol = tm; if (tm.name == "NoPathfinding") blk = tm; }
+        var b = sol.cellBounds;
+        int holes = 0;
+        var sb = new System.Text.StringBuilder();
+        var list = new System.Collections.Generic.List<Vector3Int>();
+        for (int x = b.xMin; x < b.xMax; x++)
+            for (int y = b.yMin; y < b.yMax; y++)
+            {
+                var c = new Vector3Int(x, y, 0);
+                if (sol.HasTile(c) || blk.HasTile(c)) continue;
+                // trou entouré de terrain (pas la marge extérieure de la carte)
+                int n = 0;
+                foreach (var d in new[] { Vector3Int.up, Vector3Int.down, Vector3Int.left, Vector3Int.right })
+                    if (sol.HasTile(c + d * 3) || blk.HasTile(c + d * 3)) n++;
+                if (n < 4) continue;
+                holes++;
+                if (list.Count < 40) list.Add(c);
+            }
+        foreach (var c in list) sb.Append($"{c.x},{c.y} ");
+        return $"bounds={b} trous={holes} : {sb}";
+    }
+    public static string PickFromFile()
+    {
+        var t = System.IO.File.ReadAllText("Temp/pick.txt").Split(' ');
+        pickX = float.Parse(t[0], System.Globalization.CultureInfo.InvariantCulture);
+        pickY = float.Parse(t[1], System.Globalization.CultureInfo.InvariantCulture);
+        return Pick();
+    }
+    public static string CullingFix()
+    {
+        int n = 0;
+        var sb = new System.Text.StringBuilder();
+        foreach (var r in Object.FindObjectsByType<UnityEngine.Tilemaps.TilemapRenderer>(FindObjectsSortMode.None))
+        {
+            sb.Append($"{r.name}:{r.mode}/{r.detectChunkCullingBounds}/{r.chunkCullingBounds} ");
+            r.detectChunkCullingBounds = UnityEngine.Tilemaps.TilemapRenderer.DetectChunkCullingBounds.Manual;
+            r.chunkCullingBounds = new Vector3(4f, 4f, 0f);
+            n++;
+        }
+        return $"{n} : " + sb;
+    }
+    public static string PickAll()
+    {
+        var w = new Vector3(43.3f, -7.25f, 0f);
+        var sb = new System.Text.StringBuilder();
+        foreach (var r in Object.FindObjectsByType<Renderer>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            var b = r.bounds;
+            if (r is UnityEngine.Tilemaps.TilemapRenderer) continue;
+            if (w.x < b.min.x || w.x > b.max.x || w.y < b.min.y || w.y > b.max.y) continue;
+            string extra = r is SpriteRenderer sr ? $" sprite={sr.sprite?.name} col={sr.color} mat={sr.sharedMaterial?.name}" : $" mat={r.sharedMaterial?.name}";
+            sb.Append($"[{r.GetType().Name} {r.name} <- {r.transform.parent?.name} en={r.enabled}/{r.gameObject.activeInHierarchy} order={r.sortingOrder}{extra} size={b.size}] ");
+        }
+        return sb.ToString();
+    }
+    public static string NearTiles()
+    {
+        var sb = new System.Text.StringBuilder();
+        foreach (var tm in Object.FindObjectsByType<UnityEngine.Tilemaps.Tilemap>(FindObjectsSortMode.None))
+        {
+            var r = tm.GetComponent<UnityEngine.Tilemaps.TilemapRenderer>();
+            var c0 = tm.WorldToCell(new Vector3(43.3f, -7.25f, 0f));
+            for (int dx = -2; dx <= 2; dx++)
+                for (int dy = -2; dy <= 2; dy++)
+                {
+                    var c = c0 + new Vector3Int(dx, dy, 0);
+                    var t = tm.GetTile(c);
+                    if (t != null && tm.name != "Sol" && tm.name != "Decor") sb.Append($"[{tm.name} rend={r?.enabled} {c} {t.name} col={tm.GetColor(c)} spr={tm.GetSprite(c)?.name}] ");
+                }
+        }
+        return sb.ToString();
+    }
+
+    public static string TrailInfo()
+    {
+        var w = TrailWear.Instance;
+        var ads = Object.FindObjectsByType<AdventurerAI>(FindObjectsSortMode.None).Length;
+        return w == null ? "pas de TrailWear" : $"cases usées {w.WornCells}, aventuriers {ads}, temps x{Time.timeScale}";
+    }
+    public static string Fast() { Time.timeScale = 8f; return "x8"; }
+    public static string Spawn3() { var sp = Object.FindFirstObjectByType<AdventurerSpawner>(); for (int i = 0; i < 3; i++) sp.SpawnGroup(); return "3 groupes"; }
+    public static string Normal() { Time.timeScale = 1f; return "x1"; }
+    public static string TrailShot()
+    {
+        var site = Object.FindFirstObjectByType<SettlementSite>();
+        var core = Object.FindFirstObjectByType<DungeonCore>().transform.position;
+        var mid = (site.LandingWorld + core) * 0.5f;
+        return DevInspect.Shot(mid.x, mid.y, 26, 1600, 1000, "trail");
+    }
+
+    public static string TacticsArena()
+    {
+        var core = Object.FindFirstObjectByType<DungeonCore>().transform.position;
+        var cat = DungeonCatalog.Get();
+        int n = 0;
+        foreach (var fam in new[] { "goblin", "gnoll", "rat", "rat" })
+        {
+            var item = cat.items.Find(i => i.id == fam || (i.prefab != null && i.prefab.GetComponent<MonsterUnit>() != null && i.prefab.GetComponent<MonsterUnit>().familyId == fam));
+            if (item == null || item.prefab == null) continue;
+            Vector2 p = (Vector2)core + new Vector2(Random.Range(-1f, 1f), -1f);
+            if (MonsterSpawner.Instance.SpawnFree(item.prefab, p, p, fam) != null) n++;
+        }
+        return $"{n} monstres";
+    }
+    public static string TacticsCount() => $"tactiques lancées : {GobelinAI.TacticsUsed}";
 }
 #endif

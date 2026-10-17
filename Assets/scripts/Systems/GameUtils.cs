@@ -187,28 +187,65 @@ public static class SpriteUtil
         }
     }
 
-    /// <summary>Rectangle arrondi 9-slice pour l'UI.</summary>
+    // Un texel d'interface = 3 unités du canevas de référence (1920 x 1080) : bords nets en « gros pixels »
+    private const float UIPixelPPU = 100f / 3f;
+
+    /// <summary>
+    /// Fond 9-slice de l'interface en pixel art (teinté par Image.color) : coins taillés, liseré sombre,
+    /// lumière d'un pixel en haut et ombre en bas (biseau). Remplace l'ancien rectangle arrondi lisse.
+    /// </summary>
     public static Sprite RoundedUI
     {
         get
         {
             if (rounded == null)
             {
-                const int s = 48; const float r = 14f;
-                var tex = new Texture2D(s, s) { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp };
+                const int s = 16;
+                var tex = new Texture2D(s, s, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp };
                 for (int y = 0; y < s; y++)
                     for (int x = 0; x < s; x++)
                     {
-                        float cx = Mathf.Clamp(x + 0.5f, r, s - r);
-                        float cy = Mathf.Clamp(y + 0.5f, r, s - r);
-                        float d = Vector2.Distance(new Vector2(x + 0.5f, y + 0.5f), new Vector2(cx, cy));
-                        tex.SetPixel(x, y, new Color(1, 1, 1, Mathf.Clamp01(r - d + 0.5f)));
+                        int dx = Mathf.Min(x, s - 1 - x), dy = Mathf.Min(y, s - 1 - y);
+                        Color c;
+                        if (dx + dy < 2) c = Color.clear;                        // coin taillé
+                        else if (dx == 0 || dy == 0 || dx + dy == 2) c = new Color(0.3f, 0.3f, 0.3f, 1f);   // liseré sombre
+                        else if (y == s - 2) c = new Color(1f, 1f, 1f, 1f);       // lumière (haut)
+                        else if (y == 1) c = new Color(0.62f, 0.62f, 0.62f, 1f);  // ombre (bas)
+                        else c = new Color(0.86f, 0.86f, 0.86f, 1f);
+                        tex.SetPixel(x, y, c);
                     }
                 tex.Apply();
-                rounded = Sprite.Create(tex, new Rect(0, 0, s, s), new Vector2(0.5f, 0.5f), 100f, 0,
-                    SpriteMeshType.FullRect, new Vector4(r + 2, r + 2, r + 2, r + 2));
+                rounded = Sprite.Create(tex, new Rect(0, 0, s, s), new Vector2(0.5f, 0.5f), UIPixelPPU, 0,
+                    SpriteMeshType.FullRect, new Vector4(4, 4, 4, 4));
             }
             return rounded;
+        }
+    }
+
+    private static Sprite uiTrim;
+
+    /// <summary>Liseré 9-slice (fin trait d'un pixel, coins taillés, petits rivets) à poser par-dessus un fond.</summary>
+    public static Sprite UITrim
+    {
+        get
+        {
+            if (uiTrim == null)
+            {
+                const int s = 16;
+                var tex = new Texture2D(s, s, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp };
+                for (int y = 0; y < s; y++)
+                    for (int x = 0; x < s; x++)
+                    {
+                        int dx = Mathf.Min(x, s - 1 - x), dy = Mathf.Min(y, s - 1 - y);
+                        bool line = (dx == 2 && dy >= 4) || (dy == 2 && dx >= 4) || (dx + dy == 6 && dx >= 2 && dy >= 2);
+                        bool rivet = dx == 3 && dy == 3;
+                        tex.SetPixel(x, y, line ? Color.white : rivet ? new Color(1f, 1f, 1f, 0.7f) : Color.clear);
+                    }
+                tex.Apply();
+                uiTrim = Sprite.Create(tex, new Rect(0, 0, s, s), new Vector2(0.5f, 0.5f), UIPixelPPU, 0,
+                    SpriteMeshType.FullRect, new Vector4(6, 6, 6, 6));
+            }
+            return uiTrim;
         }
     }
 }

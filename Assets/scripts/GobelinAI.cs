@@ -456,6 +456,8 @@ public class GobelinAI : MonoBehaviour, IDamageable
 
         outOfCombatTimer = 0f;
         float dist = Vector2.Distance(rb.position, missionTarget.position);
+        // une charge ou un bond en cours va jusqu'au bout
+        if (tacticPhase > 0) { StepTactic(dist); return; }
 
         switch (combatState)
         {
@@ -466,7 +468,11 @@ public class GobelinAI : MonoBehaviour, IDamageable
                 }
                 else if (dist <= detectionRange * 1.5f && HasLineOfSight(missionTarget))
                 {
-                    FollowPath(chaseSpeed);
+                    if (!TryStartTactic(dist))
+                    {
+                        FollowPath(chaseSpeed);
+                        Flank(dist);
+                    }
                 }
                 else
                 {
@@ -574,6 +580,7 @@ public class GobelinAI : MonoBehaviour, IDamageable
 
     private void EndMission()
     {
+        if (tacticPhase > 0) EndTactic();
         isOnMission = false;
         currentMission = MissionType.None;
         missionTarget = null;
@@ -636,6 +643,7 @@ public class GobelinAI : MonoBehaviour, IDamageable
 
     public void SetPossessed(bool possessed)
     {
+        if (tacticPhase > 0) EndTactic();
         IsPossessed = possessed;
         isOnMission = false;
         currentMission = MissionType.None;
@@ -891,6 +899,112 @@ public class GobelinAI : MonoBehaviour, IDamageable
     // ═══════════════════════════════════════════
     // COMBAT
     // ═══════════════════════════════════════════
+
+    // ═══════════════════════════════════════════
+    // TACTIQUES DE FAMILLE (déplacements en 8 directions)
+    //   gobelin / orc : charge (temps d'armement, ruée en ligne droite, coup renforcé)
+    //   gnoll / lézard : bond (s'accroupit, saute sur la cible, frappe à l'atterrissage)
+    //   rat : contournement (approche de biais pour prendre l'intrus de flanc)
+    // ═══════════════════════════════════════════
+
+    /// <summary>Nombre de charges et de bonds lancés depuis le début (statistique, tests).</summary>
+    public static int TacticsUsed;
+    private int tacticPhase;            // 0 aucune, 1 armement, 2 action
+    private bool tacticLeap;
+    private float tacticTimer, tacticReadyAt;
+    private Vector2 tacticDir, tacticFrom, tacticTo;
+    private Vector3 tacticScale;
+
+    private bool TryStartTactic(float dist)
+    {
+        if (IsPossessed || Time.time < tacticReadyAt || missionTarget == null) return false;
+        string f = Family;
+        bool charge = (f == "goblin" || f == "orc") && dist > 2.4f && dist < 5.5f;
+        bool leap = (f == "gnoll" || f == "lizard") && dist > 2f && dist < 4.6f;
+        if (!charge && !leap) return false;
+        TacticsUsed++;
+        tacticLeap = leap;
+        tacticPhase = 1;
+        tacticTimer = leap ? 0.22f : 0.32f;
+        tacticScale = transform.localScale;
+        StopMoving();
+        FaceTowards(missionTarget.position);
+        if (spriteRenderer != null) HitFlashFx.Flash(spriteRenderer, 0.12f);   // signal lisible pour le joueur
+        return true;
+    }
+
+    private void StepTactic(float dist)
+    {
+        tacticTimer -= Time.fixedDeltaTime;
+        if (missionTarget == null) { EndTactic(); return; }
+        if (tacticPhase == 1)
+        {
+            StopMoving();
+            FaceTowards(missionTarget.position);
+            // ramassé sur lui-même avant de partir
+            if (tacticLeap) transform.localScale = new Vector3(tacticScale.x * 1.12f, tacticScale.y * 0.85f, tacticScale.z);
+            if (tacticTimer > 0f) return;
+            tacticPhase = 2;
+            tacticFrom = rb.position;
+            tacticDir = ((Vector2)missionTarget.position - rb.position).normalized;
+            tacticTo = (Vector2)missionTarget.position - tacticDir * 0.6f;
+            tacticTimer = tacticLeap ? 0.42f : 0.38f;
+            Sfx.Play("swing", transform.position, 0.6f);
+            return;
+        }
+
+        if (tacticLeap)
+        {
+            float k = 1f - Mathf.Clamp01(tacticTimer / 0.42f);
+            rb.MovePosition(Vector2.Lerp(tacticFrom, tacticTo, k));
+            movement = tacticDir * chaseSpeed;
+            lastMoveDirection = tacticDir;
+            float hop = Mathf.Sin(k * Mathf.PI);
+            transform.localScale = tacticScale * (1f + 0.28f * hop);
+            if (tacticTimer > 0f) return;
+            if (Vector2.Distance(rb.position, missionTarget.position) <= attackRange * 1.1f) StrikeWithBonus(1.35f);
+            Fx.Play("smoke_ring", transform.position, 0.8f);
+            EndTactic();
+            return;
+        }
+
+        // charge : ruée droite, s'arrête au contact
+        movement = tacticDir * chaseSpeed * 3.1f;
+        rb.linearVelocity = movement;
+        lastMoveDirection = tacticDir;
+        if (dist <= attackRange * 0.9f) { StrikeWithBonus(1.4f); EndTactic(); return; }
+        if (tacticTimer <= 0f) EndTactic();
+    }
+
+    private void StrikeWithBonus(float mult)
+    {
+        float baseDmg = attackDamage;
+        attackDamage *= mult;
+        Attack();
+        attackDamage = baseDmg;
+        HitFlashFx.Hitstop(0.05f);
+    }
+
+    private void EndTactic()
+    {
+        if (tacticPhase > 0 && tacticScale != Vector3.zero) transform.localScale = tacticScale;
+        tacticPhase = 0;
+        tacticReadyAt = Time.time + (tacticLeap ? 5f : 4.5f) + Random.Range(0f, 1.2f);
+        StopMoving();
+    }
+
+    /// <summary>Rat : approche en biais, chacun de son côté, pour encercler l'intrus.</summary>
+    private void Flank(float dist)
+    {
+        if (Family != "rat" || missionTarget == null || dist < attackRange || dist > 4.5f || movement.sqrMagnitude < 0.01f) return;
+        Vector2 to = ((Vector2)missionTarget.position - rb.position).normalized;
+        float side = (GetInstanceID() & 1) == 0 ? 1f : -1f;
+        Vector2 perp = new Vector2(-to.y, to.x) * side;
+        float lateral = Mathf.InverseLerp(attackRange, 4.5f, dist);   // de biais de loin, droit au but de près
+        movement = (to + perp * 0.9f * lateral).normalized * chaseSpeed * 1.08f;
+        rb.linearVelocity = movement;
+        lastMoveDirection = movement.normalized;
+    }
 
     public bool CanAttack() => Time.time - lastAttackTime >= attackCooldown;
 

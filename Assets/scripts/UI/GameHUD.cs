@@ -16,17 +16,18 @@ public class GameHUD : MonoBehaviour
 {
     public static GameHUD Instance { get; private set; }
 
-    public static readonly Color ManaColor = new Color(0.62f, 0.5f, 1f);
+    public static readonly Color ManaColor = UIKit.Mana;
     public static readonly Color WarningColor = new Color(1f, 0.78f, 0.35f);
     public static readonly Color DangerColor = new Color(1f, 0.42f, 0.38f);
     public static readonly Color InfoColor = new Color(0.86f, 0.9f, 1f);
-    public static readonly Color GoldColor = new Color(1f, 0.86f, 0.38f);
+    public static readonly Color GoldColor = UIKit.Gold;
 
-    private static readonly Color PanelColor = new Color(0.07f, 0.06f, 0.11f, 0.88f);
-    private static readonly Color ButtonColor = new Color(0.17f, 0.15f, 0.26f, 0.96f);
-    private static readonly Color ButtonActiveColor = new Color(0.47f, 0.32f, 0.8f, 1f);
-    private static readonly Color TextColor = new Color(0.94f, 0.93f, 0.98f);
-    private static readonly Color SubTextColor = new Color(0.7f, 0.68f, 0.8f);
+    private static readonly Color PanelColor = new Color(UIKit.Panel.r, UIKit.Panel.g, UIKit.Panel.b, 0.92f);
+    private static readonly Color ButtonColor = UIKit.Button;
+    private static readonly Color ButtonActiveColor = UIKit.Accent;
+    private static readonly Color SegmentColor = new Color(0f, 0f, 0f, 0f);
+    private static readonly Color TextColor = UIKit.Text;
+    private static readonly Color SubTextColor = UIKit.Sub;
 
     [Tooltip("Masquer l'ancien Canvas (textes Mana/Mode positionnés pour un écran QHD)")]
     public bool hideLegacyCanvas = true;
@@ -306,33 +307,44 @@ public class GameHUD : MonoBehaviour
     private void BuildTopBar()
     {
         // ── Gauche : cœur, mana, niveau ──
+        // carte du Noyau : icône du cristal, barres cœur / mana, niveau
         var left = Panel("CorePanel", root, new Vector2(0, 1), new Vector2(0, 1), new Vector2(16, -16), new Vector2(560, 150));
-        Label(left, "Cœur", 24, GoldColor, new Vector2(18, -14), new Vector2(90, 34), TextAlignmentOptions.Left);
-        Bar(left, new Vector2(110, -18), new Vector2(300, 26), new Color(0.85f, 0.25f, 0.25f), out hpFill);
-        hpText = Label(left, "", 22, TextColor, new Vector2(420, -14), new Vector2(130, 34), TextAlignmentOptions.Left);
+        var portrait = Place(NewRect("Portrait", left), new Vector2(0, 1), new Vector2(0, 1), new Vector2(14, -14), new Vector2(84, 84));
+        var pImg = portrait.gameObject.AddComponent<Image>();
+        pImg.sprite = SpriteUtil.RoundedUI; pImg.type = Image.Type.Sliced; pImg.color = new Color(0.07f, 0.06f, 0.1f, 1f); pImg.raycastTarget = false;
+        UIKit.Frame(portrait, new Color(UIKit.Trim.r, UIKit.Trim.g, UIKit.Trim.b, 0.6f));
+        UIKit.Icon(portrait, "mana", Vector2.zero, 60, new Vector2(0.5f, 0.5f));
 
-        Label(left, "Mana", 24, ManaColor, new Vector2(18, -56), new Vector2(90, 34), TextAlignmentOptions.Left);
-        Bar(left, new Vector2(110, -60), new Vector2(300, 26), ManaColor, out manaFill);
-        manaText = Label(left, "", 22, TextColor, new Vector2(420, -56), new Vector2(135, 34), TextAlignmentOptions.Left);
+        UIKit.Icon(left, "heart", new Vector2(112, -16), 30);
+        Bar(left, new Vector2(150, -18), new Vector2(268, 26), UIKit.Heart, out hpFill);
+        hpText = Label(left, "", 22, TextColor, new Vector2(428, -14), new Vector2(124, 34), TextAlignmentOptions.Left);
 
-        xpText = Label(left, "", 20, SubTextColor, new Vector2(18, -98), new Vector2(390, 30), TextAlignmentOptions.Left);
-        Bar(left, new Vector2(18, -130), new Vector2(524, 8), GoldColor, out xpFill);
+        UIKit.Icon(left, "mana", new Vector2(112, -58), 30);
+        Bar(left, new Vector2(150, -60), new Vector2(268, 26), ManaColor, out manaFill);
+        manaText = Label(left, "", 22, TextColor, new Vector2(428, -56), new Vector2(128, 34), TextAlignmentOptions.Left);
+
+        UIKit.Icon(left, "star", new Vector2(112, -100), 26);
+        xpText = Label(left, "", 20, SubTextColor, new Vector2(146, -98), new Vector2(400, 30), TextAlignmentOptions.Left);
+        Bar(left, new Vector2(112, -130), new Vector2(430, 8), GoldColor, out xpFill);
 
         // Menu (pause, sauvegarde) et fenêtre de la colonie
-        MakeButton(root, "Menu", "Menu", new Vector2(0, 1), new Vector2(0, 1), new Vector2(588, -16), new Vector2(128, 66),
-            () => MainMenu.Instance?.OpenPause(), 24);
-        colonyButton = MakeButton(root, "Colony", "Colonie", new Vector2(0, 1), new Vector2(0, 1), new Vector2(588, -92), new Vector2(128, 58),
-            () => ColonyWindow.Instance?.Toggle(), 21);
-        colonyButton.GetComponent<Image>().color = new Color(0.2f, 0.3f, 0.24f, 0.96f);
-        colonyBadge = Label((RectTransform)colonyButton.transform, "", 15, GoldColor, new Vector2(0, -38), new Vector2(128, 22), TextAlignmentOptions.Center, true);
+        WithIcon(MakeButton(root, "Menu", "Menu", new Vector2(0, 1), new Vector2(0, 1), new Vector2(588, -16), new Vector2(150, 66),
+            () => MainMenu.Instance?.OpenPause(), 22), "menu");
+        colonyButton = MakeButton(root, "Colony", "Colonie", new Vector2(0, 1), new Vector2(0, 1), new Vector2(588, -92), new Vector2(150, 58),
+            () => ColonyWindow.Instance?.Toggle(), 20);
+        colonyButton.GetComponent<Image>().color = new Color(0.17f, 0.25f, 0.2f, 0.97f);
+        WithIcon(colonyButton, "house");
+        colonyBadge = Label((RectTransform)colonyButton.transform, "", 15, GoldColor, new Vector2(0, -38), new Vector2(150, 22), TextAlignmentOptions.Center, true);
         // Vue île (volcan en relief) / vue donjon (intérieur de la montagne)
-        viewButton = MakeButton(root, "View", "Vue île", new Vector2(0, 1), new Vector2(0, 1), new Vector2(588, -158), new Vector2(128, 58),
-            () => MountainRelief.Instance?.Toggle(), 20);
-        viewButton.GetComponent<Image>().color = new Color(0.3f, 0.22f, 0.16f, 0.96f);
+        viewButton = MakeButton(root, "View", "Vue île", new Vector2(0, 1), new Vector2(0, 1), new Vector2(588, -158), new Vector2(150, 58),
+            () => MountainRelief.Instance?.Toggle(), 19);
+        viewButton.GetComponent<Image>().color = new Color(0.27f, 0.19f, 0.15f, 0.97f);
+        WithIcon(viewButton, "volcano");
 
         // ── Centre : jour ──
         var center = Panel("DayPanel", root, new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -16), new Vector2(460, 112));
-        dayText = Label(center, "", 30, TextColor, new Vector2(0, -8), new Vector2(440, 40), TextAlignmentOptions.Center, true);
+        dayText = Label(center, "", 30, GoldColor, new Vector2(0, -8), new Vector2(440, 40), TextAlignmentOptions.Center, true);
+        UIKit.StyleHead(dayText);
         dayText.textWrappingMode = TextWrappingModes.NoWrap;
         dayText.enableAutoSizing = true;
         dayText.fontSizeMin = 16f;
@@ -342,7 +354,8 @@ public class GameHUD : MonoBehaviour
 
         // ── Droite : menace + vitesse ──
         var right = Panel("ThreatPanel", root, new Vector2(1, 1), new Vector2(1, 1), new Vector2(-16, -16), new Vector2(560, 180));
-        threatText = Label(right, "", 23, DangerColor, new Vector2(18, -10), new Vector2(400, 32), TextAlignmentOptions.Left);
+        UIKit.Icon(right, "skull", new Vector2(16, -12), 28);
+        threatText = Label(right, "", 23, DangerColor, new Vector2(52, -10), new Vector2(366, 32), TextAlignmentOptions.Left);
         threatText.textWrappingMode = TextWrappingModes.NoWrap;
         threatText.enableAutoSizing = true;
         threatText.fontSizeMin = 13f;
@@ -350,22 +363,33 @@ public class GameHUD : MonoBehaviour
         expeditionText = Label(right, "", 20, SubTextColor, new Vector2(18, -44), new Vector2(440, 30), TextAlignmentOptions.Left);
 
         colonyText = Label(right, "", 19, SubTextColor, new Vector2(18, -142), new Vector2(530, 30), TextAlignmentOptions.Left);
-        float x = 18;
-        var pb = MakeButton(right, "Pause", "II", new Vector2(0, 1), new Vector2(0, 1), new Vector2(x, -82), new Vector2(98, 56),
+        // contrôle segmenté : pause | x1 | x2 | x3 | x5 dans un seul cadre
+        var seg = Place(NewRect("SpeedGroup", right), new Vector2(0, 1), new Vector2(0, 1), new Vector2(12, -76), new Vector2(536, 68));
+        var segImg = seg.gameObject.AddComponent<Image>();
+        segImg.sprite = SpriteUtil.RoundedUI; segImg.type = Image.Type.Sliced;
+        segImg.color = new Color(0.05f, 0.045f, 0.08f, 1f); segImg.raycastTarget = false;
+        UIKit.Frame(seg, UIKit.TrimSoft);
+        float x = 8;
+        var pb = MakeButton(seg, "Pause", "", new Vector2(0, 1), new Vector2(0, 1), new Vector2(x, -6), new Vector2(98, 56),
             () => GameManager.Instance?.ToggleUserPause(), 26);
+        UIKit.Icon(pb.transform, "pause", Vector2.zero, 30, new Vector2(0.5f, 0.5f));
+        Segment(pb);
         pauseButtonImage = pb.GetComponent<Image>();
-        x += 108;
+        x += 105;
         foreach (float s in new[] { 1f, 2f, 3f, 5f })
         {
             float speed = s;
-            var b = MakeButton(right, $"Speed{s}", $"x{s}", new Vector2(0, 1), new Vector2(0, 1), new Vector2(x, -82), new Vector2(98, 56),
-                () => GameManager.Instance?.SetSpeed(speed), 26);
+            var b = MakeButton(seg, $"Speed{s}", $"x{s}", new Vector2(0, 1), new Vector2(0, 1), new Vector2(x, -6), new Vector2(98, 56),
+                () => GameManager.Instance?.SetSpeed(speed), 24);
+            Segment(b);
             speedButtons.Add(new KeyValuePair<float, Image>(speed, b.GetComponent<Image>()));
-            x += 108;
+            x += 105;
         }
 
-        callBoatButton = MakeButton(right, "CallBoat", "Appeler", new Vector2(1, 1), new Vector2(1, 1), new Vector2(-14, -6), new Vector2(112, 40),
-            () => ExpeditionManager.Instance?.CallNextExpedition(), 18).gameObject;
+        var cb = MakeButton(right, "CallBoat", "Appeler", new Vector2(1, 1), new Vector2(1, 1), new Vector2(-14, -8), new Vector2(124, 40),
+            () => ExpeditionManager.Instance?.CallNextExpedition(), 17);
+        WithIcon(cb, "boat", 24);
+        callBoatButton = cb.gameObject;
 
         pausedLabel = Label(root, "PAUSE", 56, GoldColor, Vector2.zero, new Vector2(400, 80), TextAlignmentOptions.Center, true);
         var prt = pausedLabel.rectTransform;
@@ -382,6 +406,7 @@ public class GameHUD : MonoBehaviour
         hintPanel = Panel("Hint", root, new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(-160, 14), new Vector2(1060, 66));
         hintPanel.GetComponent<Image>().color = new Color(0.05f, 0.04f, 0.08f, 0.75f);
         hintPanel.GetComponent<Image>().raycastTarget = false;
+        hintPanel.Find("Liseré").gameObject.SetActive(false);
         hintText = Label(hintPanel, "", 21, TextColor, new Vector2(20, -6), new Vector2(1020, 56), TextAlignmentOptions.Center);
         hintText.textWrappingMode = TextWrappingModes.Normal;
     }
@@ -389,6 +414,7 @@ public class GameHUD : MonoBehaviour
     private void BuildSelectionPanel()
     {
         selectionPanel = Panel("SelectionPanel", root, new Vector2(0, 0), new Vector2(0, 0), new Vector2(16, 96), new Vector2(360, 250));
+        selectionPanel.Find("Liseré").GetComponent<Image>().color = UIKit.TrimSoft;
         selectionText = Label(selectionPanel, "", 23, TextColor, new Vector2(16, -10), new Vector2(330, 60), TextAlignmentOptions.Left);
         selectionText.textWrappingMode = TextWrappingModes.Normal;
 
@@ -398,7 +424,7 @@ public class GameHUD : MonoBehaviour
             () => MonsterSelector.Instance?.SetSelectedBehavior(GobelinAI.GoblinBehavior.Stay), 22).gameObject;
         possessButton = MakeButton(selectionPanel, "Possess", "Posséder", new Vector2(0, 1), new Vector2(0, 1), new Vector2(14, -132), new Vector2(160, 50),
             PossessSelected, 22).gameObject;
-        possessButton.GetComponent<Image>().color = new Color(0.4f, 0.22f, 0.55f, 1f);
+        possessButton.GetComponent<Image>().color = UIKit.Accent;
         MakeButton(selectionPanel, "All", "Tous", new Vector2(0, 1), new Vector2(0, 1), new Vector2(186, -132), new Vector2(160, 50),
             () => MonsterSelector.Instance?.SelectAllGoblins(), 22);
         var eb = MakeButton(selectionPanel, "Evolve", "Évoluer", new Vector2(0, 1), new Vector2(0, 1), new Vector2(14, -188), new Vector2(332, 50),
@@ -474,9 +500,10 @@ public class GameHUD : MonoBehaviour
         blockBtn.onClick.AddListener(OnDialogueClicked);
 
         var box = Panel("Box", dialogueRoot, new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0, 160), new Vector2(1320, 270));
-        box.GetComponent<Image>().color = new Color(0.06f, 0.05f, 0.1f, 0.95f);
+        box.GetComponent<Image>().color = new Color(UIKit.Panel.r, UIKit.Panel.g, UIKit.Panel.b, 0.97f);
         box.GetComponent<Image>().raycastTarget = false;
         speakerText = Label(box, "", 28, GoldColor, new Vector2(34, -18), new Vector2(800, 40), TextAlignmentOptions.Left);
+        UIKit.StyleHead(speakerText);
         dialogueText = Label(box, "", 30, TextColor, new Vector2(34, -64), new Vector2(1250, 150), TextAlignmentOptions.TopLeft);
         dialogueText.textWrappingMode = TextWrappingModes.Normal;
         continueText = Label(box, "", 20, SubTextColor, new Vector2(-30, -226), new Vector2(500, 32), TextAlignmentOptions.Right);
@@ -490,14 +517,17 @@ public class GameHUD : MonoBehaviour
     {
         gameOverPanel = NewRect("GameOver", root);
         Stretch(gameOverPanel);
-        gameOverPanel.gameObject.AddComponent<Image>().color = new Color(0.02f, 0.01f, 0.04f, 0.9f);
+        gameOverPanel.gameObject.AddComponent<Image>().color = new Color(0.02f, 0.01f, 0.04f, 0.82f);
+        var card = Panel("Card", gameOverPanel, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, 10), new Vector2(1240, 760));
+        card.GetComponent<Image>().raycastTarget = false;
 
-        var title = Label(gameOverPanel, "Votre cristal s'est brisé", 64, DangerColor, Vector2.zero, new Vector2(1400, 90), TextAlignmentOptions.Center, true);
+        var title = Label(gameOverPanel, "Votre cristal s'est brisé", 64, DangerColor, Vector2.zero, new Vector2(1200, 90), TextAlignmentOptions.Center, true);
+        UIKit.StyleTitle(title);
         title.rectTransform.anchorMin = title.rectTransform.anchorMax = new Vector2(0.5f, 0.72f);
         title.rectTransform.pivot = new Vector2(0.5f, 0.5f);
         title.rectTransform.anchoredPosition = Vector2.zero;
 
-        gameOverStats = Label(gameOverPanel, "", 28, TextColor, Vector2.zero, new Vector2(1500, 420), TextAlignmentOptions.Center, true);
+        gameOverStats = Label(gameOverPanel, "", 28, TextColor, Vector2.zero, new Vector2(1160, 420), TextAlignmentOptions.Center, true);
         gameOverStats.rectTransform.anchorMin = gameOverStats.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
         gameOverStats.rectTransform.pivot = new Vector2(0.5f, 0.5f);
         gameOverStats.rectTransform.anchoredPosition = Vector2.zero;
@@ -581,9 +611,9 @@ public class GameHUD : MonoBehaviour
             string evLabel = ev != null && ev.Current != IslandEvent.None ? $"  ·  <color=#FFB36B>{ev.Name}</color>" : "";
             dayText.text = $"Jour {gm.CurrentDay}  ·  {gm.GetTimeOfDayLabel()}{layerLabel}{evLabel}";
             SetBar(dayFill, gm.DayProgress);
-            pauseButtonImage.color = gm.UserPaused ? ButtonActiveColor : ButtonColor;
+            pauseButtonImage.color = gm.UserPaused ? ButtonActiveColor : SegmentColor;
             foreach (var kv in speedButtons)
-                kv.Value.color = !gm.UserPaused && Mathf.Approximately(gm.GameSpeed, kv.Key) ? ButtonActiveColor : ButtonColor;
+                kv.Value.color = !gm.UserPaused && Mathf.Approximately(gm.GameSpeed, kv.Key) ? ButtonActiveColor : SegmentColor;
             pausedLabel.gameObject.SetActive(gm.UserPaused && gm.State == GameManager.GameState.Playing);
         }
         if (rep != null && exp != null)
@@ -917,7 +947,26 @@ public class GameHUD : MonoBehaviour
         img.sprite = SpriteUtil.RoundedUI;
         img.type = Image.Type.Sliced;
         img.color = PanelColor;
+        UIKit.Frame(rt);
         return rt;
+    }
+
+    /// <summary>Bouton d'un contrôle segmenté : pas de cadre propre, fond transparent tant qu'il n'est pas actif.</summary>
+    private static void Segment(Button b)
+    {
+        var trim = b.transform.Find("Liseré");
+        if (trim != null) trim.gameObject.SetActive(false);
+        b.GetComponent<Image>().color = SegmentColor;
+    }
+
+    /// <summary>Ajoute une icône pixel à gauche du libellé d'un bouton.</summary>
+    private static Button WithIcon(Button b, string icon, float size = 30)
+    {
+        var rt = (RectTransform)b.transform;
+        UIKit.Icon(rt, icon, new Vector2(12, 0), size, new Vector2(0, 0.5f));
+        var t = rt.Find("Label") as RectTransform;
+        if (t != null) t.offsetMin = new Vector2(12 + size, t.offsetMin.y);
+        return b;
     }
 
     /// <summary>Texte positionné depuis le coin haut-gauche du parent (ou centré horizontalement).</summary>
@@ -945,16 +994,28 @@ public class GameHUD : MonoBehaviour
     {
         var bg = Place(NewRect("Bar", parent), new Vector2(0, 1), new Vector2(0, 1), pos, size);
         var bgImg = bg.gameObject.AddComponent<Image>();
-        bgImg.color = new Color(0, 0, 0, 0.55f);
+        bgImg.color = new Color(0.03f, 0.025f, 0.05f, 0.9f);
         bgImg.raycastTarget = false;
+        if (size.y >= 16) { bgImg.sprite = SpriteUtil.RoundedUI; bgImg.type = Image.Type.Sliced; }
+        float inset = size.y >= 16 ? 4 : 2;
         fill = NewRect("Fill", bg);
         fill.anchorMin = Vector2.zero;
         fill.anchorMax = new Vector2(1, 1);
-        fill.offsetMin = new Vector2(2, 2);
-        fill.offsetMax = new Vector2(-2, -2);
+        fill.offsetMin = new Vector2(inset, inset);
+        fill.offsetMax = new Vector2(-inset, -inset);
         var fImg = fill.gameObject.AddComponent<Image>();
         fImg.color = color;
         fImg.raycastTarget = false;
+        if (size.y >= 16)
+        {
+            // reflet d'un « pixel » en haut de la jauge
+            var hl = NewRect("Reflet", fill);
+            hl.anchorMin = new Vector2(0, 1); hl.anchorMax = new Vector2(1, 1);
+            hl.pivot = new Vector2(0.5f, 1); hl.anchoredPosition = Vector2.zero; hl.sizeDelta = new Vector2(0, 3);
+            var hImg = hl.gameObject.AddComponent<Image>();
+            hImg.color = new Color(1f, 1f, 1f, 0.28f);
+            hImg.raycastTarget = false;
+        }
     }
 
     private static void SetBar(RectTransform fill, float v)
@@ -971,6 +1032,7 @@ public class GameHUD : MonoBehaviour
         img.sprite = SpriteUtil.RoundedUI;
         img.type = Image.Type.Sliced;
         img.color = ButtonColor;
+        UIKit.Frame(rt, UIKit.TrimSoft);
         var btn = rt.gameObject.AddComponent<Button>();
         var colors = btn.colors;
         colors.highlightedColor = new Color(1.15f, 1.15f, 1.15f, 1f);
@@ -988,6 +1050,7 @@ public class GameHUD : MonoBehaviour
             t.color = TextColor;
             t.alignment = TextAlignmentOptions.Center;
             t.raycastTarget = false;
+            if (fontSize >= 20) UIKit.StyleHead(t);
         }
         return btn;
     }

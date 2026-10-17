@@ -21,7 +21,7 @@ public static class IslandGenerator
     const int W = 160, H = 120, Margin = 16;
     const int LayerW = 84, LayerH = 54, LayerGap = 12;
 
-    enum K : byte { Deep, Shallow, Reef, Beach, Cliff, Low, High, Mountain, Ravine, Path, Dock, Cave }
+    enum K : byte { Deep, Shallow, Reef, Beach, Cliff, Low, High, Mountain, Ravine, Path, Dock, Cave, Lake, Lava }
 
     static int minX, minY, sizeX, sizeY;
     static K[,] map;
@@ -64,10 +64,11 @@ public static class IslandGenerator
         forest = new float[sizeX, sizeY];
 
         BuildHeightmap();
-        CarveRavines();
+        CarveLakes();
         AddCliffs();
         var (grotto, doorstep, dir) = PlaceGrotto();
         var landing = TracePath(doorstep);
+        AddLavaFlows(grotto);
         var spawn = BuildDock(landing);
         landingCell = landing;
         PlanSettlement(landing);
@@ -118,30 +119,77 @@ public static class IslandGenerator
             }
     }
 
-    /// <summary>Ravins : failles sinueuses creusées par des "vers" aléatoires dans la forêt.</summary>
-    static void CarveRavines()
+    /// <summary>
+    /// Petits lacs d'eau douce dans la forêt (à la place des anciens ravins noirs) : deux lacs et quelques mares,
+    /// aux rives irrégulières, loin de la grève et de la montagne.
+    /// </summary>
+    static void CarveLakes()
     {
-        int made = 0;
-        for (int tries = 0; tries < 400 && made < 11; tries++)
+        var centers = new List<Vector2>();
+        for (int tries = 0; tries < 900 && centers.Count < 5; tries++)
         {
             int x = rng.Next(minX, minX + sizeX), y = rng.Next(minY, minY + sizeY);
-            if (Get(x, y) != K.Low || forest[x - minX, y - minY] < 0.45f) continue;
-            float ang = (float)rng.NextDouble() * Mathf.PI * 2f;
-            int len = rng.Next(14, 32);
-            Vector2 p = new Vector2(x, y);
+            if (Get(x, y) != K.Low) continue;
+            float r = centers.Count < 2 ? 3.4f + (float)rng.NextDouble() * 1.6f : 1.7f + (float)rng.NextDouble() * 1.1f;
+            var c = new Vector2(x, y);
+            if (centers.Any(o => Vector2.Distance(o, c) < 20f)) continue;
+            int reach = Mathf.CeilToInt(r) + 5;
+            bool ok = true;
+            for (int ax = -reach; ax <= reach && ok; ax++)
+                for (int ay = -reach; ay <= reach && ok; ay++)
+                    if (ax * ax + ay * ay <= reach * reach && Get(x + ax, y + ay) != K.Low) ok = false;
+            if (!ok) continue;
+            centers.Add(c);
+            for (int ax = -reach; ax <= reach; ax++)
+                for (int ay = -reach; ay <= reach; ay++)
+                {
+                    float wob = 0.72f + 0.56f * Fbm((x + ax) * 0.3f + o5.y, (y + ay) * 0.3f + o4.x, 2);
+                    // ovale un peu plus large que haut, comme vu de 3/4
+                    float d = Mathf.Sqrt(ax * ax / 1.25f + ay * ay) / (r * wob);
+                    if (d < 1f) Set(x + ax, y + ay, K.Lake);
+                }
+        }
+    }
+
+    /// <summary>
+    /// Coulées de lave : elles naissent au pied de la montagne-volcan et descendent dans les hautes terres,
+    /// loin de la grotte du Noyau et du passage des aventuriers.
+    /// </summary>
+    static void AddLavaFlows(Vector3Int grotto)
+    {
+        var dirs = new[] { Vector3Int.up, Vector3Int.down, Vector3Int.left, Vector3Int.right };
+        int made = 0;
+        var sources = new List<Vector2>();
+        for (int tries = 0; tries < 3000 && made < 4; tries++)
+        {
+            int x = rng.Next(minX, minX + sizeX), y = rng.Next(minY, minY + sizeY);
+            if (Get(x, y) != K.High) continue;
+            var start = new Vector3Int(x, y, 0);
+            if (Vector3Int.Distance(start, grotto) < 16f) continue;
+            if (sources.Any(o => Vector2.Distance(o, new Vector2(x, y)) < 14f)) continue;
+            Vector2 away = Vector2.zero;
+            foreach (var d in dirs) if (Get(x + d.x, y + d.y) == K.Mountain) away -= new Vector2(d.x, d.y);
+            if (away == Vector2.zero || NearKind(start, 3, K.Path, K.Cave, K.Dock)) continue;
+            away.Normalize();
+            var p = new Vector2(x, y);
+            var cells = new List<Vector3Int>();
+            int len = rng.Next(8, 16);
             for (int i = 0; i < len; i++)
             {
-                ang += ((float)rng.NextDouble() - 0.5f) * 0.9f;
-                p += new Vector2(Mathf.Cos(ang), Mathf.Sin(ang));
-                int cx = Mathf.RoundToInt(p.x), cy = Mathf.RoundToInt(p.y);
-                if (Get(cx, cy) != K.Low) break;
-                Set(cx, cy, K.Ravine);
-                if (i > 3 && i < len - 3 && rng.NextDouble() < 0.55)
+                var c = new Vector3Int(Mathf.RoundToInt(p.x), Mathf.RoundToInt(p.y), 0);
+                if (Get(c.x, c.y) != K.High || NearKind(c, 2, K.Path, K.Cave, K.Dock, K.Low)) break;
+                cells.Add(c);
+                if (i > 2 && rng.NextDouble() < 0.4)
                 {
-                    int sx = cx + (Mathf.Abs(Mathf.Cos(ang)) > 0.7f ? 0 : 1), sy = cy + (Mathf.Abs(Mathf.Cos(ang)) > 0.7f ? 1 : 0);
-                    if (Get(sx, sy) == K.Low) Set(sx, sy, K.Ravine);
+                    var side = c + (Mathf.Abs(away.x) > Mathf.Abs(away.y) ? Vector3Int.up : Vector3Int.right);
+                    if (Get(side.x, side.y) == K.High && !NearKind(side, 2, K.Path, K.Cave, K.Dock, K.Low)) cells.Add(side);
                 }
+                float a = Mathf.Atan2(away.y, away.x) + ((float)rng.NextDouble() - 0.5f) * 0.9f;
+                p += new Vector2(Mathf.Cos(a), Mathf.Sin(a));
             }
+            if (cells.Count < 5) continue;
+            foreach (var c in cells) Set(c.x, c.y, K.Lava);
+            sources.Add(new Vector2(x, y));
             made++;
         }
     }
@@ -249,20 +297,33 @@ public static class IslandGenerator
             if (score < bestScore) { bestScore = score; best = c; }
         }
 
+        // Le passage le plus naturel vers la grotte : il n'est PAS dessiné (pas de chemin au départ),
+        // il garde juste les arbres à l'écart. Le sentier naît ensuite du passage des aventuriers (TrailWear).
+        pathUnder.Clear();
+        void Mark(Vector3Int c)
+        {
+            K k = Get(c.x, c.y);
+            if (k == K.Path) return;
+            pathUnder[c] = k;
+            Set(c.x, c.y, K.Path);
+        }
         var cur = best;
         while (parent.ContainsKey(cur))
         {
-            if (Get(cur.x, cur.y) != K.Beach) Set(cur.x, cur.y, K.Path);
+            if (Get(cur.x, cur.y) != K.Beach) Mark(cur);
             var side = cur + ((cur.x + cur.y) % 2 == 0 ? Vector3Int.right : Vector3Int.up);
             K sk = Get(side.x, side.y);
-            if (sk == K.Low || sk == K.High) Set(side.x, side.y, K.Path);
+            if (sk == K.Low || sk == K.High) Mark(side);
             cur = parent[cur];
         }
-        Set(start.x, start.y, K.Path);
+        Mark(start);
         return best;
     }
 
     static Vector3Int landingCell, dockDir;
+    static readonly Dictionary<Vector3Int, K> pathUnder = new Dictionary<Vector3Int, K>();
+    /// <summary>Sol réel d'une case (sous le passage invisible vers la grotte).</summary>
+    static K Ground(int x, int y) { K k = Get(x, y); return k == K.Path && pathUnder.TryGetValue(new Vector3Int(x, y, 0), out var u) ? u : k; }
     static readonly List<Vector3Int> dockCells = new List<Vector3Int>();
     static readonly List<Vector3Int> pierExt = new List<Vector3Int>();
     static readonly List<Vector3> moorings = new List<Vector3>();
@@ -345,7 +406,7 @@ public static class IslandGenerator
                 for (int ay = -1; ay <= 1; ay++)
                 {
                     K k = Get(x + ax, y + ay);
-                    if (k == K.Path || k == K.Dock || k == K.Cave || k == K.Ravine || k == K.Mountain || IsSea(k)) return false;
+                    if (k == K.Path || k == K.Dock || k == K.Cave || k == K.Lake || k == K.Lava || k == K.Mountain || IsSea(k)) return false;
                 }
             return true;
         }
@@ -460,17 +521,24 @@ public static class IslandGenerator
         }
     }
 
+    // Palette « Mer et récif » de la maquette Design ; la tuile d'eau est claire (~84 %), on compense la teinte
+    static Color Hex(string h, float boost = 1f / 0.84f)
+    {
+        ColorUtility.TryParseHtmlString(h, out var c);
+        return new Color(Mathf.Min(1f, c.r * boost), Mathf.Min(1f, c.g * boost), Mathf.Min(1f, c.b * boost), 1f);
+    }
+    static readonly Color Lagoon = Hex("#39a8a6"), Turquoise = Hex("#1f7a8c"), SeaBlue = Hex("#13436b"), Abyss = Hex("#0b2440");
+    static readonly Color LakeCol = Hex("#2f8f8c"), LakeDeep = Hex("#1f6f7a");
+
     static Color SeaColor(int ix, int iy)
     {
         float d = coastDist[ix, iy];
         // bruit doux pour casser les bandes régulières
         float n = (Mathf.PerlinNoise((ix + minX) * 0.15f + o5.x, (iy + minY) * 0.15f + o5.y) - 0.5f) * 2.5f;
-        float t = Mathf.Clamp01((d + n - 1f) / 9f);
-        var shallow = new Color(0.52f, 0.78f, 0.86f);
-        var mid = new Color(0.38f, 0.56f, 0.78f);
-        var deep = new Color(0.24f, 0.32f, 0.55f);
-        var col = t < 0.4f ? Color.Lerp(shallow, mid, t / 0.4f) : Color.Lerp(mid, deep, (t - 0.4f) / 0.6f);
-        return Jit(col, 0.03f);
+        float t = Mathf.Clamp01((d + n - 0.5f) / 12f);
+        if (t < 0.18f) return Color.Lerp(Lagoon, Turquoise, t / 0.18f);
+        if (t < 0.5f) return Color.Lerp(Turquoise, SeaBlue, (t - 0.18f) / 0.32f);
+        return Color.Lerp(SeaBlue, Abyss, (t - 0.5f) / 0.5f);
     }
 
     static void Paint(Vector3Int grotto, Vector3Int doorstep, Vector3Int spawnCell, out string log)
@@ -490,88 +558,153 @@ public static class IslandGenerator
         EnsureComposite(murs);
         EnsureComposite(trunks);
 
-        var island = CatalogBuilder.Sprites(CatalogBuilder.ArtPath);
         var snow = CatalogBuilder.Sprites("Assets/imports/snow-expansion.png");
-        Tile I(string n, Tile.ColliderType ct = Tile.ColliderType.None) => CatalogBuilder.TileFor(island["island_" + n], ct);
         Tile S(int i, Tile.ColliderType ct = Tile.ColliderType.None) => CatalogBuilder.TileFor(snow[$"snow-expansion_{i}"], ct);
 
         var builder = Object.FindFirstObjectByType<DungeonBuilder>();
         TileBase caveFloor = DungeonCatalog.Get() != null && DungeonCatalog.Get().themes.Count > 0 && DungeonCatalog.Get().themes[0].floorTile != null
             ? DungeonCatalog.Get().themes[0].floorTile : builder.floorTile;
 
+        // Collision seule : le tilemap NoPathfinding n'est plus affiché (l'eau et les rives sont dessinées en couches)
         TileBase sea = (TileBase)ArtImporter.SeaBlocked() ?? S(176, Tile.ColliderType.Grid);
         var sart = SettlementArt.Get();
-        Tile reef = I("reef", Tile.ColliderType.Grid);
-        Tile abyss = I("abyss", Tile.ColliderType.Grid);
-        Tile cliff = S(155, Tile.ColliderType.Grid);
-        Tile stoneA = S(195, Tile.ColliderType.Grid), stoneB = S(194, Tile.ColliderType.Grid);
-        Tile[] grass = { S(0), S(0), S(0), S(1), S(2), S(3), S(22), S(23) };
-        Tile[] gravel = { I("gravel_a"), I("gravel_b") };
-        Tile[] volcanic = { I("volcanic_a"), I("volcanic_b"), I("volcanic_a"), I("scree") };
-        Tile dirt = S(184), plank = S(82), vent = I("vent");
+        Tile wallCollider = S(155, Tile.ColliderType.Grid);
+        Tile stoneA = S(195, Tile.ColliderType.Grid);
+        Tile plank = S(82);
         Tile trunk = S(174, Tile.ColliderType.Grid);   // collision invisible des troncs
         var cat = DungeonCatalog.Get();
         TileBase wallTile = cat.themes.Count > 0 && cat.themes[0].wallTile != null ? cat.themes[0].wallTile : stoneA;
         var wallCells = new List<Vector3Int>();
-        Tile[] mushrooms = { S(20), S(21), S(42), S(43) };
-        Tile[] boulders = { S(16), S(17), S(38), S(39) };
-        Tile tuft = S(137);
 
-        var volcanicTint = new Color(0.36f, 0.33f, 0.33f);
+        // ── Couches du terrain (Tools~/make_terrain.py), de bas en haut ──
+        TerrainArt.ClearCache();
+        var water = TerrainArt.Water();
+        BlobTile tSand = TerrainArt.Blob("sand"), tRock = TerrainArt.Blob("rock"), tGrass = TerrainArt.Blob("grass"),
+                 tJungle = TerrainArt.Blob("jungle"), tLava = TerrainArt.Blob("lava");
+        BlobTile tTrampled = TerrainArt.Blob("trampled"), tDirt = TerrainArt.Blob("dirt"), tPaved = TerrainArt.Blob("paved");
+        tTrampled.sameAs = new TileBase[] { tDirt }; tDirt.sameAs = new TileBase[] { tTrampled };
+        EditorUtility.SetDirty(tTrampled); EditorUtility.SetDirty(tDirt);
+        var cliffTiles = TerrainArt.Cliff();
+        Tile markGravel = TerrainArt.Marker("ground_gravel"), markSoil = TerrainArt.Marker("ground_soil");
+        Tile D(string n) => TerrainArt.Decor(n);
+
+        Tilemap Layer(string name, int order)
+        {
+            var tm = FindTilemap(name) ?? CreateTilemap(name, order);
+            tm.GetComponent<TilemapRenderer>().sortingOrder = order;
+            tm.ClearAllTiles();
+            return tm;
+        }
+        var lWater = Layer("T_Eau", -12);
+        var lSand = Layer("T_Sable", -11);
+        var lRock = Layer("T_Roche", -10);
+        var lGrass = Layer("T_Herbe", -9);
+        var lJungle = Layer("T_Jungle", -8);
+        var lLava = Layer("T_Lave", -7);
+        var lCliff = Layer("T_Falaise", -6);
+        Layer("Sentier", -5);
+        Layer("Routes", -4);
+        blocked.GetComponent<TilemapRenderer>().enabled = false;
+
+        bool IsLand(K k) => !IsSea(k) && k != K.Lake && k != K.Dock;
+        bool RockOwn(K k) => k == K.High || k == K.Mountain || k == K.Lava || k == K.Cave;
+        bool GrassOwn(K k) => k == K.Low || k == K.Cliff;
+        bool JungleAt(int x, int y) => Ground(x, y) == K.Low && forest[x - minX, y - minY] > 0.56f;
+        bool NearAny(int x, int y, System.Func<int, int, bool> f)
+        {
+            for (int ax = -1; ax <= 1; ax++)
+                for (int ay = -1; ay <= 1; ay++)
+                    if ((ax != 0 || ay != 0) && f(x + ax, y + ay)) return true;
+            return false;
+        }
+
+        var seaPixels = new Color[sizeX * sizeY];
+        var env0 = GameObject.Find("Environment") ?? new GameObject("Environment");
+        for (int i = env0.transform.childCount - 1; i >= 0; i--)
+            if (env0.transform.GetChild(i).name != "Relief") Object.DestroyImmediate(env0.transform.GetChild(i).gameObject);
+        var lakeCells = new List<Vector3Int>();
+        var lavaCells = new List<Vector3Int>();
         int trees0 = 0, vents0 = 0;
         var ventCells = new List<Vector3Int>();
         var occupied = new HashSet<Vector3Int>();
 
-        // Distance à la mer (pour la teinte de la forêt / densité)
         for (int ix = 0; ix < sizeX; ix++)
             for (int iy = 0; iy < sizeY; iy++)
             {
                 int x = ix + minX, y = iy + minY;
                 var c = new Vector3Int(x, y, 0);
-                K k = map[ix, iy];
-                switch (k)
+                K g = Ground(x, y);
+
+                // eau partout dessous (les rives des couches supérieures sont découpées dedans)
+                Color wcol;
+                if (g == K.Lake) wcol = NearAny(x, y, (a, b) => Get(a, b) != K.Lake) ? LakeCol : LakeDeep;
+                else if (IsLand(g) && NearAny(x, y, (a, b) => Get(a, b) == K.Lake)) wcol = LakeCol;
+                else wcol = SeaColor(ix, iy);
+                // couleur : texture lissée (1 pixel par case, filtrage bilinéaire) ; la tuile n'apporte que les vaguelettes
+                var wc = wcol / (1f / 0.84f); wc.a = 1f;
+                seaPixels[iy * sizeX + ix] = wc;
+                Put(lWater, c, water, Color.white);
+
+                if (IsLand(g)) lSand.SetTile(c, tSand);
+                // la roche déborde d'une case sous l'herbe voisine : la lisière herbe/roche laisse voir la roche
+                bool rock = RockOwn(g) || (GrassOwn(g) && NearAny(x, y, (a, b) => RockOwn(Ground(a, b))));
+                if (rock) lRock.SetTile(c, tRock);
+                if (GrassOwn(g)) lGrass.SetTile(c, tGrass);
+                if (JungleAt(x, y)) lJungle.SetTile(c, tJungle);
+                if (g == K.Lava) { lLava.SetTile(c, tLava); lavaCells.Add(c); }
+
+                switch (g)
                 {
                     case K.Deep:
                     case K.Shallow:
-                        Put(blocked, c, sea, SeaColor(ix, iy));
+                        Put(blocked, c, sea, Color.white);
                         break;
                     case K.Reef:
-                        Put(blocked, c, reef, Color.white);
+                        Put(blocked, c, sea, Color.white);
+                        if (rng.NextDouble() < 0.55) Put(decor, c, D("reef_" + rng.Next(3)), Color.white);
+                        break;
+                    case K.Lake:
+                        Put(blocked, c, stoneA, Color.white);
+                        lakeCells.Add(c);
+                        break;
+                    case K.Lava:
+                        Put(blocked, c, stoneA, Color.white);
+                        Put(sol, c, markSoil, Color.white);
                         break;
                     case K.Beach:
-                        Put(sol, c, gravel[rng.Next(2)], Jit(Color.white, 0.12f));
-                        if (rng.NextDouble() < 0.025) Put(decor, c, boulders[rng.Next(4)], new Color(0.35f, 0.33f, 0.36f));
-                        break;
-                    case K.Cliff:
-                        Put(sol, c, gravel[0], Color.white);
-                        Put(blocked, c, cliff, new Color(0.55f, 0.52f, 0.58f));
-                        break;
-                    case K.Low:
                     {
-                        float f = forest[ix, iy];
-                        float dark = Mathf.Lerp(1f, 0.52f, Mathf.InverseLerp(0.3f, 0.7f, f));
-                        Put(sol, c, grass[rng.Next(grass.Length)], Jit(new Color(dark, dark * 1.02f, dark * 0.95f), 0.06f));
+                        Put(sol, c, markGravel, Color.white);
+                        double r = rng.NextDouble();
+                        bool shore = NearAny(x, y, (a, b) => IsSea(Get(a, b)));
+                        if (r < 0.03) Put(decor, c, D("pebbles_" + rng.Next(2)), Color.white);
+                        else if (r < 0.045 && shore) Put(decor, c, D("shells_0"), Color.white);
+                        else if (r < 0.05 && shore) Put(decor, c, D("driftwood_0"), Color.white);
                         break;
                     }
+                    case K.Cliff:
+                    {
+                        Put(sol, c, markGravel, Color.white);
+                        Put(blocked, c, wallCollider, Color.white);
+                        bool l = Get(x - 1, y) == K.Cliff, rr = Get(x + 1, y) == K.Cliff;
+                        int v = l && rr ? rng.Next(2) : rr ? 2 : l ? 3 : 4;
+                        Put(lCliff, c, cliffTiles[v], Color.white);
+                        break;
+                    }
+                    case K.Low:
+                        Put(sol, c, markSoil, Color.white);
+                        break;
                     case K.High:
-                        Put(sol, c, volcanic[rng.Next(volcanic.Length)], Jit(Color.white, 0.1f));
-                        if (rng.NextDouble() < 0.05) Put(decor, c, boulders[rng.Next(4)], new Color(0.3f, 0.28f, 0.3f));
+                        Put(sol, c, markSoil, Color.white);
+                        if (rng.NextDouble() < 0.03) Put(decor, c, D("pebbles_" + rng.Next(2)), new Color(0.8f, 0.78f, 0.82f));
                         break;
                     case K.Mountain:
-                        Put(sol, c, volcanic[0], Color.white);
                         wallCells.Add(c);
-                        break;
-                    case K.Ravine:
-                        Put(blocked, c, abyss, Color.white);
-                        break;
-                    case K.Path:
-                        Put(sol, c, gravel[rng.Next(2)], Jit(new Color(0.78f, 0.64f, 0.5f), 0.08f));
                         break;
                     case K.Dock:
                         if (sart != null && sart.pierLeft != null && sart.seaFloor != null)
                         {
-                            // eau (sans collision) + planches du ponton par-dessus
-                            Put(sol, c, sart.seaFloor, Jit(new Color(0.5f, 0.64f, 0.82f), 0.05f));
+                            // fond marin (invisible : l'eau est dessinée dessous) + planches du ponton par-dessus
+                            Put(sol, c, sart.seaFloor, Color.clear);
                             bool first = dockDir.x == 0 ? !dockCells.Contains(c + Vector3Int.left) : !dockCells.Contains(c + Vector3Int.down);
                             Put(decor, c, dockDir.x == 0 ? (first ? sart.pierLeft : sart.pierRight) : sart.pierLeft, Color.white);
                         }
@@ -585,26 +718,90 @@ public static class IslandGenerator
                 }
             }
 
+        BuildSeaColour(seaPixels, env0);
+
+        // Lacs : roseaux sur les rives, nénuphars sur l'eau
+        foreach (var c in lakeCells)
+        {
+            if (rng.NextDouble() < 0.14) Put(decor, c, D("lily_" + rng.Next(2)), Color.white);
+            foreach (var d in new[] { Vector3Int.up, Vector3Int.down, Vector3Int.left, Vector3Int.right })
+            {
+                var n = c + d;
+                if (Get(n.x, n.y) != K.Low || decor.HasTile(n) || rng.NextDouble() > 0.4) continue;
+                Put(decor, n, D("reeds_" + rng.Next(3)), Color.white);
+                occupied.Add(n);
+            }
+        }
+
+        // Entrée de la grotte : presque invisible, une faille sombre à demi cachée par les fougères et les éboulis
+        {
+            var into = Vector3Int.up;
+            foreach (var d in new[] { Vector3Int.up, Vector3Int.down, Vector3Int.left, Vector3Int.right })
+                if (Get(doorstep.x + d.x, doorstep.y + d.y) == K.Cave) into = d;
+            var side = into.x == 0 ? Vector3Int.right : Vector3Int.up;
+            for (int k = 1; k <= 2; k++)
+            {
+                var cc = doorstep + into * k;
+                if (Get(cc.x, cc.y) != K.Cave) continue;
+                sol.SetTileFlags(cc, TileFlags.None);
+                sol.SetColor(cc, k == 1 ? new Color(0.32f, 0.3f, 0.36f) : new Color(0.55f, 0.52f, 0.58f));
+            }
+            foreach (var cc in new[] { doorstep + side, doorstep - side, doorstep + side * 2 - into, doorstep - side * 2 })
+            {
+                if (!Walkable(Get(cc.x, cc.y))) continue;
+                Put(decor, cc, D(rng.NextDouble() < 0.6 ? "fern_" + rng.Next(2) : "pebbles_" + rng.Next(2)), Color.white);
+                occupied.Add(cc);
+            }
+        }
+
+        // Coulées de lave : lueur orangée qui palpite
+        var env = env0;
+        var lavaRoot = new GameObject("Lave").transform;
+        lavaRoot.SetParent(env.transform, false);
+        for (int i = 0; i < lavaCells.Count; i += 3)
+        {
+            var go = new GameObject("Lueur de lave");
+            go.transform.SetParent(lavaRoot, false);
+            go.transform.position = sol.GetCellCenterWorld(lavaCells[i]);
+            var l = go.AddComponent<Light2D>();
+            l.lightType = Light2D.LightType.Point;
+            l.color = new Color(1f, 0.45f, 0.15f);
+            l.intensity = 0.65f;
+            l.pointLightOuterRadius = 2.8f;
+            l.pointLightInnerRadius = 0.3f;
+            go.AddComponent<LavaGlow>();
+        }
+
         // Roche de la montagne : murs auto-connectés (dessus, arêtes, faces)
         SetWalls(murs, wallCells, wallTile);
 
         // Forêt primordiale, palmiers de la grève, arbres calcinés des hautes terres
-        var env = GameObject.Find("Environment") ?? new GameObject("Environment");
-        for (int i = env.transform.childCount - 1; i >= 0; i--) Object.DestroyImmediate(env.transform.GetChild(i).gameObject);
         trees0 = PlaceVegetation(env.transform, trunks, trunk, occupied);
         trunks.GetComponent<TilemapRenderer>().enabled = false;
         SetupDepthSorting();
 
-        // Sous-bois : champignons et herbes
+        // Sous-bois : touffes, fleurs des clairières en massifs, fougères de la jungle
         for (int ix = 0; ix < sizeX; ix++)
             for (int iy = 0; iy < sizeY; iy++)
             {
                 if (map[ix, iy] != K.Low) continue;
                 var c = new Vector3Int(ix + minX, iy + minY, 0);
-                if (occupied.Contains(c)) continue;
+                if (occupied.Contains(c) || decor.HasTile(c)) continue;
+                float f = forest[ix, iy];
                 double r = rng.NextDouble();
-                if (r < 0.018) Put(decor, c, mushrooms[rng.Next(4)], Color.white);
-                else if (r < 0.06) Put(decor, c, tuft, new Color(0.8f, 0.85f, 0.75f));
+                if (f < 0.34f)
+                {
+                    bool patch = Fbm(c.x * 0.25f + o3.y, c.y * 0.25f + o2.x, 2) > 0.58f;
+                    int hue = Mathf.FloorToInt(Fbm(c.x * 0.08f, c.y * 0.08f + o1.y, 1) * 7f) % 4;
+                    if (patch && r < 0.35) Put(decor, c, D("flowers_" + hue), Color.white);
+                    else if (r < 0.08) Put(decor, c, D("tuft_" + rng.Next(3)), Color.white);
+                }
+                else if (f < 0.56f)
+                {
+                    if (r < 0.06) Put(decor, c, D("tuft_" + rng.Next(3)), Color.white);
+                    else if (r < 0.08) Put(decor, c, D("fern_" + rng.Next(2)), Color.white);
+                }
+                else if (r < 0.1) Put(decor, c, D("fern_" + rng.Next(2)), new Color(0.85f, 0.9f, 0.85f));
             }
 
         // Évents géothermiques dans les hautes terres
@@ -618,11 +815,10 @@ public static class IslandGenerator
             bool nearPath = false;
             for (int ax = -5; ax <= 5 && !nearPath; ax++)
                 for (int ay = -5; ay <= 5 && !nearPath; ay++)
-                    if (Get(x + ax, y + ay) == K.Path || Get(x + ax, y + ay) == K.Cave) nearPath = true;
+                    if (Get(x + ax, y + ay) == K.Path || Get(x + ax, y + ay) == K.Cave || Get(x + ax, y + ay) == K.Lava) nearPath = true;
             if (nearPath) continue;
             ventCells.Add(c);
-            Put(sol, c, vent, Color.white);
-            decor.SetTile(c, null);
+            Put(decor, c, D("vent"), Color.white);
             var go = new GameObject("Évent");
             go.transform.SetParent(env.transform, false);
             go.transform.position = sol.GetCellCenterWorld(c);
@@ -704,6 +900,9 @@ public static class IslandGenerator
         site.shipMooring = Vector3.zero;
         site.plots = new List<SettlementPlot>(plots);
         EditorUtility.SetDirty(site);
+        var wear = siteGo.GetComponent<TrailWear>() ?? siteGo.AddComponent<TrailWear>();
+        wear.trampled = tTrampled; wear.dirt = tDirt; wear.paved = tPaved;
+        EditorUtility.SetDirty(wear);
 
         var gate = Object.FindFirstObjectByType<DungeonBoundary>();
         if (gate != null) gate.transform.position = sol.GetCellCenterWorld(doorstep);
@@ -721,6 +920,42 @@ public static class IslandGenerator
         EditorSceneManager.MarkSceneDirty(core.gameObject.scene);
         EditorSceneManager.SaveScene(core.gameObject.scene);
         log = $"{trees0} arbres, {vents0} évents, grotte {grotto}, ponton {spawnCell}, colonie : {plots.Count} emplacements";
+    }
+
+    /// <summary>
+    /// Couleur de la mer et des lacs : une texture d'un pixel par case, filtrée en bilinéaire, posée sous tout le reste.
+    /// Le dégradé du lagon au grand large est ainsi parfaitement continu (plus de marches case par case).
+    /// </summary>
+    static void BuildSeaColour(Color[] px, GameObject env)
+    {
+        const string path = TerrainArt.Dir + "/sea_colour.png";
+        var tex = new Texture2D(sizeX, sizeY, TextureFormat.RGBA32, false);
+        tex.SetPixels(px);
+        tex.Apply();
+        System.IO.File.WriteAllBytes(path, tex.EncodeToPNG());
+        Object.DestroyImmediate(tex);
+        AssetDatabase.ImportAsset(path);
+        var imp = (TextureImporter)AssetImporter.GetAtPath(path);
+        imp.textureType = TextureImporterType.Sprite;
+        imp.spriteImportMode = SpriteImportMode.Single;
+        imp.spritePixelsPerUnit = 1f;
+        imp.filterMode = FilterMode.Bilinear;
+        imp.wrapMode = TextureWrapMode.Clamp;
+        imp.textureCompression = TextureImporterCompression.Uncompressed;
+        imp.mipmapEnabled = false;
+        imp.npotScale = TextureImporterNPOTScale.None;
+        var st = new TextureImporterSettings();
+        imp.ReadTextureSettings(st);
+        st.spriteAlignment = (int)SpriteAlignment.BottomLeft;
+        st.spriteMeshType = SpriteMeshType.FullRect;
+        imp.SetTextureSettings(st);
+        imp.SaveAndReimport();
+        var go = new GameObject("Couleur de la mer");
+        go.transform.SetParent(env.transform, false);
+        go.transform.position = new Vector3(minX, minY, 0f);
+        var sr = go.AddComponent<SpriteRenderer>();
+        sr.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(path);
+        sr.sortingOrder = -13;
     }
 
     static void SetWalls(Tilemap tm, List<Vector3Int> cells, TileBase wall)
@@ -779,10 +1014,12 @@ public static class IslandGenerator
             TreeKind kind = null;
             if (k == K.Low)
             {
-                if (f < 0.26f || rng.NextDouble() > 0.4 + f * 1.2f) continue;
-                kind = f > 0.52f ? (rng.NextDouble() < 0.7 ? BigTree : MidTree)
-                     : f > 0.4f ? (rng.NextDouble() < 0.6 ? MidTree : SmallTree)
-                     : (rng.NextDouble() < 0.3 ? MidTree : SmallTree);
+                // végétation par masses : clairières nues, lisières clairsemées, jungle dense
+                double dens = f < 0.34f ? 0.0 : f < 0.44f ? 0.1 : f < 0.56f ? 0.45 : 0.9;
+                if (rng.NextDouble() > dens) continue;
+                kind = f > 0.56f ? (rng.NextDouble() < 0.7 ? BigTree : MidTree)
+                     : f > 0.44f ? (rng.NextDouble() < 0.6 ? MidTree : SmallTree)
+                     : SmallTree;
             }
             else if (k == K.Beach)
             {
@@ -840,9 +1077,10 @@ public static class IslandGenerator
         {
             if (Get(c.x, c.y) != K.Low || occupied.Contains(c)) continue;
             float f = forest[c.x - minX, c.y - minY];
-            if (rng.NextDouble() > (f > 0.35f ? 0.07 : 0.025)) continue;
+            // buissons surtout aux lisières (entre clairière et jungle), fleuris côté clairière
+            if (rng.NextDouble() > (f > 0.34f && f < 0.5f ? 0.11 : f >= 0.5f ? 0.05 : 0.012)) continue;
             if (NearKind(c, 1, K.Path, K.Cave, K.Dock)) continue;
-            string name = rng.NextDouble() < 0.12 ? flowers[rng.Next(flowers.Length)] : bushes[rng.Next(bushes.Length)];
+            string name = rng.NextDouble() < (f < 0.42f ? 0.35 : 0.08) ? flowers[rng.Next(flowers.Length)] : bushes[rng.Next(bushes.Length)];
             var sprite = WallBuilder.Bush(name);
             if (sprite == null) continue;
             var go = new GameObject(name);
@@ -919,6 +1157,7 @@ public static class IslandGenerator
     {
         var ap = Object.FindFirstObjectByType<AstarPath>();
         if (ap == null) return;
+        if (AstarPath.active == null) AstarPath.active = ap;   // juste après un rechargement du code, A* n'est pas encore initialisé
         if (ap.data.graphs == null || ap.data.graphs.Length == 0) ap.data.DeserializeGraphs();
         var gg = ap.data.gridGraph;
         if (gg == null) return;

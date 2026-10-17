@@ -680,6 +680,8 @@ public class SettlementManager : MonoBehaviour
         {
             if (blocked != null) blocked.SetTile(c, null);
             sol.SetTile(c, art.seaFloor);
+            sol.SetTileFlags(c, TileFlags.None);
+            sol.SetColor(c, Color.clear);   // l'eau est dessinée par la couche T_Eau, dessous
             if (decor != null) decor.SetTile(c, (c.x - Site.landing.x) % 2 == 0 ? art.pierLeft : art.pierRight);
         }
         WidenPier();

@@ -47,6 +47,7 @@ public class SaveData
     public int islandEvent, islandEventEnds = -1;
     public List<NemesisRecord> nemeses = new List<NemesisRecord>();
     public bool captureEnabled;
+    public List<int> trails = new List<int>();   // sentiers nés du passage : x, y, usure, pavé
     public List<PrisonerSave> prisoners = new List<PrisonerSave>();
 
     // Donjon

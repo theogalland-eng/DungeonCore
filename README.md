@@ -177,7 +177,7 @@ Chaque étape — île procédurale, Guilde, brouillard de guerre, portes, ciné
 ## 🗺️ Et ensuite ?
 
 - [ ] Captures d'écran et GIF de présentation
-- [ ] Musiques définitives (les pistes actuelles ne sont pas publiées)
+- [x] Musiques (composées avec Gemini Music)
 - [ ] Équilibrage des expéditions sur des parties longues
 - [ ] Sauvegarde du mode Aventurier
 - [ ] Comptes et sauvegardes en ligne

@@ -129,5 +129,5 @@ Tous viennent de [**craftpix.net**](https://craftpix.net) (gratuits ou payants).
 ### Autres fichiers non publiés
 
 - Quelques planches isolées dans `Assets/imports/` (`snow-expansion.png`, `dungeon_orb3.png`, `dungeon_tiles.png`, `full_traps.png`, `cave.png`, interface `gui_alpha…`), dont l'origine reste à documenter.
-- Les **musiques** (`Assets/Resources/Audio/Music/*.mp3`) : leur provenance n'est pas encore documentée, elles ne sont donc pas publiées. Le fichier [`LISEZMOI.txt`](../Assets/Resources/Audio/Music/LISEZMOI.txt) explique comment nommer les pistes pour que le jeu les classe (jour, nuit, combat, héros, cinématique…).
+- Les **musiques** (`Assets/Resources/Audio/Music/*.mp3`) ont été **composées par l'auteur avec Gemini Music** (Google) et sont publiées avec le projet. Le fichier [`LISEZMOI.txt`](../Assets/Resources/Audio/Music/LISEZMOI.txt) explique comment nommer les pistes pour que le jeu les classe (jour, nuit, combat, héros, cinématique…).
 - Tout ce qui est **dérivé directement des packs** : découpes `Assets/Art/Dungeon`, `Assets/Art/Settlement`, icônes, murs, effets, butin, intérieurs, tuiles et palettes. Les scripts de `Tools~/` et les menus éditeur les régénèrent.

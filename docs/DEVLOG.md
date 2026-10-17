@@ -109,3 +109,19 @@ Mise en ligne du projet sur GitHub (ce dépôt), avec cette documentation.
 - 🎨 **Atmosphère** (`Atmosphere`) : pénombre sous la montagne, **torches portées par les intrus** (on voit leur lueur approcher), lanterne du héros, lanternes et fumée de cheminée dans la colonie, **détails de sol** procéduraux (fissures, cailloux, ossements, mousse, flaques — `make_decals.py`) et **ombre de contact** au pied des murs.
 - 🎮 **Sensations de combat** : flash blanc à l'impact (shader maison), micro-pause sur les coups du héros, étincelles, secousse quand il achève, chiffres de dégâts qui jaillissent.
 - 🐛 Ponton : les planches ne couvraient pas toute la zone praticable.
+
+### Refonte visuelle de l'île et de l'interface
+
+**Retours clés :** *« je vois des carrés noirs, remplace-les par de petits lacs »*, *« le chemin vers le donjon ne devrait pas exister au départ »*, *« une UI beaucoup plus soignée et pro »*.
+
+- 🎨 **Direction artistique** posée sur une maquette (carte conceptuelle, matériaux, HUD, panneaux) : sable noir volcanique, herbe des clairières, jungle, roche du volcan, lave, mer et récif.
+- 🎨 **Terrain en couches auto-raccordées** (`make_terrain.py`, `BlobTile`) : eau, sable, roche, herbe, jungle, lave. Bords organiques aux coins arrondis, écume sur les rives, texture sur 3 × 3 cases (9 « phases ») : plus aucune marche d'escalier ni répétition visible.
+- 🎨 **Mer en dégradé continu** du lagon au grand large (texture lissée sous les vaguelettes animées), récifs de roche claire.
+- 🎨 **Petits lacs** bordés de roseaux, avec nénuphars, à la place des ravins noirs.
+- 🎨 **Volcan vivant** : coulées de lave qui palpitent, roche accordée au relief.
+- 🎨 **Végétation par masses** : clairières fleuries, lisières de buissons, jungle dense.
+- 🎮 **Aucun chemin au départ** : la grotte n'est qu'une **faille** au pied de la falaise, à demi cachée. Le passage des aventuriers et des colons **use le sol** (herbe foulée, puis terre battue) et le sentier se dessine de lui-même ; quand la colonie devient un hameau, ses ouvriers le **pavent** jour après jour (`TrailWear`, sauvegardé).
+- 🎨 **Interface** : cadres pixel à liseré or et coins taillés, titres en Cinzel, icônes pixel (`make_ui_icons.py`), carte du Noyau (cristal, cœur, mana, niveau), vitesse en contrôle segmenté, cartes du panneau lisibles (verrou discret, niveau requis).
+- 🎮 **Tactiques des monstres** : le gobelin **charge** (armement visible, ruée, coup renforcé), le gnoll **bondit** sur sa cible, les rats **contournent** pour prendre l'intrus de flanc.
+- 🎨 **Armure selon le rang** : les aventuriers des expéditions portent la tenue de leur rang de Guilde, de la toile (F) à l'armure dorée (SSS).
+- 🎵 **Musiques** publiées : composées par l'auteur avec Gemini Music.

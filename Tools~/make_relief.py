@@ -222,17 +222,33 @@ def main():
         px = ex * PX + PX // 2
         # pied de la falaise au-dessus de la case d'entrée (image : rangée nord→sud)
         fy = (ch - 1 - ey) * PX + extra + PX // 2
-        for oy in range(-34, 6):
-            for ox in range(-15, 16):
-                r = (ox / 15.0) ** 2 + (max(0, -oy - 6) / 26.0) ** 2
-                if r > 1 or oy > 5:
+        # une faille étroite et irrégulière au pied de la falaise, à peine visible : mousse et éboulis autour
+        frng = np.random.default_rng(77 + i)
+        top = -30
+        for oy in range(top, 6):
+            t = (oy - top) / (6 - top)                       # 0 en haut, 1 au pied
+            half = 0.6 + 4.2 * math.sin(math.pi * min(1.0, t * 1.15)) ** 0.8
+            shift = int(round(2.2 * math.sin(oy * 0.45)))
+            for ox in range(-8, 9):
+                X, Y = px + ox + shift, fy + oy
+                if not (0 <= X < W and 0 <= Y < H) or img[Y, X, 3] == 0:
                     continue
-                X, Y = px + ox, fy + oy
-                if 0 <= X < W and 0 <= Y < H and img[Y, X, 3] > 0:
-                    dark = 12 + int(18 * (1 - r))
-                    img[Y, X, :3] = (dark, dark - 4, dark + 6)
-                    if r > 0.82:
-                        img[Y, X, :3] = (58, 52, 56)
+                dd = abs(ox) - half
+                if dd < 0:
+                    dark = 10 + int(10 * t)
+                    img[Y, X, :3] = (dark, dark - 3, dark + 5)
+                elif dd < 1.0:
+                    img[Y, X, :3] = (46, 41, 44) if ox < 0 else (87, 80, 79)
+        # éboulis et touffes de mousse qui cachent à moitié la faille
+        for k in range(16):
+            ox, oy = int(frng.integers(-12, 13)), int(frng.integers(-20, 7))
+            if abs(ox) < 3 and oy < 2:
+                continue
+            X, Y = px + ox, fy + oy
+            if 0 <= X < W - 1 and 0 <= Y < H - 1 and img[Y, X, 3] > 0:
+                col = (70, 117, 58) if k % 3 else (87, 80, 79)
+                img[Y:Y + 2, X:X + 2, :3] = col
+                img[Y, X, :3] = (121, 168, 68) if k % 3 else (125, 116, 108)
 
     # --- découpe en bandes
     os.makedirs(OUT, exist_ok=True)

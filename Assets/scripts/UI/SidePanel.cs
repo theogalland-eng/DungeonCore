@@ -341,10 +341,12 @@ public class SidePanel : MonoBehaviour
             var lockImg = lockGo.gameObject.AddComponent<Image>();
             lockImg.sprite = SpriteUtil.RoundedUI;
             lockImg.type = Image.Type.Sliced;
-            lockImg.color = new Color(0f, 0f, 0f, 0.62f);
+            lockImg.color = new Color(0.03f, 0.02f, 0.06f, 0.55f);
             lockImg.raycastTarget = false;
-            var lockText = Txt(lockGo, "", 20, GameHUD.WarningColor, TextAlignmentOptions.Center);
-            Stretch(lockText.rectTransform, 0, 0, 0, 0);
+            // verrou discret sur l'icône, niveau requis dessous (ne cache plus le nom de l'objet)
+            UIKit.Icon(lockGo, "lock", new Vector2(6, -6), 24, new Vector2(0, 1));
+            var lockText = Txt(lockGo, "", 17, GameHUD.WarningColor, TextAlignmentOptions.Bottom);
+            Stretch(lockText.rectTransform, 2, bw - 78, 8, 8);
 
             itemButtons.Add(new ItemButton { item = item, tool = item.tool, bg = b.GetComponent<Image>(), lockOverlay = lockGo.gameObject, lockText = lockText });
         }
@@ -361,7 +363,7 @@ public class SidePanel : MonoBehaviour
         {
             bool locked = lvl < b.item.unlockLevel;
             b.lockOverlay.SetActive(locked);
-            if (locked) b.lockText.text = $"Niveau {b.item.unlockLevel}";
+            if (locked) b.lockText.text = $"Niv. {b.item.unlockLevel}";
             bool selected = builder != null && (b.item.kind == ItemKind.Tool
                 ? builder.GetCurrentMode() == b.tool && builder.SelectedItem == null
                 : builder.SelectedItem != null && builder.SelectedItem.id == b.item.id);

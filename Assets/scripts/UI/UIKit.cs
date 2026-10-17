@@ -51,15 +51,62 @@ public static class UIKit
         }
     }
 
-    public static readonly Color Panel = new Color(0.07f, 0.06f, 0.11f, 0.95f);
-    public static readonly Color Card = new Color(0.12f, 0.1f, 0.18f, 0.96f);
-    public static readonly Color Button = new Color(0.17f, 0.15f, 0.26f, 0.96f);
-    public static readonly Color Accent = new Color(0.47f, 0.32f, 0.8f, 1f);
-    public static readonly Color Disabled = new Color(0.13f, 0.12f, 0.17f, 0.9f);
-    public static readonly Color Danger = new Color(0.62f, 0.2f, 0.22f, 1f);
-    public static readonly Color Gold = new Color(1f, 0.86f, 0.38f);
-    public static readonly Color Text = new Color(0.94f, 0.93f, 0.98f);
-    public static readonly Color Sub = new Color(0.7f, 0.68f, 0.8f);
+    // Palette « Interface » de la maquette Design (les fonds pixel sont à ~86 % : teintes légèrement relevées)
+    static Color H(string hex, float a = 1f, float lift = 1.16f)
+    {
+        ColorUtility.TryParseHtmlString(hex, out var c);
+        return new Color(Mathf.Min(1f, c.r * lift), Mathf.Min(1f, c.g * lift), Mathf.Min(1f, c.b * lift), a);
+    }
+    public static readonly Color Panel = H("#1B1726", 0.96f);
+    public static readonly Color Card = H("#241F33", 0.97f);
+    public static readonly Color Button = H("#2A2340", 0.98f);
+    public static readonly Color Accent = H("#6F55C9");
+    public static readonly Color Disabled = H("#1B1726", 0.9f);
+    public static readonly Color Danger = H("#9A2F35");
+    public static readonly Color Gold = H("#E8C77F", 1f, 1f);
+    public static readonly Color Trim = H("#C9A45C", 0.9f, 1f);
+    public static readonly Color TrimSoft = new Color(0.62f, 0.55f, 0.75f, 0.32f);
+    public static readonly Color Text = H("#EFE9DC", 1f, 1f);
+    public static readonly Color Sub = H("#A59FB6", 1f, 1f);
+    public static readonly Color Mana = H("#8E7CFF", 1f, 1f);
+    public static readonly Color Heart = H("#D9534A", 1f, 1f);
+
+    /// <summary>Liseré pixel (or par défaut) par-dessus un fond : le cadre « soigné » de la maquette.</summary>
+    public static Image Frame(RectTransform rt, Color? c = null)
+    {
+        var f = Stretch(Rect("Liseré", rt));
+        var img = f.gameObject.AddComponent<Image>();
+        img.sprite = SpriteUtil.UITrim;
+        img.type = UnityEngine.UI.Image.Type.Sliced;
+        img.color = c ?? Trim;
+        img.raycastTarget = false;
+        f.SetAsFirstSibling();
+        f.SetSiblingIndex(0);
+        return img;
+    }
+
+    private static readonly System.Collections.Generic.Dictionary<string, Sprite> icons = new System.Collections.Generic.Dictionary<string, Sprite>();
+
+    /// <summary>Icône pixel (Resources/UI/Icons/icon_nom), null si absente.</summary>
+    public static Sprite IconSprite(string name)
+    {
+        if (icons.TryGetValue(name, out var s)) return s;
+        s = Resources.Load<Sprite>("UI/Icons/icon_" + name);
+        icons[name] = s;
+        return s;
+    }
+
+    /// <summary>Icône posée dans un parent (ancre haut-gauche par défaut), taille en unités du canevas.</summary>
+    public static Image Icon(Transform parent, string name, Vector2 pos, float size, Vector2? anchor = null)
+    {
+        var rt = Place(Rect("Icône_" + name, parent), anchor ?? new Vector2(0, 1), pos, new Vector2(size, size));
+        var img = rt.gameObject.AddComponent<Image>();
+        img.sprite = IconSprite(name);
+        img.preserveAspect = true;
+        img.raycastTarget = false;
+        if (img.sprite == null) img.enabled = false;
+        return img;
+    }
 
     public static RectTransform Rect(string name, Transform parent)
     {
@@ -100,6 +147,7 @@ public static class UIKit
     {
         var rt = Place(Rect(name, parent), anchor, pos, size);
         Image(rt, c ?? Panel);
+        Frame(rt);
         return rt;
     }
 
@@ -139,10 +187,12 @@ public static class UIKit
         b.targetGraphic = img;
         b.onClick.AddListener(() => Sfx.Play("ui_click", null, 0.6f, 0.04f));
         if (onClick != null) b.onClick.AddListener(onClick);
+        Frame(rt, color.HasValue && color.Value == Accent ? Trim : TrimSoft);
         if (!string.IsNullOrEmpty(label))
         {
             var t = Label(rt, label, fontSize, Text);
             Stretch(t.rectTransform, 8, 8, 0, 0);
+            if (fontSize >= 22) StyleHead(t);
         }
         return b;
     }

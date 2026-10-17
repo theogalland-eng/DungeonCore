@@ -52,6 +52,9 @@
 /Assets/Art/Generated/*
 !/Assets/Art/Generated/Relief/
 !/Assets/Art/Generated/Relief.meta
+# terrain de l'île (tuiles auto-raccordées, eau, décors) : Tools~/make_terrain.py
+!/Assets/Art/Generated/Terrain/
+!/Assets/Art/Generated/Terrain.meta
 
 # Resources : catalogue, polices générées (Cinzel, OFL), sons procéduraux, mouette
 !/Assets/Resources/
@@ -75,11 +78,12 @@
 !/Assets/Resources/HeroPalettes.meta
 !/Assets/Resources/Shaders/
 !/Assets/Resources/Shaders.meta
+# sons procéduraux + musiques composées par l'auteur avec Gemini Music
 !/Assets/Resources/Audio/
 !/Assets/Resources/Audio.meta
-/Assets/Resources/Audio/Music/*
-!/Assets/Resources/Audio/Music/LISEZMOI.txt
-!/Assets/Resources/Audio/Music/LISEZMOI.txt.meta
+# icônes pixel de l'interface (Tools~/make_ui_icons.py)
+!/Assets/Resources/UI/
+!/Assets/Resources/UI.meta
 
 # ── Divers ───────────────────────────────────────────────────
 *.psd

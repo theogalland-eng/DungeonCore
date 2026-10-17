@@ -168,6 +168,20 @@ public class AdventurerAI : MonoBehaviour
         Rank = rank;
         if (rank < 0 || combat == null) return;
         if (combat != null && !combat.adventurerName.Contains("rang")) combat.adventurerName += $" · rang {GuildSystem.RankName(rank)}";
+        ApplyRankLook(rank);
+    }
+
+    /// <summary>L'armure se voit : rang F = tenue de toile (palier 1) … SSS = armure dorée (palier 9).</summary>
+    private void ApplyRankLook(int rank)
+    {
+        var cat = DungeonCatalog.Get();
+        var anim = GetComponentInChildren<Animator>();
+        if (cat == null || anim == null) return;
+        var list = role == Role.Archer ? cat.lookArcher : role == Role.Mage ? cat.lookMage : role == Role.Healer ? cat.lookHealer : cat.lookWarrior;
+        int t = Mathf.Clamp(rank + 1, 1, 9);
+        if (list == null || list.Count < t || list[t - 1] == null) return;
+        anim.runtimeAnimatorController = list[t - 1];
+        anim.Update(0f);
     }
 
     /// <summary>Note les monstres visibles (une fois chacun) : de quoi raconter des histoires terrifiantes.</summary>
