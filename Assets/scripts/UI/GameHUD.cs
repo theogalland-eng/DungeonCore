@@ -736,7 +736,7 @@ public class GameHUD : MonoBehaviour
         {
             bool ok = unit.CanEvolveNow(out string why);
             string next = unit.nextStage != null ? unit.nextStage.GetComponent<MonsterUnit>()?.familyName ?? unit.nextStage.name : "";
-            evolveLabel.text = ok ? $"Évoluer en {next} ({unit.evolveCost} mana)" : $"<color=#C8BFA8>Évolution : {why}</color>";
+            evolveLabel.text = ok ? $"Évoluer en {next} ({unit.EffectiveEvolveCost} mana)" : $"<color=#C8BFA8>Évolution : {why}</color>";
             evolveButton.GetComponent<Image>().color = ok ? new Color(0.62f, 0.46f, 0.1f, 1f) : new Color(0.25f, 0.22f, 0.18f, 1f);
         }
     }

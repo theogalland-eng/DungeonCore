@@ -1282,6 +1282,7 @@ public class GobelinAI : MonoBehaviour, IDamageable
         if (isDead) return;
         // mur de boucliers : un orc ou un golem campé sur ses appuis encaisse mieux
         if (IsShield && movement.sqrMagnitude < 0.05f) amount *= 0.65f;
+        amount *= ThemedRooms.DamageTakenMult(rb != null ? rb.position : (Vector2)transform.position);
         if (ambushing) { ambushing = false; RevealAmbush(); }
         currentHealth -= amount;
         outOfCombatTimer = 0f;

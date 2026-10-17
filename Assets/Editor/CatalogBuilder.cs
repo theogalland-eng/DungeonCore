@@ -224,6 +224,27 @@ public static class CatalogBuilder
         var foodGo = Decor("GardeManger", foodSprite, 1.15f);
         foodGo.AddComponent<FoodBait>();
         var foodPrefab = SavePrefab(foodGo);
+        // Salles à fonction et énigmes (Tools~/make_props.py)
+        var nestPrefab = SavePrefab(Decor("NidDeCouvee", PropSprite("nest"), 0.7f));
+        var anvilPrefab = SavePrefab(Decor("Enclume", PropSprite("anvil"), 0.75f));
+        var forgeGo = Decor("Forge", PropSprite("forge"), 0.85f);
+        AddLight(forgeGo.transform, new Color(1f, 0.55f, 0.2f), 2.6f, 0.9f, new Vector2(0f, 0.2f));
+        forgeGo.AddComponent<TorchFlicker>();
+        var forgePrefab = SavePrefab(forgeGo);
+        GameObject Switch(string name, string off, string on, PuzzleSwitch.Kind kind, float secs, float h, Color? light)
+        {
+            var g = Decor(name, PropSprite(off), h);
+            var sw = g.AddComponent<PuzzleSwitch>();
+            sw.kind = kind; sw.offSprite = PropSprite(off); sw.onSprite = PropSprite(on); sw.activeSeconds = secs;
+            if (light.HasValue) AddLight(g.transform, light.Value, 1.8f, 0f, new Vector2(0f, 0.3f));
+            return SavePrefab(g);
+        }
+        var leverPrefab = Switch("Levier", "lever_off", "lever_on", PuzzleSwitch.Kind.Lever, 40f, 0.7f, null);
+        var runePrefab = Switch("PierreRunique", "rune_off", "rune_on", PuzzleSwitch.Kind.Rune, 25f, 0.85f, new Color(0.6f, 0.5f, 1f));
+        var plateGo = Decor("PlaqueDePression", PropSprite("plate"), 0.45f, ItemKind.Trap, 1);
+        var plate = plateGo.AddComponent<PressurePlate>();
+        plate.upSprite = PropSprite("plate"); plate.downSprite = PropSprite("plate_down");
+        var platePrefab = SavePrefab(plateGo);
         var banner = SavePrefab(Decor("Banniere", traps.GetValueOrDefault("full_traps_200"), 1.5f));
         var helm = SavePrefab(Decor("Heaume", traps.GetValueOrDefault("full_traps_199"), 0.9f));
         var rack = SavePrefab(Decor("Ratelier", traps.GetValueOrDefault("full_traps_218"), 1.2f));
@@ -405,7 +426,7 @@ public static class CatalogBuilder
         Sprite[] AF(string n) => ArtImporter.Frames(ArtImporter.DungeonDir, n);
 
         // Portes des packs (voûte de pierre, battant qui s'ouvre / herse qui se lève), posées au bas de leur case
-        GameObject Door(string name, Sprite[] frames, Sprite fallback, float hold, float bite = 0f, string text = null, Sprite[] side = null)
+        GameObject Door(string name, Sprite[] frames, Sprite fallback, float hold, float bite = 0f, string text = null, Sprite[] side = null, System.Action<GameObject> cfg = null)
         {
             var root = new GameObject(name);
             root.AddComponent<PlacedObject>().kind = ItemKind.Decor;
@@ -431,11 +452,22 @@ public static class CatalogBuilder
                 SpriteChild(root.transform, "Sprite", fallback, 1f, 3, Vector2.zero);
                 d.doorRenderer = root.GetComponentInChildren<SpriteRenderer>();
             }
+            cfg?.Invoke(root);
             return SavePrefab(root);
         }
         var woodDoor = Door("PorteBois", AF("door_wood"), PL("door_wood"), 2.5f, 0f, null, AF("door_wood_side"));
         var ironDoor = Door("Herse", AF("door_gate"), PL("door_iron"), 5f, 0f, "Soulève la herse…", AF("door_gate_side"));
         var skullDoor = Door("GueuleOssements", AF("door_skull"), null, 6f, 12f, "La gueule mord !");
+        // Énigmes : portes scellées (sceau runique peint par-dessus la herse)
+        System.Action<GameObject> Seal(int switches, Color glow) => g =>
+        {
+            g.GetComponent<DungeonDoor>().sealSwitches = switches;
+            var seal = SpriteChild(g.transform, "Sceau", PropSprite("seal"), 0.6f, 4, new Vector2(0f, 0.45f));
+            seal.GetComponent<SpriteRenderer>().color = glow;
+            AddLight(g.transform, new Color(0.6f, 0.5f, 1f), 1.6f, 0.5f, new Vector2(0f, 0.4f));
+        };
+        var leverDoor = Door("PorteLevier", AF("door_gate"), PL("door_iron"), 0f, 0f, "Scellée", AF("door_gate_side"), Seal(1, new Color(0.9f, 0.85f, 0.7f)));
+        var runeDoor = Door("PorteRunique", AF("door_gate"), PL("door_iron"), 0f, 0f, "Scellée", AF("door_gate_side"), Seal(3, Color.white));
         GameObject Anim(string name, string frames, AnimatedTrap.Trigger trig, float dmg, float radius, System.Action<AnimatedTrap> cfg = null, Color? light = null)
         {
             var root = new GameObject(name);
@@ -540,6 +572,11 @@ public static class CatalogBuilder
         Add("bear", "Piège à loup", CatalogCategory.Trap, ItemKind.Trap, bearPrefab, 40, 2, PL("trap_bear_open"), "Se referme sur un intrus : le blesse et l'immobilise 3,5 s. Se réarme seul."); U(3);
         Add("poison", "Gaz toxique", CatalogCategory.Trap, ItemKind.Trap, gasPrefab, 70, 3, PL("trap_poison"), "Nuage permanent : empoisonne et ralentit les intrus alentour."); U(6);
         Add("door_wood", "Porte en bois", CatalogCategory.Trap, ItemKind.Decor, woodDoor, 25, 1, AF("door_wood").FirstOrDefault() ?? PL("door_wood"), "Porte voûtée : les intrus perdent 2,5 s à la forcer, puis elle reste ouverte. Fermée, elle arrête la vue, les tirs... et vos monstres, sauf sur votre ordre.", 0.5f); U(2);
+        Add("lever_door", "Porte à levier", CatalogCategory.Trap, ItemKind.Decor, leverDoor, 45, 2, PropSprite("seal"), "Énigme : elle ne se force pas. Un intrus doit trouver et baisser un levier (à 12 cases au plus) : le groupe se disperse, vos monstres en profitent.", 1f); U(2);
+        Add("lever", "Levier", CatalogCategory.Trap, ItemKind.Decor, leverPrefab, 20, 2, PropSprite("lever_off"), "Ouvre les portes à levier voisines (12 cases) pendant 40 s. Cachez-le au fond d'une impasse gardée.", 0.3f);
+        Add("rune_door", "Porte runique", CatalogCategory.Trap, ItemKind.Decor, runeDoor, 90, 5, PropSprite("seal"), "Énigme : trois pierres runiques (à 12 cases au plus) doivent briller en même temps pour l'ouvrir. Les intrus se séparent pour les éveiller.", 2f); U(4);
+        Add("rune", "Pierre runique", CatalogCategory.Trap, ItemKind.Decor, runePrefab, 35, 5, PropSprite("rune_off"), "Brille 25 s quand on la touche. Trois en même temps ouvrent une porte runique.", 0.8f);
+        Add("pressure_plate", "Plaque de pression", CatalogCategory.Trap, ItemKind.Trap, platePrefab, 30, 2, PropSprite("plate"), "Fléchettes (9 dégâts), les portes voisines claquent et restent bloquées 8 s, vos monstres proches accourent. Se réarme en 10 s.", 0.3f);
         Add("door_iron", "Herse de fer", CatalogCategory.Trap, ItemKind.Decor, ironDoor, 60, 3, AF("door_gate").FirstOrDefault() ?? PL("door_iron"), "Retient chaque intrus 5 s le temps de la soulever : parfait devant une embuscade.", 1f); U(3);
         if (AF("door_skull").Length > 0) { Add("door_skull", "Gueule d'ossements", CatalogCategory.Trap, ItemKind.Decor, skullDoor, 110, 5, AF("door_skull")[0], "Porte de crypte vivante : retient 6 s et mord (12 dégâts) chaque intrus qui la force.", 2.5f); U(6); }
         Add("flame", "Jet de flammes", CatalogCategory.Trap, ItemKind.Trap, flamePrefab, 45, 2, traps.GetValueOrDefault("full_traps_7"), "Crache du feu par intermittence. Gros dégâts."); U(5);
@@ -547,6 +584,9 @@ public static class CatalogBuilder
         Add("torch", "Torche", CatalogCategory.Decor, ItemKind.Decor, torchPrefab, 15, 1, dungeon.GetValueOrDefault("dungeon_tiles_196"), "Éclaire les couloirs (surtout la nuit).", 1f);
         Add("chest", "Coffre au trésor", CatalogCategory.Decor, ItemKind.Decor, chestPrefab, 60, 1, dungeon.GetValueOrDefault("dungeon_tiles_170"), "Appât : les intrus cupides font un détour pour le piller. Chaque jour, le Noyau le remplit (butin pris aux morts, ou richesses nées du mana).", 2f); U(4);
         Add("barrel", "Tonneau", CatalogCategory.Decor, ItemKind.Decor, barrel, 8, 1, traps.GetValueOrDefault("full_traps_195"), "Simple décor.", 0.5f);
+        Add("nest", "Nid de couvée", CatalogCategory.Decor, ItemKind.Decor, nestPrefab, 60, 3, PropSprite("nest"), "Couvoir : trois nids rapprochés font naître chaque matin un monstre (de la famille la plus présente dans la salle).", 0.5f);
+        Add("anvil", "Enclume", CatalogCategory.Decor, ItemKind.Decor, anvilPrefab, 45, 4, PropSprite("anvil"), "Forge des monstres (3 enclumes ou forges) : vos monstres y encaissent 15 % de dégâts en moins et y évoluent pour 25 % de mana en moins.", 1f);
+        Add("forge", "Forge", CatalogCategory.Decor, ItemKind.Decor, forgePrefab, 70, 4, PropSprite("forge"), "Forge des monstres (3 enclumes ou forges) : protection et évolutions moins chères. Elle éclaire la salle.", 1.5f);
         Add("food_cache", "Garde-manger", CatalogCategory.Decor, ItemKind.Decor, foodPrefab, 40, 1, foodSprite, "Appât : un intrus affamé qui le voit accourt et se goinfre, immobile et sans méfiance. Regarni chaque matin.", 0.5f);
         Add("supplies", "Réserves", CatalogCategory.Decor, ItemKind.Decor, supplies, 12, 1, traps.GetValueOrDefault("full_traps_260"), "Caisses et tonneaux.", 0.7f);
         Add("banner", "Bannière", CatalogCategory.Decor, ItemKind.Decor, banner, 20, 2, traps.GetValueOrDefault("full_traps_200"), "Un donjon qui a du style attire les curieux.", 1.5f);
@@ -602,6 +642,15 @@ public static class CatalogBuilder
         cat.themes.Add(new LayerTheme { id = "catacomb", displayName = "Catacombes", description = "Les morts veillent : vos morts-vivants (squelettes, zombies, liches, fantômes, vampires) frappent 30 % plus fort. Drain de mana +20 %.",
             stoneTint = new Color(0.55f, 0.42f, 0.36f), floorTile = WallBuilder.Floor("fortress"), floorTint = new Color(0.8f, 0.7f, 0.62f), undeadDamageMult = 1.3f, manaDrainMult = 1.2f });
         foreach (var th in cat.themes) th.wallTile = WallBuilder.Wall(th.id);
+        // sols dessinés pour le projet (Tools~/make_dungeon.py) : ils remplacent les sols des packs
+        foreach (var th in cat.themes)
+        {
+            var f = TerrainArt.DungeonFloor(th.id);
+            if (f == null) continue;
+            th.floorTile = f;
+            th.floorTint = Color.white;
+            th.stoneTint = Color.white;
+        }
 
         cat.stairsDownSprite = AF("stairs_down").FirstOrDefault() ?? PL("stairs_down") ?? dungeon.GetValueOrDefault("dungeon_tiles_311");
         cat.stairsUpSprite = AF("stairs_up").FirstOrDefault() ?? PL("stairs_up") ?? dungeon.GetValueOrDefault("dungeon_tiles_82");

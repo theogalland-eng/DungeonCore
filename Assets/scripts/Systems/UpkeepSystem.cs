@@ -18,7 +18,7 @@ public class UpkeepSystem : MonoBehaviour
     public int LastDue { get; private set; }
 
     /// <summary>Coût quotidien : ajusté à la durée du jour (même coût par minute réelle) et à la difficulté.</summary>
-    public int DailyCost => Mathf.RoundToInt((MonsterUnit.TotalUpkeep() + PlacedObject.TotalUpkeep()) * DayScale * GameDifficulty.Upkeep);
+    public int DailyCost => Mathf.RoundToInt((MonsterUnit.TotalUpkeep() * ThemedRooms.MonsterUpkeepMult() + PlacedObject.TotalUpkeep()) * DayScale * GameDifficulty.Upkeep);
     public static float DayScale => GameManager.Instance != null ? GameManager.Instance.dayLengthSeconds / 90f : 1f;
 
     private void Awake()

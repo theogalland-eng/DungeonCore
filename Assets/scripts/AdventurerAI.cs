@@ -1053,6 +1053,8 @@ public class AdventurerAI : MonoBehaviour
             if (c == null || !c.IsFull || lootedChests.Contains(c)) continue;
             if (c.ReservedBy != null && c.ReservedBy != this) continue;
             float d = Vector2.Distance(rb.position, c.transform.position);
+            // un trésor mis en scène (salle du trésor) se repère de bien plus loin
+            if (ThemedRooms.InTreasury(c.transform.position)) d *= 0.55f;
             if (d < bestD && HasLineOfSight(c.transform)) { bestD = d; best = c; }
         }
         if (best == null) return false;

@@ -93,6 +93,19 @@ public static class TerrainArt
         return t;
     }
 
+    /// <summary>Sol d'une ambiance du donjon (Tools~/make_dungeon.py) : 9 phases raccordables. null si absent.</summary>
+    public static PhaseTile DungeonFloor(string themeId)
+    {
+        string path = $"Assets/Art/Generated/Dungeon/floor_{themeId}.png";
+        if (!File.Exists(path)) return null;
+        var sprites = SliceGrid(path, 9, 1);
+        var t = LoadOrCreate<PhaseTile>("floor9_" + themeId);
+        t.sprites = sprites;
+        t.frames = 1;
+        EditorUtility.SetDirty(t);
+        return t;
+    }
+
     public static Tile[] Cliff()
     {
         var sprites = SliceGrid($"{Dir}/cliff.png", 5, 1);

@@ -30,6 +30,8 @@ public class MonsterUnit : MonoBehaviour
     public bool summoned;
 
     public bool IsFinalForm => nextStage == null;
+    /// <summary>Coût réel de l'évolution (une forge des monstres le réduit).</summary>
+    public int EffectiveEvolveCost => Mathf.RoundToInt(evolveCost * ThemedRooms.EvolveCostMult(transform.position));
     public bool ReadyToEvolve => !IsFinalForm && xp >= xpToEvolve;
     public bool CanEvolveNow(out string reason)
     {
@@ -39,7 +41,7 @@ public class MonsterUnit : MonoBehaviour
         if (xp < xpToEvolve) { reason = $"Expérience {xp}/{xpToEvolve}"; return false; }
         int lvl = PlayerLevel.Instance != null ? PlayerLevel.Instance.currentLevel : 99;
         if (lvl < evolveLevelRequired) { reason = $"Niveau {evolveLevelRequired} du Noyau requis"; return false; }
-        if (ManaSystem.Instance != null && !ManaSystem.Instance.CanAfford(evolveCost)) { reason = $"{evolveCost} mana requis"; return false; }
+        if (ManaSystem.Instance != null && !ManaSystem.Instance.CanAfford(EffectiveEvolveCost)) { reason = $"{EffectiveEvolveCost} mana requis"; return false; }
         return true;
     }
 
@@ -107,7 +109,7 @@ public class MonsterUnit : MonoBehaviour
     public MonsterUnit Evolve()
     {
         if (!CanEvolveNow(out string reason)) { GameHUD.Toast(reason, GameHUD.WarningColor); return null; }
-        if (ManaSystem.Instance != null && !ManaSystem.Instance.TrySpend(evolveCost)) return null;
+        if (ManaSystem.Instance != null && !ManaSystem.Instance.TrySpend(EffectiveEvolveCost)) return null;
         if (GameManager.Instance != null) GameManager.Instance.statEvolutions++;
 
         var old = GetComponent<GobelinAI>();

@@ -715,6 +715,32 @@ public static class DevInspect3
         }
         return $"{n} monstres";
     }
+    public static string PuzzleTest()
+    {
+        DevInspect.SkipDialogues();
+        while (PlayerLevel.Instance.currentLevel < 6) PlayerLevel.Instance.AddXP(PlayerLevel.Instance.xpForNextLevel);
+        ManaSystem.Instance.Add(9000);
+        var cat = DungeonCatalog.Get();
+        var core = DungeonTerritory.Instance.CoreCell;
+        var m = typeof(DungeonBuilder).GetMethod("TryPlaceItem", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public);
+        var log = new System.Text.StringBuilder();
+        foreach (var (id, dx, dy) in new[] { ("lever_door", 0, -3), ("lever", 0, -5), ("pressure_plate", 0, -4), ("nest", -1, 1), ("nest", 1, 1), ("nest", 0, 1) })
+        {
+            var r = m.Invoke(DungeonBuilder.Instance, new object[] { cat.Find(id), core + new Vector3Int(dx, dy, 0) });
+            log.Append($"{id}={r} ");
+        }
+        return log.ToString();
+    }
+    public static string PuzzleState()
+    {
+        var sb = new System.Text.StringBuilder();
+        foreach (var d in DungeonDoor.All) if (d != null && d.sealSwitches > 0) sb.Append($"[porte scellée={d.Sealed} ouverte={d.IsOpen}] ");
+        foreach (var s in PuzzleSwitch.All) if (s != null) sb.Append($"[{s.kind} actif={s.IsActive}] ");
+        if (ThemedRooms.Instance != null) foreach (var r in ThemedRooms.Instance.rooms) sb.Append($"[salle {ThemedRooms.Names[(int)r.kind]}] ");
+        foreach (var a in AdventurerAI.All) if (a != null && a.Life != null) sb.Append($"<{a.State} {a.Life.Activity}> ");
+        sb.Append($" monstres={MonsterUnit.All.Count}");
+        return sb.ToString();
+    }
     public static string CardFirst()
     {
         foreach (var a in AdventurerAI.All)

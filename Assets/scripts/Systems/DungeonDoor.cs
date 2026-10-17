@@ -29,6 +29,11 @@ public class DungeonDoor : MonoBehaviour
     [Tooltip("Animation vue de profil (couloir est-ouest)")]
     public Sprite[] sideFrames;
     public string forceText = "Force la porte…";
+    [Tooltip("Porte scellée : 1 = porte à levier, 3 = porte runique (0 = porte ordinaire, qu'on force)")]
+    public int sealSwitches;
+    /// <summary>Scellée et pas encore déverrouillée par ses mécanismes.</summary>
+    public bool Sealed => sealSwitches > 0 && !PuzzleSwitch.Satisfied(this);
+    private float lockedUntil;
 
     public bool IsOpen { get; private set; }
 
@@ -91,9 +96,36 @@ public class DungeonDoor : MonoBehaviour
         t.localPosition = new Vector3(len * scale * 0.5f, 0f, 0f);
     }
 
+    /// <summary>Plaque de pression : la porte claque et reste bloquée quelques secondes.</summary>
+    public void Slam(float seconds)
+    {
+        lockedUntil = Time.time + seconds;
+        if (IsOpen) { Close(); Sfx.Play("door_break", transform.position, 0.8f); }
+    }
+
+    private float nextSealHint;
+
     private void FixedUpdate()
     {
         if (IsOpen) return;
+        if (sealSwitches > 0 && !Sealed) { Open(false); return; }   // les mécanismes ont joué
+        if (Time.time < lockedUntil || sealSwitches > 0)
+        {
+            // bloquée : impossible à forcer ; les intrus scellés dehors cherchent le mécanisme
+            foreach (var h in Physics2D.OverlapCircleAll(transform.position, radius, intruderLayer))
+            {
+                var ai = h.GetComponent<AdventurerAI>();
+                if (ai == null) continue;
+                if (sealSwitches > 0) ai.Life?.OnSealedDoor(this);
+                if (!ai.IsBusy) ai.Hold(0.3f);   // celui qui part chercher le mécanisme doit pouvoir s'éloigner
+                if (Time.time >= nextSealHint)
+                {
+                    nextSealHint = Time.time + 3f;
+                    FloatingText.Spawn(transform.position + Vector3.up * 0.7f, sealSwitches >= 3 ? "Scellée par des runes…" : sealSwitches > 0 ? "Il doit y avoir un levier…" : "Bloquée !", new Color(0.8f, 0.75f, 1f), 0.8f);
+                }
+            }
+            return;
+        }
         foreach (var h in Physics2D.OverlapCircleAll(transform.position, radius, intruderLayer))
         {
             var ai = h.GetComponent<AdventurerAI>();

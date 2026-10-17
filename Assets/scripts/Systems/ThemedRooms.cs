@@ -15,7 +15,7 @@ public class ThemedRooms : MonoBehaviour
 {
     public static ThemedRooms Instance { get; private set; }
 
-    public enum Kind { Crypt, Armory, Treasury, Sanctum, Fungal }
+    public enum Kind { Crypt, Armory, Treasury, Sanctum, Fungal, Hatchery, Pantry, Forge }
 
     public class Room
     {
@@ -37,12 +37,18 @@ public class ThemedRooms : MonoBehaviour
         { "crystal_blue", Kind.Sanctum }, { "crystal_red", Kind.Sanctum }, { "crystal_yellow", Kind.Sanctum }, { "crystal_green", Kind.Sanctum }, { "crystal_black", Kind.Sanctum },
         { "magma_vent", Kind.Sanctum }, { "demon_hand", Kind.Sanctum }, { "demon_altar", Kind.Sanctum },
         { "mushrooms_long", Kind.Fungal }, { "mushroom_slime", Kind.Fungal }, { "mushrooms_small", Kind.Fungal },
+        // salles à fonction
+        { "nest", Kind.Hatchery },
+        { "food_cache", Kind.Pantry }, { "supplies", Kind.Pantry }, { "barrel", Kind.Pantry },
+        { "anvil", Kind.Forge }, { "forge", Kind.Forge },
     };
-    public static readonly string[] Names = { "Crypte", "Armurerie", "Salle du trésor", "Sanctuaire", "Jardin fongique" };
-    public static readonly string[] Effects = { "morts-vivants +25 %", "monstres +15 % de dégâts", "prestige des trésors ×1,5", "régénération ×3", "slimes et champignons +30 %" };
+    public static readonly string[] Names = { "Crypte", "Armurerie", "Salle du trésor", "Sanctuaire", "Jardin fongique", "Couvoir", "Garde-manger", "Forge des monstres" };
+    public static readonly string[] Effects = { "morts-vivants +25 %", "monstres +15 % de dégâts", "prestige des trésors ×1,5, attire les cupides de loin", "régénération ×3", "slimes et champignons +30 %",
+        "un monstre naît chaque matin", "entretien des monstres -10 % (jusqu'à -30 %)", "monstres -15 % de dégâts subis, évolutions -25 %" };
     private static readonly Color[] Colors =
     {
         new Color(0.55f, 0.8f, 0.75f), new Color(0.9f, 0.55f, 0.4f), new Color(1f, 0.85f, 0.35f), new Color(0.75f, 0.5f, 1f), new Color(0.45f, 1f, 0.8f),
+        new Color(0.95f, 0.85f, 0.65f), new Color(0.95f, 0.65f, 0.4f), new Color(1f, 0.5f, 0.25f),
     };
 
     public readonly List<Room> rooms = new List<Room>();
@@ -55,9 +61,84 @@ public class ThemedRooms : MonoBehaviour
         Instance = this;
     }
 
+    private void Start()
+    {
+        if (GameManager.Instance != null) GameManager.Instance.OnNewDay += OnNewDay;
+    }
+
     private void OnDestroy()
     {
         if (Instance == this) Instance = null;
+        if (GameManager.Instance != null) GameManager.Instance.OnNewDay -= OnNewDay;
+    }
+
+    /// <summary>Couvoir : chaque matin, un monstre de la famille la plus présente dans la salle éclôt (gratuit).</summary>
+    private void OnNewDay(int day)
+    {
+        if (CrawlerMode.Active) return;
+        var cat = DungeonCatalog.Get();
+        if (cat == null || MonsterSpawner.Instance == null) return;
+        foreach (var r in rooms)
+        {
+            if (r.kind != Kind.Hatchery) continue;
+            if (PlayerLevel.Instance != null && MonsterUnit.All.Count >= PlayerLevel.Instance.GetMaxMonsters())
+            {
+                GameHUD.Toast("Couvoir : plus de place pour une nouvelle créature", GameHUD.WarningColor);
+                return;
+            }
+            // famille dominante autour du nid (rat par défaut)
+            var count = new Dictionary<string, int>();
+            foreach (var m in MonsterUnit.All)
+                if (m != null && !m.summoned && Vector2.Distance(m.transform.position, r.center) <= r.radius + 3f)
+                    count[m.familyId] = (count.TryGetValue(m.familyId, out int n) ? n : 0) + 1;
+            string fam = "rat"; int best = 0;
+            foreach (var kv in count) if (kv.Value > best && !string.IsNullOrEmpty(kv.Key)) { best = kv.Value; fam = kv.Key; }
+            GameObject prefab = null;
+            foreach (var it in cat.items)
+            {
+                if (it.kind != ItemKind.Monster || it.prefab == null) continue;
+                var u = it.prefab.GetComponent<MonsterUnit>();
+                if (u != null && u.familyId == fam && u.stage <= 1) { prefab = it.prefab; break; }
+            }
+            if (prefab == null) continue;
+            var g = MonsterSpawner.Instance.SpawnFree(prefab, r.center, r.center, prefab.GetComponent<GobelinAI>()?.gobelinName ?? prefab.name);
+            if (g != null)
+            {
+                Fx.Play("shine", r.center, 1.2f);
+                GameHUD.Toast($"Couvoir : une nouvelle créature est née ({g.gobelinName})", GameHUD.GoldColor);
+            }
+        }
+    }
+
+    /// <summary>Garde-manger : chaque salle réduit l'entretien des monstres de 10 % (jusqu'à -30 %).</summary>
+    public static float MonsterUpkeepMult()
+    {
+        var t = Instance;
+        if (t == null) return 1f;
+        int n = 0;
+        foreach (var r in t.rooms) if (r.kind == Kind.Pantry) n++;
+        return 1f - Mathf.Min(3, n) * 0.1f;
+    }
+
+    /// <summary>Forge : un monstre dans la salle encaisse mieux.</summary>
+    public static float DamageTakenMult(Vector2 p)
+    {
+        var t = Instance;
+        return t != null && t.RoomAt(p, Kind.Forge) != null ? 0.85f : 1f;
+    }
+
+    /// <summary>Forge : évoluer y coûte 25 % de mana en moins.</summary>
+    public static float EvolveCostMult(Vector2 p)
+    {
+        var t = Instance;
+        return t != null && t.RoomAt(p, Kind.Forge) != null ? 0.75f : 1f;
+    }
+
+    /// <summary>Le coffre est dans une salle du trésor : les cupides le repèrent de plus loin.</summary>
+    public static bool InTreasury(Vector2 p)
+    {
+        var t = Instance;
+        return t != null && t.RoomAt(p, Kind.Treasury) != null;
     }
 
     private void Update()
@@ -130,7 +211,7 @@ public class ThemedRooms : MonoBehaviour
                 if (!CrawlerMode.Active) GameHUD.Toast($"Salle formée : {Names[(int)r.kind]} ({Effects[(int)r.kind]})", GameHUD.GoldColor);
                 StoryManager.Instance?.PlayOnce("first_room",
                     new StoryManager.Line(StoryManager.SelfName, "Ces objets, réunis, donnent à ce lieu une âme. Mes créatures s'y sentent chez elles."),
-                    new StoryManager.Line(StoryManager.SystemName, "Trois décors d'un même thème rapprochés forment une salle : crypte, armurerie, salle du trésor ou sanctuaire. Chacune renforce les monstres qui s'y tiennent."));
+                    new StoryManager.Line(StoryManager.SystemName, "Trois objets d'un même thème rapprochés forment une salle : crypte, armurerie, salle du trésor, sanctuaire, jardin fongique — ou salles à fonction : couvoir (nids), garde-manger (vivres), forge (enclumes, forges)."));
             }
         }
     }

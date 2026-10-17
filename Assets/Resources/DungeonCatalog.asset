@@ -451,6 +451,79 @@ MonoBehaviour:
     unlockLevel: 1
     prestige: 0.5
     upkeep: 2
+  - id: lever_door
+    displayName: "Porte \xE0 levier"
+    description: "\xC9nigme : elle ne se force pas. Un intrus doit trouver et baisser
+      un levier (\xE0 12 cases au plus) : le groupe se disperse, vos monstres en
+      profitent."
+    category: 2
+    kind: 3
+    tool: 0
+    icon: {fileID: 21300000, guid: e18117ae5c7ecc34db26f52adeb50e72, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 8901184851472059266, guid: f8c2fd5c89a525942a3bef38eeaa596d, type: 3}
+    cost: 45
+    unlockLevel: 2
+    prestige: 1
+    upkeep: 2
+  - id: lever
+    displayName: Levier
+    description: "Ouvre les portes \xE0 levier voisines (12 cases) pendant 40 s.
+      Cachez-le au fond d'une impasse gard\xE9e."
+    category: 2
+    kind: 3
+    tool: 0
+    icon: {fileID: 21300000, guid: d452c3711c8bf1c4dafd39e6efd5a7a8, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 1438397326963239364, guid: a7075b531ae3f8b4b9a7fb6165611713, type: 3}
+    cost: 20
+    unlockLevel: 2
+    prestige: 0.3
+    upkeep: 0
+  - id: rune_door
+    displayName: Porte runique
+    description: "\xC9nigme : trois pierres runiques (\xE0 12 cases au plus) doivent
+      briller en m\xEAme temps pour l'ouvrir. Les intrus se s\xE9parent pour les
+      \xE9veiller."
+    category: 2
+    kind: 3
+    tool: 0
+    icon: {fileID: 21300000, guid: e18117ae5c7ecc34db26f52adeb50e72, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 6803601806467344387, guid: 285b687edd8163345ab67986282ba3bd, type: 3}
+    cost: 90
+    unlockLevel: 5
+    prestige: 2
+    upkeep: 4
+  - id: rune
+    displayName: Pierre runique
+    description: "Brille 25 s quand on la touche. Trois en m\xEAme temps ouvrent
+      une porte runique."
+    category: 2
+    kind: 3
+    tool: 0
+    icon: {fileID: 21300000, guid: bb02a885b752508448260f547cc1e391, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 1189765229744923858, guid: a64e1e36175f4204085adabb4094ab7b, type: 3}
+    cost: 35
+    unlockLevel: 5
+    prestige: 0.8
+    upkeep: 0
+  - id: pressure_plate
+    displayName: Plaque de pression
+    description: "Fl\xE9chettes (9 d\xE9g\xE2ts), les portes voisines claquent et
+      restent bloqu\xE9es 8 s, vos monstres proches accourent. Se r\xE9arme en 10
+      s."
+    category: 2
+    kind: 2
+    tool: 0
+    icon: {fileID: 21300000, guid: 6d66d34473cc27f45983c4f99ce03fd3, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 2729196875889433787, guid: 1e189f13e30de9c46a78d1f75240d7ad, type: 3}
+    cost: 30
+    unlockLevel: 2
+    prestige: 0.3
+    upkeep: 0
   - id: door_iron
     displayName: Herse de fer
     description: 'Retient chaque intrus 5 s le temps de la soulever : parfait devant
@@ -533,6 +606,48 @@ MonoBehaviour:
     cost: 8
     unlockLevel: 1
     prestige: 0.5
+    upkeep: 0
+  - id: nest
+    displayName: "Nid de couv\xE9e"
+    description: "Couvoir : trois nids rapproch\xE9s font na\xEEtre chaque matin
+      un monstre (de la famille la plus pr\xE9sente dans la salle)."
+    category: 3
+    kind: 3
+    tool: 0
+    icon: {fileID: 21300000, guid: ab726de179a40b24ba7278b6c14b1166, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 304502863256782112, guid: 33e4004008158074d9c8bd2364595218, type: 3}
+    cost: 60
+    unlockLevel: 3
+    prestige: 0.5
+    upkeep: 0
+  - id: anvil
+    displayName: Enclume
+    description: "Forge des monstres (3 enclumes ou forges) : vos monstres y encaissent
+      15 % de d\xE9g\xE2ts en moins et y \xE9voluent pour 25 % de mana en moins."
+    category: 3
+    kind: 3
+    tool: 0
+    icon: {fileID: 21300000, guid: 13c8e65c379bba441bebab6360e020b8, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 5504675003429876542, guid: 6ffa4ed096d6c2145af64072d2e2b651, type: 3}
+    cost: 45
+    unlockLevel: 4
+    prestige: 1
+    upkeep: 0
+  - id: forge
+    displayName: Forge
+    description: "Forge des monstres (3 enclumes ou forges) : protection et \xE9volutions
+      moins ch\xE8res. Elle \xE9claire la salle."
+    category: 3
+    kind: 3
+    tool: 0
+    icon: {fileID: 21300000, guid: 6b30f444dcd45cd40881d7c07f15297d, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 6093185159410479061, guid: 39667999f3433e641b366b5e72a34bc2, type: 3}
+    cost: 70
+    unlockLevel: 4
+    prestige: 1.5
     upkeep: 0
   - id: food_cache
     displayName: Garde-manger
@@ -1025,9 +1140,9 @@ MonoBehaviour:
   - id: volcanic
     displayName: Roche volcanique
     description: "La roche noire de l'\xEEle."
-    stoneTint: {r: 0.36, g: 0.33, b: 0.33, a: 1}
+    stoneTint: {r: 1, g: 1, b: 1, a: 1}
     floorTint: {r: 1, g: 1, b: 1, a: 1}
-    floorTile: {fileID: 11400000, guid: 19004bb18231fec40a776faa2f4da610, type: 2}
+    floorTile: {fileID: 11400000, guid: 3c503aad5668ed043a2c3f4516dc338a, type: 2}
     wallTile: {fileID: 11400000, guid: da9e9b05b08fed04d9216d0408d0ed12, type: 2}
     intruderDamagePerSecond: 0
     intruderSpeedMult: 1
@@ -1041,9 +1156,9 @@ MonoBehaviour:
     displayName: Fournaise
     description: "Les intrus br\xFBlent lentement (1,5 PV/s). Vos monstres frappent
       25 % plus fort."
-    stoneTint: {r: 0.72, g: 0.36, b: 0.28, a: 1}
+    stoneTint: {r: 1, g: 1, b: 1, a: 1}
     floorTint: {r: 1, g: 1, b: 1, a: 1}
-    floorTile: {fileID: 11400000, guid: c90319111012d6b45bdc31884f460d83, type: 2}
+    floorTile: {fileID: 11400000, guid: 164e04bc638a1e0448bcdc08c5e6cafa, type: 2}
     wallTile: {fileID: 11400000, guid: 558843b452290d54dbbc2c6c8e0646d7, type: 2}
     intruderDamagePerSecond: 1.5
     intruderSpeedMult: 1
@@ -1056,9 +1171,9 @@ MonoBehaviour:
   - id: aqua
     displayName: Sanctuaire englouti
     description: "Sol inond\xE9 : les intrus avancent 35 % moins vite."
-    stoneTint: {r: 0.38, g: 0.52, b: 0.82, a: 1}
+    stoneTint: {r: 1, g: 1, b: 1, a: 1}
     floorTint: {r: 1, g: 1, b: 1, a: 1}
-    floorTile: {fileID: 11400000, guid: f06da393c4a26684abc478f313f403f5, type: 2}
+    floorTile: {fileID: 11400000, guid: 53fa4e5aa34523e4eb38d6751449d4d7, type: 2}
     wallTile: {fileID: 11400000, guid: 01fae41444bb31c4ca6347efae174d54, type: 2}
     intruderDamagePerSecond: 0
     intruderSpeedMult: 0.65
@@ -1071,9 +1186,9 @@ MonoBehaviour:
   - id: ice
     displayName: "Caverne gel\xE9e"
     description: 'Le froid engourdit : les intrus attaquent 50 % moins souvent.'
-    stoneTint: {r: 0.72, g: 0.86, b: 1, a: 1}
+    stoneTint: {r: 1, g: 1, b: 1, a: 1}
     floorTint: {r: 1, g: 1, b: 1, a: 1}
-    floorTile: {fileID: 11400000, guid: d36d6aee42083d44db652cda2eeed990, type: 2}
+    floorTile: {fileID: 11400000, guid: 475211df0f045ce498fee963986ac70a, type: 2}
     wallTile: {fileID: 11400000, guid: 776837ad2196d924bb67e1356171a0f1, type: 2}
     intruderDamagePerSecond: 0
     intruderSpeedMult: 1
@@ -1086,9 +1201,9 @@ MonoBehaviour:
   - id: fungal
     displayName: Jardin fongique
     description: Spores toxiques (0,8 PV/s) et drain de mana +50 %.
-    stoneTint: {r: 0.5, g: 0.62, b: 0.45, a: 1}
+    stoneTint: {r: 1, g: 1, b: 1, a: 1}
     floorTint: {r: 1, g: 1, b: 1, a: 1}
-    floorTile: {fileID: 11400000, guid: 6da92be59ccf50c4a9edded9ff9a6988, type: 2}
+    floorTile: {fileID: 11400000, guid: 710440e499952304aafde00a29c24766, type: 2}
     wallTile: {fileID: 11400000, guid: 56bcf724aefa8a4429aa2b0c22b215ec, type: 2}
     intruderDamagePerSecond: 0.8
     intruderSpeedMult: 1
@@ -1101,9 +1216,9 @@ MonoBehaviour:
   - id: crystal
     displayName: Temple de cristal
     description: "Le cristal amplifie l'absorption : drain de mana des intrus \xD72,2."
-    stoneTint: {r: 0.7, g: 0.56, b: 0.95, a: 1}
+    stoneTint: {r: 1, g: 1, b: 1, a: 1}
     floorTint: {r: 1, g: 1, b: 1, a: 1}
-    floorTile: {fileID: 11400000, guid: afb7a9bc799b05247ad074af21b491dc, type: 2}
+    floorTile: {fileID: 11400000, guid: fd29e64c0cf1e634aa98923c55b118f0, type: 2}
     wallTile: {fileID: 11400000, guid: 20b04499db7ceda45a92d4c9edb9004a, type: 2}
     intruderDamagePerSecond: 0
     intruderSpeedMult: 1
@@ -1117,9 +1232,9 @@ MonoBehaviour:
     displayName: "Crypte hant\xE9e"
     description: 'Ossements et murmures : les intrus ont 25 % de chances en plus
       de fuir. Drain de mana +30 %.'
-    stoneTint: {r: 0.6, g: 0.7, b: 0.62, a: 1}
+    stoneTint: {r: 1, g: 1, b: 1, a: 1}
     floorTint: {r: 1, g: 1, b: 1, a: 1}
-    floorTile: {fileID: 11400000, guid: 10958656cef417e4baa1155b9f7f561e, type: 2}
+    floorTile: {fileID: 11400000, guid: 99d7a24dfe5435e4aad6ac7b58851087, type: 2}
     wallTile: {fileID: 11400000, guid: 6818426ec4e97db4a95627c01258c8bb, type: 2}
     intruderDamagePerSecond: 0
     intruderSpeedMult: 1
@@ -1133,9 +1248,9 @@ MonoBehaviour:
     displayName: Forteresse
     description: "Pierre taill\xE9e : vos monstres frappent 15 % plus fort, les intrus
       attaquent 20 % moins souvent."
-    stoneTint: {r: 0.55, g: 0.56, b: 0.68, a: 1}
+    stoneTint: {r: 1, g: 1, b: 1, a: 1}
     floorTint: {r: 1, g: 1, b: 1, a: 1}
-    floorTile: {fileID: 11400000, guid: 04ec26b4a814cc643ac15793ed7d29cf, type: 2}
+    floorTile: {fileID: 11400000, guid: 206fecffa54a6714681b7b36ea59e756, type: 2}
     wallTile: {fileID: 11400000, guid: 3b508192d7149ea40a5aac4bae885f15, type: 2}
     intruderDamagePerSecond: 0
     intruderSpeedMult: 1
@@ -1149,9 +1264,9 @@ MonoBehaviour:
     displayName: Catacombes
     description: "Les morts veillent : vos morts-vivants (squelettes, zombies, liches,
       fant\xF4mes, vampires) frappent 30 % plus fort. Drain de mana +20 %."
-    stoneTint: {r: 0.55, g: 0.42, b: 0.36, a: 1}
-    floorTint: {r: 0.8, g: 0.7, b: 0.62, a: 1}
-    floorTile: {fileID: 11400000, guid: 04ec26b4a814cc643ac15793ed7d29cf, type: 2}
+    stoneTint: {r: 1, g: 1, b: 1, a: 1}
+    floorTint: {r: 1, g: 1, b: 1, a: 1}
+    floorTile: {fileID: 11400000, guid: 94f7f0c6ed74b5f428bcbaf0d61fd342, type: 2}
     wallTile: {fileID: 11400000, guid: 296e01580dbe9e24a91308dd88baf1cd, type: 2}
     intruderDamagePerSecond: 0
     intruderSpeedMult: 1

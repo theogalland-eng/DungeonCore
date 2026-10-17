@@ -63,7 +63,8 @@ Prérequis : Python 3 avec **Pillow**, **NumPy** et **SciPy**. À lancer depuis 
 | `make_water.py` | Mer animée raccordable. |
 | `make_terrain.py` | **Terrain de l'île** : tuiles auto-raccordées « blob » (47 cas × 9 phases) pour le sable noir, la roche, l'herbe, la jungle, la lave et les sentiers (foulé, terre, pavés), eau animée, front de falaise et petits décors (roseaux, nénuphars, fleurs, récifs, faille de la grotte). |
 | `make_ui_icons.py` | Icônes pixel de l'interface, dessinées en « ASCII art ». |
-| `make_props.py` | Objets dessinés pour le projet (garde-manger). |
+| `make_props.py` | Objets dessinés pour le projet : garde-manger, nid de couvée, enclume, forge, levier, pierre runique, plaque de pression, sceau des portes. |
+| `make_dungeon.py` | **Murs et sols du donjon** pour les 9 ambiances d'étage (atlas de murs 128 variantes au format `AutoWallTile`, sols en 9 phases). Remplace `make_walls.py`, qui recomposait les murs des packs. |
 | `make_8dir.py` | **Personnages en 8 directions** : diagonales recomposées à partir des calques des packs (corps + tête de deux directions voisines), roulade, gestes. Épéistes, rôles et 45 monstres. |
 | `make_roles.py` | Archer, mage et soigneuse sur les **9 paliers d'armure**, **recomposés à partir des calques des épéistes** (étoffes recolorées, arc et bâton dessinés). |
 | `make_palettes.py` | Couleurs de cheveux, peau et tenue de chaque apparence du héros (personnalisation). |

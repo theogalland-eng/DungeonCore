@@ -137,3 +137,11 @@ Mise en ligne du projet sur GitHub (ce dépôt), avec cette documentation.
 - 🎭 **Caractères** : ivrogne, dépressif, peureux, chanceux, bagarreur, glouton, courageux, cupide. Ils se **révèlent** en observant l'intrus. **Bagarres** (alcool, partage du butin), parfois **à mort**.
 - ⚔️ **Combat de groupe** : le guerrier ouvre la marche, tireurs et soigneuse suivent derrière, **focalisation** sur la cible du guerrier, le guerrier **s'interpose** et provoque, les blessés **se replient** derrière lui, l'éclaireur **repère les pièges** pour toute l'expédition. Mêmes règles pour les **compagnons** du héros.
 - 👹 **Monstres** : tireurs qui gardent leurs distances, **meutes** qui encerclent, **mur de boucliers** (orcs, golems), **fuite** vers les alliés à l'agonie, **embuscades** des monstres postés.
+
+### Le donjon refait
+
+**Retour clé :** *« donjon refait + salles à fonction, décor qui donne des bonus, pièces à énigme »*.
+
+- 🎨 **Murs et sols dessinés pour le projet** (`make_dungeon.py`) pour les **9 ambiances** d'étage : roche volcanique (orgues basaltiques), fournaise (fissures de braise), sanctuaire englouti (briques ruisselantes), caverne gelée, jardin fongique, temple de cristal, crypte, forteresse, catacombes (niches à crânes). La masse rocheuse reste sombre et calme ; les sols ont 9 « phases » raccordables. Plus aucune tuile de pack dans le donjon.
+- 🏛️ **Salles à fonction** (trois objets rapprochés) : **couvoir** (nids : un monstre naît chaque matin, de la famille la plus présente), **garde-manger** (vivres : entretien des monstres -10 % par salle, jusqu'à -30 %), **forge des monstres** (enclumes, forges : -15 % de dégâts subis, évolutions -25 %). La **salle du trésor** attire maintenant les cupides de bien plus loin.
+- 🧩 **Énigmes** : **porte à levier** (un intrus doit trouver et baisser le levier), **porte runique** (trois pierres runiques doivent briller ensemble : le groupe se disperse), **plaque de pression** (fléchettes, portes qui claquent et coupent le groupe en deux, monstres alertés).

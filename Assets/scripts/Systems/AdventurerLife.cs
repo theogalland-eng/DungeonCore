@@ -57,7 +57,8 @@ public class AdventurerLife : MonoBehaviour
     {
         Task.Eat => "mange une ration", Task.Drink => "boit un coup", Task.Hunt => "chasse",
         Task.Cook => "fait griller du gibier", Task.Brawl => brawlToDeath ? "se bat à mort !" : "se bagarre",
-        Task.Bait => "se goinfre au garde-manger", Task.Sulk => "broie du noir", _ => null,
+        Task.Bait => "se goinfre au garde-manger", Task.Sulk => "broie du noir",
+        Task.Puzzle => "cherche le mécanisme de la porte", _ => null,
     };
     public bool Hungry => hunger >= 70f;
     public bool Starving => hunger >= 92f;
@@ -65,10 +66,12 @@ public class AdventurerLife : MonoBehaviour
     private AdventurerAI ai;
     private AdventurerCombat combat;
 
-    private enum Task { None, Eat, Drink, Hunt, Cook, Brawl, Bait, Sulk }
+    private enum Task { None, Eat, Drink, Hunt, Cook, Brawl, Bait, Sulk, Puzzle }
     private Task task;
     private float taskTimer, taskEnd, nextThink, nextStatTick, insideTime;
     private WildAnimal prey;
+    private PuzzleSwitch puzzle;
+    private float nextPuzzle, puzzleArrive = -1f;
     private FoodBait bait;
     private AdventurerLife opponent;
     private bool brawlToDeath;
@@ -308,6 +311,8 @@ public class AdventurerLife : MonoBehaviour
     private void Finish()
     {
         if (prey != null && prey.reservedBy == this) prey.reservedBy = null;
+        if (puzzle != null && puzzle.reservedBy == this) puzzle.reservedBy = null;
+        puzzle = null;
         if (bait != null) bait.Release(this);
         if (campfire != null) Destroy(campfire);
         prey = null; bait = null; opponent = null; campfire = null;
@@ -358,6 +363,7 @@ public class AdventurerLife : MonoBehaviour
             case Task.Hunt: return TickHunt();
             case Task.Cook: return TickCook();
             case Task.Brawl: return TickBrawl();
+            case Task.Puzzle: return TickPuzzle();
         }
         Finish();
         return false;
@@ -448,6 +454,43 @@ public class AdventurerLife : MonoBehaviour
         go.AddComponent<LavaGlow>();
         Fx.Play("smoke_rise", at, 1f);
         return go;
+    }
+
+    // ─────────────────────────────────────────────
+    // ÉNIGMES : porte scellée
+    // ─────────────────────────────────────────────
+
+    /// <summary>Bloqué devant une porte scellée : il part actionner un levier ou une rune (chacun le sien).</summary>
+    public void OnSealedDoor(DungeonDoor door)
+    {
+        if (Time.time < nextPuzzle || task != Task.None || !ai.CanBeBusy) return;
+        nextPuzzle = Time.time + 2f;
+        var s = PuzzleSwitch.NearestIdle(door, transform.position, this);
+        if (s == null) return;   // tout est déjà actionné : on attend que la porte s'ouvre
+        if (!Begin(Task.Puzzle, 45f)) return;
+        puzzle = s;
+        puzzleArrive = -1f;
+        s.reservedBy = this;
+        ai.LifeGoTo(s.transform.position + Vector3.down * 0.6f);
+        ai.Speak(door.sealSwitches >= 3 ? "Ces runes... il faut les éveiller." : "Un mécanisme ! Je vais chercher le levier.", new Color(0.8f, 0.75f, 1f), true);
+    }
+
+    private bool TickPuzzle()
+    {
+        if (puzzle == null) { Finish(); return false; }
+        if (puzzle.IsActive) { Finish(); return false; }
+        if (Vector2.Distance(transform.position, puzzle.transform.position) > 0.9f) { ai.LifeMove(1.05f); return true; }
+        ai.LifeStop();
+        ai.LifeFace(puzzle.transform.position);
+        ai.LifeGesture(0.1f);
+        if (puzzleArrive < 0f) puzzleArrive = taskTimer;
+        if (taskTimer - puzzleArrive > 1.8f)
+        {
+            puzzle.Activate();
+            Finish();
+            return false;
+        }
+        return true;
     }
 
     // ─────────────────────────────────────────────

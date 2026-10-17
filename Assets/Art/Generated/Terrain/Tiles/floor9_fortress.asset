@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01c0834e0e0b7644baa83cc35675cc28, type: 3}
+  m_Name: floor9_fortress
+  m_EditorClassIdentifier: Assembly-CSharp::PhaseTile
+  sprites:
+  - {fileID: -3881047136756674861, guid: aaca43e1d78ac284799d4a0779da2daf, type: 3}
+  - {fileID: -6289224359043229233, guid: aaca43e1d78ac284799d4a0779da2daf, type: 3}
+  - {fileID: -8355814067702979890, guid: aaca43e1d78ac284799d4a0779da2daf, type: 3}
+  - {fileID: 1283213132099137612, guid: aaca43e1d78ac284799d4a0779da2daf, type: 3}
+  - {fileID: -6309080306573351092, guid: aaca43e1d78ac284799d4a0779da2daf, type: 3}
+  - {fileID: 4808939386987559942, guid: aaca43e1d78ac284799d4a0779da2daf, type: 3}
+  - {fileID: 6507526918840004778, guid: aaca43e1d78ac284799d4a0779da2daf, type: 3}
+  - {fileID: -682831359978784498, guid: aaca43e1d78ac284799d4a0779da2daf, type: 3}
+  - {fileID: -5085329102490451451, guid: aaca43e1d78ac284799d4a0779da2daf, type: 3}
+  frames: 1
+  fps: 3
