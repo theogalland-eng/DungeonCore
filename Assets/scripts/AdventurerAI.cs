@@ -973,6 +973,8 @@ public class AdventurerAI : MonoBehaviour
     public void HandleDeath()
     {
         AdventurerLife.OnDied(this);
+        // mort dans le donjon : le corps reste... et nourrit vos monstres
+        if (IsInsideDungeon) Corpse.Spawn(rb.position, 3);
         if (isDead || departed) return;
         isDead = true;
 

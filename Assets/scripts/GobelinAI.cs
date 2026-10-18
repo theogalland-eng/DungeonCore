@@ -127,6 +127,9 @@ public class GobelinAI : MonoBehaviour, IDamageable
     private void Start()
     {
         if (GetComponent<MonsterMind>() == null && MonsterMind.IsIntelligent(GetComponent<MonsterUnit>())) gameObject.AddComponent<MonsterMind>();
+        // la vie du monstre (besoins, humeur, liens) — pas pour les invocations ni dans le mode Aventurier
+        var mu = GetComponent<MonsterUnit>();
+        if (!CrawlerMode.Active && mu != null && !mu.summoned) life = GetComponent<MonsterLife>() ?? gameObject.AddComponent<MonsterLife>();
         if (dungeonCore == null)
         {
             var core = FindFirstObjectByType<DungeonCore>();
@@ -346,6 +349,14 @@ public class GobelinAI : MonoBehaviour, IDamageable
         outOfCombatTimer += Time.fixedDeltaTime;
         if (IsInsideDungeon() && currentHealth < maxHealth && !isOnMission && outOfCombatTimer > 4f)
             currentHealth = Mathf.Min(maxHealth, currentHealth + healingPerSecond * ThemedRooms.RegenMult(rb.position, Family) * Time.fixedDeltaTime);
+
+        // vie du monstre : manger, dormir, se quereller, déserter... quand il n'a ni ordre ni combat
+        MonsterSociety.Tick();
+        if (life != null)
+        {
+            if (!IdleForLife) life.Interrupt();
+            else if (life.Tick()) { CheckStuck(); UpdateAnimator(); return; }
+        }
 
         if (isOnMission) UpdateMission();
         else UpdateBehavior();
@@ -1052,7 +1063,8 @@ public class GobelinAI : MonoBehaviour, IDamageable
             FollowPath(chaseSpeed * 1.15f);
             return true;
         }
-        if (fledOnce || IsPossessed || maxHealth <= 0f || currentHealth / maxHealth > 0.25f || Fearless.Contains(Family) || IsGuardianUnit) return false;
+        float fleeAt = life != null ? life.FleeThreshold : 0.25f;
+        if (fledOnce || IsPossessed || maxHealth <= 0f || fleeAt <= 0f || currentHealth / maxHealth > fleeAt || Fearless.Contains(Family) || IsGuardianUnit) return false;
         GobelinAI best = null;
         float bd = 12f;
         foreach (var g in All)
@@ -1153,6 +1165,35 @@ public class GobelinAI : MonoBehaviour, IDamageable
         if (spriteRenderer != null) { var c = spriteRenderer.color; c.a = baseColor.a; spriteRenderer.color = c; }
     }
 
+    // ── API pour la vie du monstre (MonsterLife) ──
+    private MonsterLife life;
+    public MonsterLife Life => life;
+    public bool InCombat => isOnMission && currentMission == MissionType.ChaseEnemy;
+    /// <summary>Libre de vivre sa vie : ni mission, ni ordre de déplacement, ni possession, ni raid.</summary>
+    public bool IdleForLife => !isDead && !isOnMission && !IsPossessed && raid == null && currentBehavior != GoblinBehavior.MoveTo && tacticPhase == 0;
+    public void LifeGoTo(Vector2 p) => ForceRecalculatePath(p);
+    public void LifeMove(float mult = 1f) => FollowPath(patrolSpeed * mult);
+    public void LifeStop() => StopMoving();
+    public void LifeFace(Vector2 p) => FaceTowards(p);
+    public void LifeGesture(float t) => attackAnimTimer = t;
+    /// <summary>Un monstre posté (« Tenir ») qui s'est absenté (repas, querelle) regagne son poste.</summary>
+    public void ReturnToPost()
+    {
+        if (currentBehavior != GoblinBehavior.Stay || Vector2.Distance(rb.position, savedAnchorPosition) < 1f) return;
+        MoveToPosition(savedAnchorPosition);
+        returnToStay = true;
+    }
+    /// <summary>Un intrus en vue (rayon réduit pour un monstre endormi).</summary>
+    public Transform LifeDetect(float rangeMult)
+    {
+        foreach (var h in Physics2D.OverlapCircleAll(rb.position, detectionRange * rangeMult, adventurerLayer))
+        {
+            var d = h.GetComponent<IDamageable>();
+            if (d != null && d.IsAlive() && HasLineOfSight(h.transform)) return h.transform;
+        }
+        return null;
+    }
+
     public bool CanAttack() => Time.time - lastAttackTime >= attackCooldown;
 
     public void Attack()
@@ -1163,7 +1204,7 @@ public class GobelinAI : MonoBehaviour, IDamageable
         if (damageable != null && damageable.IsAlive())
         {
             attackAnimTimer = 0.4f;
-            float ambushMult = ambushing ? 1.5f : 1f;
+            float ambushMult = (ambushing ? 1.5f : 1f) * (life != null ? life.DamageMult : 1f);
             if (ambushing) { ambushing = false; RevealAmbush(); FloatingText.Spawn(transform.position + Vector3.up * 0.7f, "Embuscade !", new Color(1f, 0.55f, 0.35f), 1f); }
             float dmg = ambushMult * attackDamage * ThemeDamageMult() * (IslandEvents.Instance != null ? IslandEvents.Instance.MonsterDamageMult : 1f)
                         * ThemedRooms.DamageMult(rb.position, Family);
@@ -1184,6 +1225,7 @@ public class GobelinAI : MonoBehaviour, IDamageable
         if (traits == null) traits = GetComponent<MonsterTraits>();
         if (unit == null) unit = GetComponent<MonsterUnit>();
         if (traits != null) traits.OnHit(target, dmg);
+        if (!target.IsAlive()) life?.OnKill();
         if (unit != null && !target.IsAlive())
         {
             var adv = (target as Component) != null ? ((Component)target).GetComponent<AdventurerAI>() : null;
@@ -1309,6 +1351,7 @@ public class GobelinAI : MonoBehaviour, IDamageable
         isDead = true;
         Sfx.Play("death_monster", transform.position, 0.9f);
         GetComponent<MonsterMind>()?.OnDied();
+        if (life != null) { MonsterSociety.OnDied(life); life.Interrupt(); }
         if (CrawlerMode.Active) CrawlerMode.Instance.OnMonsterKilled(this);
         if (anchorPoint != null)
         {
@@ -1345,6 +1388,7 @@ public class GobelinAI : MonoBehaviour, IDamageable
         float moveSpeed = movement.sqrMagnitude;
         Vector2 facing = moveSpeed > 0.01f ? movement : lastMoveDirection;
         if (hasSpeed) animator.SetFloat("Speed", moveSpeed);
+        animator.speed = life != null && life.Sleeping ? 0.25f : 1f;
         if (hasMoveX) animator.SetFloat("MoveX", facing.x);
         if (hasMoveY) animator.SetFloat("MoveY", facing.y);
         if (hasAttack) animator.SetBool("IsAttacking", attackAnimTimer > 0f);

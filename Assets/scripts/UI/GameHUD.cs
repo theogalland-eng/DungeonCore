@@ -711,7 +711,8 @@ public class GameHUD : MonoBehaviour
             string stage = unit != null && !unit.summoned ? $"  <size=80%><color=#FFD966>{(unit.stage == 1 ? "I" : unit.stage == 2 ? "II" : "III")}</color></size>" : "";
             string xp = unit != null && !unit.IsFinalForm && !unit.summoned ? $"\n<size=78%><color=#B9B3CC>PV {Mathf.CeilToInt(g.currentHealth)}/{Mathf.RoundToInt(g.maxHealth)} · XP {unit.xp}/{unit.xpToEvolve} · entretien {Mathf.RoundToInt(unit.upkeepPerDay * UpkeepSystem.DayScale * GameDifficulty.Upkeep)}/j</color></size>"
                       : $"\n<size=78%><color=#B9B3CC>PV {Mathf.CeilToInt(g.currentHealth)}/{Mathf.RoundToInt(g.maxHealth)}</color></size>";
-            selectionText.text = g.gobelinName + stage + xp;
+            string lifeText = g.Life != null ? $"\n<size=74%>{g.Life.Describe()}</size>" : "";
+            selectionText.text = g.gobelinName + stage + xp + lifeText;
         }
         else if (n > 0) selectionText.text = $"{n} monstres sélectionnés";
         else if (anchor) selectionText.text = "Ancre sélectionnée :\n<size=85%>touchez le sol pour la déplacer</size>";

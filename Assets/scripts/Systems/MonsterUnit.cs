@@ -136,7 +136,13 @@ public class MonsterUnit : MonoBehaviour
     public static int TotalUpkeep()
     {
         int t = 0;
-        foreach (var m in All) if (m != null && !m.summoned) t += m.upkeepPerDay;
+        // nourri de chair aujourd'hui : moitié moins d'entretien
+        foreach (var m in All)
+            if (m != null && !m.summoned)
+            {
+                var life = m.GetComponent<MonsterLife>();
+                t += life != null && life.FedToday ? Mathf.CeilToInt(m.upkeepPerDay * 0.5f) : m.upkeepPerDay;
+            }
         return t;
     }
 }

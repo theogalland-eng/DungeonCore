@@ -104,6 +104,9 @@ public class MonsterSave
     public int behavior;
     public bool guardian;
     public string guardianName;
+    // vie du monstre (traits = -1 : ancienne sauvegarde, tirés au hasard)
+    public int traits = -1;
+    public float hunger = 20f, energy = 90f, mood = 60f;
 }
 
 [Serializable]

@@ -145,3 +145,13 @@ Mise en ligne du projet sur GitHub (ce dépôt), avec cette documentation.
 - 🎨 **Murs et sols dessinés pour le projet** (`make_dungeon.py`) pour les **9 ambiances** d'étage : roche volcanique (orgues basaltiques), fournaise (fissures de braise), sanctuaire englouti (briques ruisselantes), caverne gelée, jardin fongique, temple de cristal, crypte, forteresse, catacombes (niches à crânes). La masse rocheuse reste sombre et calme ; les sols ont 9 « phases » raccordables. Plus aucune tuile de pack dans le donjon.
 - 🏛️ **Salles à fonction** (trois objets rapprochés) : **couvoir** (nids : un monstre naît chaque matin, de la famille la plus présente), **garde-manger** (vivres : entretien des monstres -10 % par salle, jusqu'à -30 %), **forge des monstres** (enclumes, forges : -15 % de dégâts subis, évolutions -25 %). La **salle du trésor** attire maintenant les cupides de bien plus loin.
 - 🧩 **Énigmes** : **porte à levier** (un intrus doit trouver et baisser le levier), **porte runique** (trois pierres runiques doivent briller ensemble : le groupe se disperse), **plaque de pression** (fléchettes, portes qui claquent et coupent le groupe en deux, monstres alertés).
+
+### Des monstres qui vivent
+
+- 🍖 **Faim** : les monstres **dévorent les cadavres d'intrus** tombés dans le donjon (ou se servent au garde-manger). Nourri de chair, un monstre coûte **moitié moins d'entretien** ce jour-là ; affamé, il devient hargneux.
+- 💤 **Sommeil** : au repos et fatigués, ils s'endorment (« Zzz », ils voient moins loin) ; épuisés, ils frappent moins fort.
+- ⚔️ **Envie de se battre** : sans combat, l'ennui monte ; une victoire les ravit (surtout les sanguinaires).
+- 🙂 **Humeur** : heureux, ils frappent plus fort ; malheureux trop longtemps, ils **désertent** (sauf les loyaux et les gardiens). Une salle aménagée les rend plus heureux.
+- 🎭 **Traits** : lâche, sanguinaire, gourmand, paresseux, loyal, querelleur, sociable, vaillant.
+- 💞 **Liens** : amitiés entre voisins de la même famille, **couples inséparables** (bonus côte à côte), **rivalités** entre familles (gobelins et gnolls, orcs et hommes-lézards, morts-vivants et vivants) qui finissent en **querelles**. La mort d'un ami ou d'un compagnon les affecte.
+- La fiche du monstre sélectionné montre son humeur, ses besoins, ses traits et ses liens ; tout est sauvegardé (sauf les liens, qui se retissent).

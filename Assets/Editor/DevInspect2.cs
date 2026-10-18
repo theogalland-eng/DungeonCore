@@ -741,6 +741,19 @@ public static class DevInspect3
         sb.Append($" monstres={MonsterUnit.All.Count}");
         return sb.ToString();
     }
+    public static string DropCorpse() { var c = DungeonTerritory.Instance.CoreCell; Corpse.Spawn(DungeonBuilder.Instance.floorTilemap.GetCellCenterWorld(c + new Vector3Int(1, -1, 0)), 3); return "cadavre posé"; }
+    public static string MonsterReport()
+    {
+        var sb = new System.Text.StringBuilder();
+        foreach (var l in MonsterLife.All)
+        {
+            if (l == null) continue;
+            var g = l.GetComponent<GobelinAI>();
+            sb.Append($"[{g.gobelinName} faim={l.hunger:0} énergie={l.energy:0} ennui={l.boredom:0} humeur={l.mood:0} dort={l.Sleeping} traits={string.Join("/", l.traits)} {MonsterSociety.Links(l)}] ");
+        }
+        sb.Append($" cadavres={Corpse.All.Count} jour={GameManager.Instance?.CurrentDay} entretien={UpkeepSystem.Instance?.DailyCost}");
+        return sb.ToString();
+    }
     public static string CardFirst()
     {
         foreach (var a in AdventurerAI.All)

@@ -161,6 +161,18 @@ PLATE_DOWN = [
     '..OOOOOOOOOO..',
 ]
 
+CORPSE = [
+    '......OOO.........',
+    '.....OEEEO..OOOO..',
+    '.....OEOEO.OHhhHO.',
+    '..OOOOEEEOOHhhhhO.',
+    '.OhHHOOEOOhhHhhO..',
+    'OhHHHhhOhhHHhhhOO.',
+    'OhhHHHhhhhhhhOOEEO',
+    '.OOhhhhhhhOOOEEeEO',
+    '...OOOOOOO...OOOO.',
+]
+
 SEAL = [
     '...OOOOOOO...',
     '..OVVVVVVVO..',
@@ -192,6 +204,10 @@ def main():
     for name, rows in (('nest', NEST), ('anvil', ANVIL), ('forge', FORGE), ('lever_off', LEVER_OFF), ('lever_on', LEVER_ON),
                        ('rune_off', RUNE_OFF), ('rune_on', RUNE_ON), ('plate', PLATE), ('plate_down', PLATE_DOWN), ('seal', SEAL)):
         draw(rows, os.path.join(OUT, f'{name}.png'))
+    # chargé en jeu (Resources) : cadavre d'intrus que les monstres viennent dévorer
+    res = os.path.join(ROOT, 'Assets', 'Resources', 'Props')
+    os.makedirs(res, exist_ok=True)
+    draw(CORPSE, os.path.join(res, 'corpse.png'))
     sheet = Image.new('RGBA', (11 * 26, 26), (40, 36, 52, 255))
     for i, n in enumerate(['food_cache', 'nest', 'anvil', 'forge', 'lever_off', 'lever_on', 'rune_off', 'rune_on', 'plate', 'plate_down', 'seal']):
         im = Image.open(os.path.join(OUT, f'{n}.png'))

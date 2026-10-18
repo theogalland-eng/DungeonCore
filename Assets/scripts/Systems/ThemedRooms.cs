@@ -134,6 +134,32 @@ public class ThemedRooms : MonoBehaviour
         return t != null && t.RoomAt(p, Kind.Forge) != null ? 0.75f : 1f;
     }
 
+    /// <summary>Dans une salle aménagée (quelle qu'elle soit) : un monstre s'y sent chez lui.</summary>
+    public static bool InAnyRoom(Vector2 p)
+    {
+        var t = Instance;
+        if (t == null) return false;
+        foreach (var r in t.rooms) if (Vector2.Distance(p, r.center) <= r.radius) return true;
+        return false;
+    }
+
+    /// <summary>Salle d'un type donné la plus proche (centre), dans un rayon.</summary>
+    public static bool NearestRoom(Vector2 p, Kind k, float maxDist, out Vector2 center)
+    {
+        center = Vector2.zero;
+        var t = Instance;
+        if (t == null) return false;
+        float bd = maxDist;
+        bool found = false;
+        foreach (var r in t.rooms)
+        {
+            if (r.kind != k) continue;
+            float d = Vector2.Distance(p, r.center);
+            if (d < bd) { bd = d; center = r.center; found = true; }
+        }
+        return found;
+    }
+
     /// <summary>Le coffre est dans une salle du trésor : les cupides le repèrent de plus loin.</summary>
     public static bool InTreasury(Vector2 p)
     {

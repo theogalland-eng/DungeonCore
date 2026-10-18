@@ -200,6 +200,10 @@ public class SaveSystem : MonoBehaviour
                 hp = g.currentHealth, xp = u.xp, behavior = (int)g.currentBehavior == 2 ? 0 : (int)g.currentBehavior,
                 guardian = g.GetComponent<MonsterMind>() != null && g.GetComponent<MonsterMind>().IsGuardian,
                 guardianName = g.GetComponent<MonsterMind>() != null ? g.GetComponent<MonsterMind>().GivenName : null,
+                traits = g.Life != null ? g.Life.TraitMask : -1,
+                hunger = g.Life != null ? g.Life.hunger : 20f,
+                energy = g.Life != null ? g.Life.energy : 90f,
+                mood = g.Life != null ? g.Life.mood : 60f,
             });
         }
 
@@ -339,6 +343,12 @@ public class SaveSystem : MonoBehaviour
             var u = ai.GetComponent<MonsterUnit>();
             if (u != null) u.xp = m.xp;
             if (m.behavior == (int)GobelinAI.GoblinBehavior.Stay) ai.SetBehavior(GobelinAI.GoblinBehavior.Stay);
+            if (m.traits >= 0)
+            {
+                var life = ai.GetComponent<MonsterLife>() ?? ai.gameObject.AddComponent<MonsterLife>();
+                life.SetTraitMask(m.traits);
+                life.hunger = m.hunger; life.energy = m.energy; life.mood = m.mood;
+            }
         }
 
         // Mana (après le niveau : le max en dépend)
