@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Pathfinding;
@@ -580,6 +580,7 @@ public class GobelinAI : MonoBehaviour, IDamageable
 
     private void StartMission(MissionType mission, Transform target = null)
     {
+        if (mission == MissionType.ChaseEnemy && (currentMission != MissionType.ChaseEnemy || !isOnMission)) Voices.Monster(this, "aggro", 0.6f);
         isOnMission = true;
         currentMission = mission;
         missionTarget = target;
@@ -1427,6 +1428,7 @@ public class GobelinAI : MonoBehaviour, IDamageable
         if (ambushing) { ambushing = false; RevealAmbush(); }
         currentHealth -= amount;
         outOfCombatTimer = 0f;
+        if (currentHealth > 0f) Voices.Monster(this, "hurt", 0.4f);
         FloatingText.Spawn(transform.position + Vector3.up * 0.5f, Mathf.RoundToInt(amount).ToString(), new Color(1f, 0.4f, 0.4f), 0.9f);
         if (spriteRenderer != null && gameObject.activeInHierarchy)
         {
@@ -1448,7 +1450,7 @@ public class GobelinAI : MonoBehaviour, IDamageable
     private void Die()
     {
         isDead = true;
-        Sfx.Play("death_monster", transform.position, 0.9f);
+        if (!Voices.Monster(this, "death")) Sfx.Play("death_monster", transform.position, 0.9f);
         GetComponent<MonsterMind>()?.OnDied();
         var mm = GetComponent<MonsterMind>();
         if (mm != null && mm.IsGuardian) Chronicle.Add($"<color=#FF8A7A>Le gardien {mm.GivenName} est tombé.</color>");

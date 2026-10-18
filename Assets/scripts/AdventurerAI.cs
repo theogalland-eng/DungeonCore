@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
 using Pathfinding;
@@ -888,6 +888,7 @@ public class AdventurerAI : MonoBehaviour
                 enemy = tank.currentEnemy;
         }
         currentEnemy = enemy;
+        if (state != AdventurerState.Fighting) Voices.Human(combat, "aggro", 0.55f);
         state = AdventurerState.Fighting;
         SetFollow(enemy);
     }
@@ -1047,7 +1048,7 @@ public class AdventurerAI : MonoBehaviour
 
         if (Random.value < chance)
         {
-            Sfx.Play("flee", transform.position, 0.8f);
+            Voices.Human(combat, "fear");
             FloatingText.Spawn(transform.position + Vector3.up * 0.8f, "Fuyez !", new Color(0.8f, 0.9f, 1f), 1f);
             StartRetreat();
         }

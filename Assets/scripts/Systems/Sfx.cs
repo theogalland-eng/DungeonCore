@@ -46,7 +46,7 @@ public class Sfx : MonoBehaviour
     }
 
     /// <summary>Joue un bruitage. pos = null : son d'interface (toujours audible).</summary>
-    public static void Play(string name, Vector3? pos = null, float volume = 1f, float pitchVariation = 0.08f, float minInterval = 0.05f)
+    public static void Play(string name, Vector3? pos = null, float volume = 1f, float pitchVariation = 0.08f, float minInterval = 0.05f, float pitch = 1f)
     {
         if (string.IsNullOrEmpty(name) || GameSettings.SfxVolume <= 0f) return;
         var s = Get();
@@ -74,7 +74,7 @@ public class Sfx : MonoBehaviour
         s.next = (s.next + 1) % s.pool.Count;
         src.clip = list[Random.Range(0, list.Count)];
         src.volume = volume * att * GameSettings.SfxVolume;
-        src.pitch = 1f + Random.Range(-pitchVariation, pitchVariation);
+        src.pitch = pitch * (1f + Random.Range(-pitchVariation, pitchVariation));
         src.Play();
     }
 }

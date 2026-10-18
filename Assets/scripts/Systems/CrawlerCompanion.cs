@@ -234,7 +234,7 @@ public class CrawlerCompanion : MonoBehaviour
     {
         if (dead) return;
         dead = true;
-        Sfx.Play("death_human", transform.position);
+
         if (anim != null && UnitAnim.HasParam(anim, "Dead")) anim.SetTrigger("Dead");
         CrawlerMode.Instance?.OnCompanionDied(this);
         Destroy(gameObject, 2.5f);

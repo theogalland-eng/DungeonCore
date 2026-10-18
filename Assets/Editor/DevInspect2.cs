@@ -963,6 +963,7 @@ public static class DevInspect3
     public static string CrawlerToBoss() { var cm = CrawlerMode.Instance; var b = CrawlerBoss.Near(cm.Player.transform.position, 999f); if (b == null) return "aucun"; var p = b.transform.position + Vector3.down * 5f; cm.Player.transform.position = p; cm.Player.GetComponent<Rigidbody2D>().position = p; return BossState(); }
     public static string LearnFirst() { var cm = CrawlerMode.Instance; foreach (var n in CrawlerSkills.For(cm.Player.role).nodes) if (CrawlerSkills.CanLearn(n, out _)) { CrawlerSkills.Learn(n); return n.name + $" pts={CrawlerSkills.Points}"; } return "rien"; }
     public static string SkillTree() { SkillTreeWindow.Toggle(); return "arbre " + SkillTreeWindow.IsOpen; }
+    public static string VoiceClips() { int n = 0; foreach (var c in Resources.LoadAll<AudioClip>("Audio/Sfx")) if (c.name.StartsWith("vx_")) n++; return $"{n} voix"; }
     public static string TacticsCount() =>$"tactiques lancées : {GobelinAI.TacticsUsed}";
 }
 #endif

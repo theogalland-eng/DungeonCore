@@ -56,6 +56,8 @@ public class AdventurerCombat : MonoBehaviour, IDamageable
     [System.NonSerialized] public float critChance;
     /// <summary>Dégâts subis (talents défensifs du mode Aventurier) et vol de vie.</summary>
     [System.NonSerialized] public float damageTakenMult = 1f, lifeSteal;
+    /// <summary>Voix (Voices) : -1 à déterminer, 0 homme, 1 femme.</summary>
+    [System.NonSerialized] public int voice = -1;
 
     public void TakeDamage(float amount)
     {
@@ -73,6 +75,7 @@ public class AdventurerCombat : MonoBehaviour, IDamageable
 
         amount *= damageTakenMult;
         currentHealth -= amount;
+        if (currentHealth > 0f) Voices.Human(this, "hurt", 0.45f);
         if (GetComponent<CrawlerPlayer>() != null) Haptics.Pulse();
         Sfx.Play("hit_flesh", transform.position, 0.6f);
         FloatingText.Spawn(transform.position + Vector3.up * 0.5f, Mathf.RoundToInt(amount).ToString(), new Color(1f, 0.85f, 0.4f), 0.9f);
@@ -104,13 +107,13 @@ public class AdventurerCombat : MonoBehaviour, IDamageable
     {
         // Mode Aventurier : c'est le joueur qui tombe (il se réveillera à la taverne)
         var player = GetComponent<CrawlerPlayer>();
-        if (player != null) { currentHealth = 0f; player.OnDied(); return; }
+        if (player != null) { currentHealth = 0f; Voices.Human(this, "death"); player.OnDied(); return; }
         var mate = GetComponent<CrawlerCompanion>();
-        if (mate != null) { currentHealth = 0f; mate.OnDied(); enabled = false; return; }
+        if (mate != null) { currentHealth = 0f; Voices.Human(this, "death"); mate.OnDied(); enabled = false; return; }
         // Captures activées et cellule libre : assommé plutôt que tué
         if (ai != null && PrisonSystem.Instance != null && PrisonSystem.Instance.TryCapture(ai)) { currentHealth = Mathf.Max(1f, currentHealth); return; }
         DLog.Log($"{adventurerName} est mort");
-        Sfx.Play("death_human", transform.position);
+        Voices.Human(this, "death");
         if (ai != null) ai.HandleDeath();
         else PlayerLevel.Instance?.OnAdventurerKilled();
         enabled = false;

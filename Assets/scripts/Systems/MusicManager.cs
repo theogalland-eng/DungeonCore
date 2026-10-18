@@ -14,6 +14,10 @@ using UnityEngine;
 /// AMBIANCES (boucles) : Assets/Resources/Audio/Ambience/amb_island, amb_dungeon, amb_danger
 /// (générées par Tools~/make_ambience.py en attendant mieux). La couche « danger » (battements de cœur)
 /// monte quand des intrus sont dans le donjon — sans jamais prévenir de leur arrivée.
+///
+/// COUCHES DYNAMIQUES (Assets/Resources/Audio/Layers, Tools~/make_music_layers.py), sans tempo pour ne pas heurter les
+/// morceaux : « war » (tambours de guerre) suit l'intensité des combats, « dread » (nappe dissonante) le danger du
+/// cristal, d'un boss ou du Champion.
 /// </summary>
 public class MusicManager : MonoBehaviour
 {
@@ -34,7 +38,8 @@ public class MusicManager : MonoBehaviour
     private string ambName = "";
     private float silenceUntil;
     private AudioClip lastClip;
-    private float dangerLevel;
+    private float dangerLevel, warLevel, dreadLevel, warTarget, dreadTarget;
+    private AudioSource war, dread;
     private float nextCheck;
 
     private static readonly Dictionary<string, string> Fallback = new Dictionary<string, string>
@@ -62,6 +67,10 @@ public class MusicManager : MonoBehaviour
         danger = NewSource("Ambiance danger", true);
         danger.clip = Resources.Load<AudioClip>("Audio/Ambience/amb_danger");
         if (danger.clip != null) { danger.volume = 0f; danger.Play(); }
+        war = NewSource("Couche guerre", true);
+        war.clip = Resources.Load<AudioClip>("Audio/Layers/layer_war");
+        dread = NewSource("Couche effroi", true);
+        dread.clip = Resources.Load<AudioClip>("Audio/Layers/layer_dread");
         musicCur = musicA;
         ambCur = ambA;
     }
@@ -150,6 +159,7 @@ public class MusicManager : MonoBehaviour
     {
         var sb = new System.Text.StringBuilder();
         foreach (var kv in music) sb.Append($"{kv.Key}={kv.Value.Count} ");
+        sb.Append($"| guerre={warLevel:0.00}/{warTarget:0.00} effroi={dreadLevel:0.00}/{dreadTarget:0.00} ");
         sb.Append($"| want={WantedCategory()} cur={playingCat} playing={(musicCur.isPlaying && musicCur.clip != null ? musicCur.clip.name : "-")}");
         return sb.ToString();
     }
@@ -177,6 +187,7 @@ public class MusicManager : MonoBehaviour
             nextCheck = Time.unscaledTime + 0.5f;
             UpdateMusicChoice();
             UpdateAmbienceChoice();
+            UpdateTension();
         }
 
         // Fondus : la source courante monte, l'autre s'éteint
@@ -186,8 +197,15 @@ public class MusicManager : MonoBehaviour
             musicA.volume = Mathf.MoveTowards(musicA.volume, 0f, dt / 0.25f);
             musicB.volume = Mathf.MoveTowards(musicB.volume, 0f, dt / 0.25f);
             ambCur.volume = Mathf.MoveTowards(ambCur.volume, aVol * 0.3f, dt / 0.25f);
+            warLevel = dreadLevel = 0f;
+            Layer(war, 0f);
+            Layer(dread, 0f);
             return;
         }
+        warLevel = Mathf.MoveTowards(warLevel, Silence ? 0f : warTarget, dt / 3f);
+        dreadLevel = Mathf.MoveTowards(dreadLevel, Silence ? 0f : dreadTarget, dt / 4f);
+        Layer(war, warLevel * mVol * 0.55f);
+        Layer(dread, dreadLevel * mVol * 0.5f);
         Fade(musicCur, mVol, step);
         Fade(musicCur == musicA ? musicB : musicA, 0f, step);
         Fade(ambCur, musicCur.isPlaying ? aVol * 0.55f : aVol, step);
@@ -204,6 +222,46 @@ public class MusicManager : MonoBehaviour
             danger.volume = dangerLevel * aVol;
             danger.pitch = 1f + 0.12f * Mathf.Clamp01(inside / 4f);   // plus ils sont nombreux, plus le cœur bat vite
         }
+    }
+
+    private static void Layer(AudioSource s, float v)
+    {
+        if (s == null || s.clip == null) return;
+        s.volume = v;
+        if (v > 0.001f && !s.isPlaying) { s.time = Random.Range(0f, s.clip.length); s.Play(); }
+        else if (v <= 0.001f && s.isPlaying) s.Stop();
+    }
+
+    /// <summary>Tension du moment : combats en cours (tambours), cristal ou héros en péril (effroi).</summary>
+    private void UpdateTension()
+    {
+        bool home = MainMenu.Instance != null && MainMenu.Instance.InHome;
+        if (home) { warTarget = dreadTarget = 0f; return; }
+        float fight = 0f, fear = 0f;
+        if (CrawlerMode.Active && CrawlerMode.Instance.Player != null)
+        {
+            Vector2 p = CrawlerMode.Instance.Player.transform.position;
+            foreach (var g in GobelinAI.All)
+                if (g != null && g.IsAlive() && g.InCombat && Vector2.Distance(g.transform.position, p) < 9f) fight += 1f;
+            var boss = CrawlerBoss.Near(p);
+            if (boss != null) { fight += 2f; fear = boss.Phase == 3 ? 1f : boss.Phase == 2 ? 0.7f : 0.45f; }
+            var c = CrawlerMode.Instance.Player.Combat;
+            if (c.currentHealth < c.maxHealth * 0.3f) fear = Mathf.Max(fear, 0.6f);
+            warTarget = Mathf.Clamp01(fight / 4f);
+        }
+        else
+        {
+            foreach (var g in GobelinAI.All) if (g != null && g.IsAlive() && g.InCombat) fight += 1f;
+            foreach (var a in AdventurerAI.All) if (a != null && !a.IsDead && a.IsFighting && a.IsInsideDungeon) fight += 1f;
+            if (RaidSystem.Instance != null && RaidSystem.Instance.Active) fight += 3f;
+            fight += (ManaSystem.Instance != null ? ManaSystem.Instance.IntrudersInside : 0) * 0.6f;
+            if (category == "critical") { fight += 3f; fear = 0.5f; }
+            warTarget = Mathf.Clamp01(fight / 8f);
+            var core = CoreRef;
+            if (core != null && core.maxHealth > 0f && core.currentHealth < core.maxHealth * 0.6f) fear = 1f - core.currentHealth / (core.maxHealth * 0.6f) * 0.7f;
+            foreach (var a in AdventurerAI.All) if (a != null && !a.IsDead && a.IsChampion) { fear = Mathf.Max(fear, 0.55f); break; }
+        }
+        dreadTarget = Mathf.Clamp01(fear);
     }
 
     private static void Fade(AudioSource s, float target, float step)
