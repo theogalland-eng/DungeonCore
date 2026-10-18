@@ -1011,6 +1011,24 @@ public static class DevInspect3
         TalentTreeWindow.Instance?.Open();
         return $"points={Talents.Points} acquis={Talents.Spent}";
     }
+    public static string RoomsTest()
+    {
+        var b = DungeonBuilder.Instance; var cat = DungeonCatalog.Get();
+        var core = Object.FindFirstObjectByType<DungeonCore>();
+        var cc = b.floorTilemap.WorldToCell(core.transform.position);
+        int n = 0;
+        foreach (var (id, dx, dy) in new[] { ("bones", -1, -1), ("skull_pile", 1, -1), ("coffin", 0, 1), ("rack", -1, -4), ("helm", 1, -4) })
+        {
+            var it = cat.Find(id); if (it == null) continue;
+            if (b.PlaceItemFree(it, cc + new Vector3Int(dx, dy, 0)) != null) n++;
+        }
+        ThemedRooms.Instance.RescanSoon();
+        GameHUD.Instance.Side.SetExpanded(true);
+        typeof(SidePanel).GetMethod("SetTab", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(GameHUD.Instance.Side, new object[] { CatalogCategory.Rooms });
+        return $"{n} objets posés";
+    }
+    public static string RoomsState() { var t = ThemedRooms.Instance; return $"salles={t.rooms.Count} partielles={t.partials.Count} v={t.Version}"; }
+    public static string DecorTab() { typeof(SidePanel).GetMethod("SetTab", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(GameHUD.Instance.Side, new object[] { CatalogCategory.Decor }); return "décor"; }
     public static string TacticsCount() =>$"tactiques lancées : {GobelinAI.TacticsUsed}";
 }
 #endif

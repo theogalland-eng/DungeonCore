@@ -52,6 +52,38 @@ public class ThemedRooms : MonoBehaviour
     };
 
     public readonly List<Room> rooms = new List<Room>();
+
+    /// <summary>Salle en formation : un ou deux objets d'un thème, regroupés (il en faut trois).</summary>
+    public class Partial { public Kind kind; public Vector2 center; public int count, layer; }
+    public readonly List<Partial> partials = new List<Partial>();
+
+    /// <summary>Changement de salles (formée, perdue, en formation) : la fenêtre Salles se rafraîchit.</summary>
+    public int Version { get; private set; }
+
+    public static bool TryKindOf(string itemId, out Kind k)
+    {
+        k = Kind.Crypt;
+        return itemId != null && ItemKinds.TryGetValue(itemId, out k);
+    }
+
+    public static Color ColorOf(Kind k) => Colors[(int)k];
+
+    /// <summary>Noms des objets du catalogue qui comptent pour un type de salle.</summary>
+    public static List<string> ItemNamesOf(Kind k)
+    {
+        var names = new List<string>();
+        var cat = DungeonCatalog.Get();
+        foreach (var kv in ItemKinds)
+        {
+            if (kv.Value != k) continue;
+            var it = cat != null ? cat.Find(kv.Key) : null;
+            if (it != null && !names.Contains(it.displayName)) names.Add(it.displayName);
+        }
+        return names;
+    }
+
+    /// <summary>Force un nouveau relevé des salles (objet posé ou effacé).</summary>
+    public void RescanSoon() => nextScan = 0f;
     private readonly HashSet<string> announced = new HashSet<string>();
     private float nextScan;
 
@@ -174,6 +206,7 @@ public class ThemedRooms : MonoBehaviour
 
     private void Update()
     {
+        UpdatePreview();
         if (Time.unscaledTime >= nextScan)
         {
             nextScan = Time.unscaledTime + 2f;
@@ -199,6 +232,7 @@ public class ThemedRooms : MonoBehaviour
             l.Add(p);
         }
         var found = new List<Room>();
+        var newPartials = new List<Partial>();
         foreach (var kv in byKind)
         {
             var left = new List<PlacedObject>(kv.Value);
@@ -212,7 +246,14 @@ public class ThemedRooms : MonoBehaviour
                         if (Vector2.Distance(cluster[i].transform.position, left[j].transform.position) <= 3.5f &&
                             LayerAt(cluster[i].transform.position) == LayerAt(left[j].transform.position))
                         { cluster.Add(left[j]); left.RemoveAt(j); }
-                if (cluster.Count < 3) continue;
+                if (cluster.Count < 3)
+                {
+                    Vector2 pc = Vector2.zero;
+                    foreach (var p in cluster) pc += (Vector2)p.transform.position;
+                    pc /= cluster.Count;
+                    newPartials.Add(new Partial { kind = kv.Key, center = pc, count = cluster.Count, layer = LayerAt(pc) });
+                    continue;
+                }
                 Vector2 c = Vector2.zero;
                 foreach (var p in cluster) c += (Vector2)p.transform.position;
                 c /= cluster.Count;
@@ -230,8 +271,12 @@ public class ThemedRooms : MonoBehaviour
             if (same != null && same.visual == null) same.visual = old.visual;
             else if (old.visual != null) Destroy(old.visual);
         }
+        string before = Sig(rooms, partials);
         rooms.Clear();
         rooms.AddRange(found);
+        partials.Clear();
+        partials.AddRange(newPartials);
+        if (Sig(rooms, partials) != before) Version++;
         foreach (var r in rooms)
         {
             if (r.visual == null) r.visual = MakeVisual(r);
@@ -245,6 +290,64 @@ public class ThemedRooms : MonoBehaviour
                     new StoryManager.Line(StoryManager.SystemName, "Trois objets d'un même thème rapprochés forment une salle : crypte, armurerie, salle du trésor, sanctuaire, jardin fongique — ou salles à fonction : couvoir (nids), garde-manger (vivres), forge (enclumes, forges)."));
             }
         }
+    }
+
+    private static string Sig(List<Room> rs, List<Partial> ps)
+    {
+        var sb = new System.Text.StringBuilder();
+        foreach (var r in rs) sb.Append($"{r.kind}{Mathf.RoundToInt(r.center.x)},{Mathf.RoundToInt(r.center.y)}:{r.items.Count};");
+        foreach (var p in ps) sb.Append($"p{p.kind}{Mathf.RoundToInt(p.center.x)},{Mathf.RoundToInt(p.center.y)}:{p.count};");
+        return sb.ToString();
+    }
+
+    // ── Aperçu pendant la pose d'un objet de thème : cercle de regroupement et compte « 2/3 »
+    private GameObject preview;
+    private TextMeshPro previewLabel;
+    private SpriteRenderer previewRing;
+
+    private void UpdatePreview()
+    {
+        var b = DungeonBuilder.Instance;
+        var item = b != null && b.GetCurrentMode() == DungeonBuilder.BuildMode.PlacingItem ? b.SelectedItem : null;
+        var ptr = UnityEngine.InputSystem.Pointer.current;
+        if (item == null || !TryKindOf(item.id, out var k) || ptr == null || CrawlerMode.Active)
+        {
+            if (preview != null && preview.activeSelf) preview.SetActive(false);
+            return;
+        }
+        if (preview == null)
+        {
+            preview = new GameObject("Aperçu de salle");
+            previewRing = preview.AddComponent<SpriteRenderer>();
+            previewRing.sprite = SpriteUtil.Glow;
+            previewRing.sortingOrder = 3;
+            preview.transform.localScale = Vector3.one * 7f;
+            var lg = new GameObject("Compte");
+            lg.transform.SetParent(preview.transform, false);
+            previewLabel = lg.AddComponent<TextMeshPro>();
+            previewLabel.fontSize = 3.2f / 7f * 7f;
+            previewLabel.alignment = TextAlignmentOptions.Center;
+            previewLabel.rectTransform.sizeDelta = new Vector2(10f, 1.4f);
+            previewLabel.sortingOrder = 220;
+            previewLabel.outlineWidth = 0.25f;
+            previewLabel.outlineColor = new Color32(10, 6, 16, 255);
+            lg.transform.localScale = Vector3.one / 7f;
+            lg.transform.localPosition = new Vector3(0f, 0.2f, 0f);
+        }
+        if (!preview.activeSelf) preview.SetActive(true);
+        Vector2 w = PointerUtil.ScreenToWorld(ptr.position.ReadValue());
+        preview.transform.position = w;
+        int layer = LayerAt(w);
+        int near = 0;
+        foreach (var p in PlacedObject.All)
+            if (p != null && TryKindOf(p.itemId, out var pk) && pk == k && LayerAt(p.transform.position) == layer &&
+                Vector2.Distance(p.transform.position, w) <= 3.5f) near++;
+        var c = Colors[(int)k];
+        previewRing.color = new Color(c.r, c.g, c.b, 0.18f + 0.06f * Mathf.Sin(Time.unscaledTime * 5f));
+        int total = near + 1;
+        previewLabel.text = total >= 3
+            ? $"<color=#{ColorUtility.ToHtmlStringRGB(c)}>{Names[(int)k]}</color>  {total}/3 — salle !"
+            : $"<color=#{ColorUtility.ToHtmlStringRGB(c)}>{Names[(int)k]}</color>  {total}/3";
     }
 
     private GameObject MakeVisual(Room r)

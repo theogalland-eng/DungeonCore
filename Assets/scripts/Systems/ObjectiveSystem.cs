@@ -44,6 +44,9 @@ public class ObjectiveSystem : MonoBehaviour
             O("Tendre un piège dans mes couloirs", () => PlacedObject.Count(ItemKind.Trap), 1, 40, 15)
                 .How("Onglet Pièges : posez-le sur le passage des intrus.",
                     () => Placing(CatalogCategory.Trap) ? null : PanelStep(CatalogCategory.Trap, "Item_*")),
+            O("Aménager une première salle", () => ThemedRooms.Instance != null ? ThemedRooms.Instance.rooms.Count : 0, 1, 60, 25)
+                .How("Onglet Salles : trois objets d'un même thème rapprochés (ex. trois ossements) forment une salle.",
+                    () => PanelStep(CatalogCategory.Rooms, null)),
             O("Absorber l'essence d'un intrus", () => gm() != null ? gm().statKills : 0, 1, 80, 30)
                 .How("Les intrus viennent par bateau. « Appeler » en fait venir sans attendre.", () => "CallBoat"),
             O("Survivre à l'évaluation de la Guilde", () => GuildSystem.Instance != null && GuildSystem.Instance.Assessed ? 1 : 0, 1, 150, 60)

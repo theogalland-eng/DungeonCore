@@ -76,8 +76,8 @@ public class SidePanel : MonoBehaviour
         Stretch(handleLabel.rectTransform, 0, 0, 0, 0);
 
         // Onglets
-        string[] names = { "Bâtir", "Monstres", "Pièges", "Décor", "Étages", "Trésor" };
-        float tw = (Width - 20f - 5 * 6f) / 6f;
+        string[] names = { "Bâtir", "Monstres", "Pièges", "Décor", "Étages", "Trésor", "Salles" };
+        float tw = (Width - 20f - (names.Length - 1) * 5f) / names.Length;
         for (int i = 0; i < names.Length; i++)
         {
             var cat = (CatalogCategory)i;
@@ -92,7 +92,7 @@ public class SidePanel : MonoBehaviour
             var brt = (RectTransform)b.transform;
             brt.anchorMin = brt.anchorMax = new Vector2(0, 1);
             brt.pivot = new Vector2(0, 1);
-            brt.anchoredPosition = new Vector2(10 + i * (tw + 6f), -10);
+            brt.anchoredPosition = new Vector2(10 + i * (tw + 5f), -10);
             brt.sizeDelta = new Vector2(tw, 54);
             tabImages.Add(b.GetComponent<Image>());
         }
@@ -242,6 +242,7 @@ public class SidePanel : MonoBehaviour
             foreach (var d in LootSystem.Instance.Owned()) s += $"|{d.id}{LootSystem.Instance.CountOf(d.id)}";
             s += $"|{PlacedObject.Count(ItemKind.Decor)}";
         }
+        if (currentTab == CatalogCategory.Rooms && ThemedRooms.Instance != null) s += $"|r{ThemedRooms.Instance.Version}";
         if (currentTab == CatalogCategory.Layer && DungeonLayers.Instance != null)
         {
             var core = FindFirstObjectByType<DungeonCore>();
@@ -276,6 +277,14 @@ public class SidePanel : MonoBehaviour
         {
             if (themePickerLayer >= 0) BuildThemePicker(themePickerLayer);
             else BuildLayers();
+            FitContent();
+            content.anchoredPosition = keep;
+            return;
+        }
+
+        if (currentTab == CatalogCategory.Rooms)
+        {
+            BuildRooms();
             FitContent();
             content.anchoredPosition = keep;
             return;
@@ -335,6 +344,14 @@ public class SidePanel : MonoBehaviour
             {
                 var cost = Txt(rt, $"{shownCost} mana", 18, GameHUD.ManaColor, TextAlignmentOptions.BottomLeft);
                 Place(cost.rectTransform, new Vector2(tx, -bh + 34), new Vector2(bw - tx - 6, 28));
+            }
+
+            if (ThemedRooms.TryKindOf(item.id, out var roomKind))
+            {
+                var rc = ThemedRooms.ColorOf(roomKind);
+                var badge = Txt(rt, "• " + ThemedRooms.Names[(int)roomKind], 13, rc, TextAlignmentOptions.TopLeft);
+                Place(badge.rectTransform, new Vector2(tx, -66), new Vector2(bw - tx - 6, 18));
+                badge.fontStyle = FontStyles.SmallCaps;
             }
 
             var lockGo = NewRect("Lock", rt);
@@ -399,6 +416,109 @@ public class SidePanel : MonoBehaviour
     // ─────────────────────────────────────────────
     // TRÉSOR (butin des intrus)
     // ─────────────────────────────────────────────
+
+    // ─────────────────────────────────────────────
+    // SALLES
+    // ─────────────────────────────────────────────
+
+    private void BuildRooms()
+    {
+        var tr = ThemedRooms.Instance;
+        float y = 0f;
+        TextMeshProUGUI Para(string text, float size, Color c, float x = 4f, float w = Width - 40f)
+        {
+            var t = Txt(content, text, size, c, TextAlignmentOptions.TopLeft);
+            t.textWrappingMode = TextWrappingModes.Normal;
+            float h = t.GetPreferredValues(text, w, 0f).y + 4f;
+            Place(t.rectTransform, new Vector2(x, -y), new Vector2(w, h));
+            y += h + 6f;
+            return t;
+        }
+        RectTransform Card(float h, Color edge)
+        {
+            var card = NewRect("Salle", content);
+            card.anchorMin = new Vector2(0, 1);
+            card.anchorMax = new Vector2(1, 1);
+            card.pivot = new Vector2(0.5f, 1);
+            card.anchoredPosition = new Vector2(0, -y);
+            card.sizeDelta = new Vector2(-4, h);
+            var img = card.gameObject.AddComponent<Image>();
+            img.sprite = SpriteUtil.RoundedUI;
+            img.type = Image.Type.Sliced;
+            img.color = new Color(0.12f, 0.1f, 0.18f, 0.96f);
+            var bar = NewRect("Bord", card);
+            bar.anchorMin = new Vector2(0, 0); bar.anchorMax = new Vector2(0, 1);
+            bar.pivot = new Vector2(0, 0.5f);
+            bar.offsetMin = new Vector2(4, 6); bar.offsetMax = new Vector2(10, -6);
+            bar.gameObject.AddComponent<Image>().color = edge;
+            return card;
+        }
+        void Look(RectTransform card, Vector2 at)
+        {
+            var b = Btn(card, "Voir", "Voir", () =>
+            {
+                DungeonLayers.Instance?.SyncViewTo(at);
+                CameraController.Instance?.CenterOn(at);
+            }, 16);
+            var brt = (RectTransform)b.transform;
+            brt.anchorMin = brt.anchorMax = new Vector2(1, 1);
+            brt.pivot = new Vector2(1, 1);
+            brt.anchoredPosition = new Vector2(-8, -8);
+            brt.sizeDelta = new Vector2(76, 40);
+        }
+        string Floor(int layer) => DungeonLayers.Instance != null && layer < DungeonLayers.Instance.layers.Count ? DungeonLayers.Instance.layers[layer].name : "Surface";
+
+        Para("<color=#E8C77F>Salles du donjon</color>\n<size=85%><color=#B9B3CC>Posez trois objets d'un même thème à moins de 3,5 cases les uns des autres, sur le même étage : ils forment une salle. Ses bonus valent dans son cercle lumineux. La pastille de couleur des objets (onglets Décor et Pièges) indique leur thème.</color></size>", 19, TextColor);
+
+        // ── salles formées
+        var rooms = tr != null ? tr.rooms : new List<ThemedRooms.Room>();
+        Para($"<color=#E8C77F>Vos salles ({rooms.Count})</color>", 19, TextColor);
+        if (rooms.Count == 0) Para("<color=#6F6A80>Aucune salle pour l'instant.</color>", 17, SubText);
+        foreach (var r in rooms)
+        {
+            var c = ThemedRooms.ColorOf(r.kind);
+            var card = Card(84f, c);
+            var t = Txt(card, $"<color=#{ColorUtility.ToHtmlStringRGB(c)}><b>{ThemedRooms.Names[(int)r.kind]}</b></color>  <size=80%><color=#9A96B0>{Floor(r.layer)} · {r.items.Count} objets</color></size>\n<size=85%>{ThemedRooms.Effects[(int)r.kind]}</size>",
+                18, TextColor, TextAlignmentOptions.TopLeft);
+            t.textWrappingMode = TextWrappingModes.Normal;
+            Place(t.rectTransform, new Vector2(18, -8), new Vector2(Width - 140, 72));
+            Look(card, r.center);
+            y += 90f;
+        }
+
+        // ── salles en formation
+        var partials = tr != null ? tr.partials : new List<ThemedRooms.Partial>();
+        if (partials.Count > 0)
+        {
+            y += 6f;
+            Para("<color=#E8C77F>En formation</color>", 19, TextColor);
+            foreach (var p in partials)
+            {
+                var c = ThemedRooms.ColorOf(p.kind);
+                var card = Card(84f, new Color(c.r, c.g, c.b, 0.45f));
+                var names = ThemedRooms.ItemNamesOf(p.kind);
+                string list = string.Join(", ", names.GetRange(0, Mathf.Min(3, names.Count))) + (names.Count > 3 ? "..." : "");
+                var t = Txt(card, $"<color=#{ColorUtility.ToHtmlStringRGB(c)}><b>{ThemedRooms.Names[(int)p.kind]}</b></color>  <color=#FFD966>{p.count}/3</color>  <size=80%><color=#9A96B0>{Floor(p.layer)}</color></size>\n" +
+                                  $"<size=82%>Encore {3 - p.count} objet{(3 - p.count > 1 ? "s" : "")} tout près : {list}</size>",
+                    18, TextColor, TextAlignmentOptions.TopLeft);
+                t.textWrappingMode = TextWrappingModes.Normal;
+                Place(t.rectTransform, new Vector2(18, -8), new Vector2(Width - 140, 72));
+                Look(card, p.center);
+                y += 90f;
+            }
+        }
+
+        // ── guide
+        y += 6f;
+        Para("<color=#E8C77F>Guide des salles</color>", 19, TextColor);
+        for (int k = 0; k < ThemedRooms.Names.Length; k++)
+        {
+            var kind = (ThemedRooms.Kind)k;
+            var c = ThemedRooms.ColorOf(kind);
+            var names = ThemedRooms.ItemNamesOf(kind);
+            Para($"<color=#{ColorUtility.ToHtmlStringRGB(c)}><b>{ThemedRooms.Names[k]}</b></color> — {ThemedRooms.Effects[k]}\n<size=82%><color=#9A96B0>{string.Join(", ", names)}</color></size>", 17, TextColor, 12f);
+        }
+    }
 
     private void BuildTreasure()
     {

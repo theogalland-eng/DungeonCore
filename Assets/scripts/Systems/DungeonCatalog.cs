@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-public enum CatalogCategory { Build, Monster, Trap, Decor, Layer, Treasure }
+public enum CatalogCategory { Build, Monster, Trap, Decor, Layer, Treasure, Rooms }
 public enum ItemKind { Tool, Monster, Trap, Decor }
 
 /// <summary>Un élément achetable du panneau de construction.</summary>
