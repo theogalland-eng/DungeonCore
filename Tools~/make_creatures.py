@@ -520,7 +520,188 @@ def build_mimic(cid):
     print('ok', cid)
 
 
-BUILDERS = {**{k: build_spider for k in SPIDERS}, **{k: build_mimic for k in MIMICS}}
+# ─────────────────────────────────────────────
+# Chauves-souris : vol stationnaire, ailes membraneuses
+# ─────────────────────────────────────────────
+
+def triangle_points(a, b, c, step=0.28):
+    a, b, c = np.array(a, float), np.array(b, float), np.array(c, float)
+    n = int(max(np.linalg.norm(b - a), np.linalg.norm(c - a), np.linalg.norm(c - b)) / step) + 2
+    pts = []
+    for i in range(n + 1):
+        for j in range(n + 1 - i):
+            u, v = i / n, j / n
+            pts.append(a + (b - a) * u + (c - a) * v)
+    return np.array(pts)
+
+
+def flap(P, ang, side):
+    """Rotation de l'aile autour de l'axe avant (y), à l'épaule (x = 0)."""
+    c, s_ = math.cos(ang), math.sin(ang)
+    out = P.copy()
+    x, z = P[:, 0] * side, P[:, 2]
+    out[:, 0] = (x * c - z * s_) * side
+    out[:, 2] = x * s_ + z * c
+    return out
+
+
+BATS = {
+    'bat_1': dict(scale=1.45, fur=R('2a1e1c', '4a3630', '6e544a', '947868'), wing=R('2a1c20', '4e383e', '7a5a60', 'a88488'),
+                  eye=(255, 210, 120), outline=(16, 10, 12)),
+    'bat_2': dict(scale=1.75, fur=R('1a1016', '30202a', '4a3442', '6a4e5e'), wing=R('3a0c14', '64162a', '962a3c', 'c8485a'),
+                  eye=(255, 50, 50), outline=(12, 6, 10), fangs=True),
+    'bat_3': dict(scale=2.0, fur=R('120a18', '24142e', '3a2248', '58386a'), wing=R('24102e', '42205a', '663488', ' 94 5ab8'.replace(' ', '')),
+                  eye=(200, 120, 255), outline=(10, 6, 14), fangs=True, swarm=True),
+}
+
+
+def bat_body(sc, ang, spec, s, ox, oy, z, ph, mode, k=1.0):
+    """Une chauve-souris complète en (ox, oy, z) ; ph = phase de battement ; mode : vol, attaque, chute."""
+    sw = s * k
+    lean = 0.0
+    if mode == 'attack':
+        lean = 0.5
+    # ailes : épaule → coude → pointe, membrane en éventail
+    wing_ang = {'fly': 0.55 * math.sin(ph) + 0.15, 'attack': 0.9 - 0.4 * math.sin(ph), 'fold': 1.25, 'hurt': -0.4 + 0.3 * math.sin(ph)}[mode]
+    pts = {'sh': (0.7, 0.3, 0.2), 'el': (3.2, 0.9, 0.6), 'tip': (6.2, -0.2, 0.1), 'f1': (5.2, -1.9, 0), 'f2': (3.4, -2.1, 0), 'f3': (1.4, -1.3, 0)}
+    if mode == 'fold':
+        pts = {k_: (v[0] * 0.45, v[1] * 0.6, v[2]) for k_, v in pts.items()}
+    base = np.array([ox, oy, z])
+    for side in (-1, 1):
+        P = [np.array(pts[n_]) * sw for n_ in ('sh', 'el', 'tip', 'f1', 'f2', 'f3')]
+        tris = [(P[0], P[1], P[2]), (P[0], P[2], P[3]), (P[0], P[3], P[4]), (P[0], P[4], P[5])]
+        mem = np.concatenate([triangle_points(*t) for t in tris])
+        mem[:, 0] *= side
+        mem = flap(mem, wing_ang, side)
+        if lean:
+            c_, s_ = math.cos(lean), math.sin(lean)
+            y_, z_ = mem[:, 1].copy(), mem[:, 2].copy()
+            mem[:, 1], mem[:, 2] = y_ * c_ - z_ * s_, y_ * s_ + z_ * c_
+        mem = mem + base
+        # membrane : plus claire vers le bord, nervures sombres
+        Pw = rot(mem, ang)
+        loc = mem - base
+        r = np.hypot(loc[:, 0], loc[:, 1]) / (6 * sw)
+        lam = np.clip(0.35 + 0.5 * r, 0, 1)
+        cols = shade_ramp(spec['wing'], lam)
+        sc.splat(Pw, cols, sc.new_id())
+        for a_, b_ in (('sh', 'el'), ('el', 'tip'), ('el', 'f1'), ('el', 'f2')):
+            A = np.array([pts[a_]]) * sw; B = np.array([pts[b_]]) * sw
+            A[:, 0] *= side; B[:, 0] *= side
+            A = flap(A, wing_ang, side)[0] + base; B = flap(B, wing_ang, side)[0] + base
+            segment(sc, ang, tuple(A), tuple(B), spec['fur'], 0.5)
+    ellipsoid(sc, ang, (ox, oy, z), (1.4 * sw, 1.7 * sw, 1.6 * sw), spec['fur'], pitch=lean)
+    hy, hz = oy + 1.5 * sw * math.cos(lean), z + 0.9 * sw + 0.6 * sw * math.sin(lean)
+    ellipsoid(sc, ang, (ox, hy, hz), (1.1 * sw, 1.0 * sw, 1.0 * sw), spec['fur'])
+    for side in (-1, 1):
+        segment(sc, ang, (ox + side * 0.6 * sw, hy, hz + 0.6 * sw), (ox + side * 1.0 * sw, hy - 0.2 * sw, hz + 2.0 * sw), spec['fur'], 0.6)
+        dot(sc, ang, (ox + side * 0.45 * sw, hy + 0.95 * sw, hz + 0.25 * sw), spec['eye'], size=1 if sw > 1.2 else 0)
+    if spec.get('fangs') and mode in ('attack', 'fly'):
+        for side in (-1, 1):
+            dot(sc, ang, (ox + side * 0.3 * sw, hy + 1.0 * sw, hz - 0.45 * sw), (240, 236, 224))
+
+
+def bat_frame(spec, d, state, t, n):
+    s = spec['scale']
+    gx, gy = GFACE[d]
+    ang = math.atan2(-gx, gy)
+    sc = Scene()
+    ph = 2 * math.pi * t / n
+    z = 4.5 * s + 0.8 * math.sin(ph)
+    oy, mode = 0.0, 'fly'
+    if state == 'Run':
+        ph *= 2
+        z = 4.2 * s
+    elif state == 'Attack':
+        mode = 'attack'
+        dive = [0, 0.3, 1.0, 1.0, 0.5, 0.1][t]
+        z = 4.5 * s - 2.2 * s * dive
+        oy = 2.5 * s * dive
+    elif state == 'Hurt':
+        mode = 'hurt'
+        z = 4.5 * s - [1.2, 0.8, 0.4, 0.1][t] * s
+        oy = -[1.0, 0.7, 0.4, 0.1][t] * s
+    elif state == 'Death':
+        k = t / (n - 1)
+        mode = 'fold' if k > 0.3 else 'hurt'
+        z = max(0.9 * s, 4.5 * s * (1 - k) ** 1.6)
+    bat_body(sc, ang, spec, s, 0, oy, z, ph, mode)
+    if spec.get('swarm') and state != 'Death':
+        # deux petites chauves-souris tournent autour du seigneur
+        for i in range(2):
+            a_ = ph + i * math.pi
+            bat_body(sc, ang, spec, s, math.cos(a_) * 6.5 * s, math.sin(a_) * 3.5 * s, z + 1.5 * s + math.sin(a_ * 2) * 0.6 * s, ph * 1.7 + i, 'fly', 0.45)
+    return finish(sc, spec['outline'], 3.0 * s, ang, lift=0.6)
+
+
+BAT_ANIMS = {'Idle': 4, 'Walk': 6, 'Run': 6, 'Attack': 6, 'Hurt': 4, 'Death': 6}
+
+
+def build_bat(cid):
+    spec = BATS[cid]
+    for state, n in BAT_ANIMS.items():
+        rows = [[bat_frame(spec, d, state, t, n) for t in range(n)] for d in DIRS]
+        save(rows, os.path.join(OUT, cid, f'{cid}_{state}.png'))
+    print('ok', cid)
+
+
+# ─────────────────────────────────────────────
+# Objets posés par les monstres (importés comme les pièges : Art/Generated/Traps/<nom>_LxH.png)
+# ─────────────────────────────────────────────
+
+TRAPS_DIR = os.path.join(ROOT, 'Assets', 'Art', 'Generated', 'Traps')
+
+
+def build_war_totem(cid):
+    """Totem de guerre du chaman de sang : poteau, crâne cornu, bandes rouges ; image 2 = runes allumées."""
+    W, H = 16, 32
+    frames = []
+    for glow in (0, 1):
+        a = np.zeros((H, W, 4), np.uint8)
+        def put(x, y, c):
+            if 0 <= x < W and 0 <= y < H:
+                a[y, x] = tuple(c) + (255,)
+        wood = [(46, 28, 18), (84, 52, 30), (122, 82, 46)]
+        for y in range(9, 30):
+            put(7, y, wood[1]); put(8, y, wood[2] if y % 5 else wood[0])
+        for x in range(4, 12):
+            put(x, 12, wood[1]); put(x, 13, wood[0])
+        bone = [(150, 140, 120), (214, 206, 186), (246, 242, 228)]
+        for y in range(4, 10):
+            for x in range(5, 11):
+                if (x - 7.5) ** 2 / 9 + (y - 6.5) ** 2 / 7 <= 1:
+                    put(x, y, bone[1] if x < 8 else bone[0])
+        put(6, 5, bone[2])
+        eye = (255, 60, 40) if glow else (30, 10, 10)
+        put(6, 7, eye); put(9, 7, eye)
+        put(7, 9, (40, 30, 30)); put(8, 9, (40, 30, 30))
+        for x, y in ((4, 4), (3, 3), (3, 2), (11, 4), (12, 3), (12, 2)):
+            put(x, y, bone[0] if y > 2 else bone[2])
+        red = [(90, 10, 16), (150, 20, 30), (200, 44, 50)]
+        for k, x in enumerate((4, 5, 10, 11)):
+            for y in range(14, 19 + k % 2 * 2):
+                put(x, y, red[1] if y % 3 else red[2])
+            put(x, 19 + k % 2 * 2, red[0])
+        if glow:
+            for y in (17, 21, 25):
+                put(7, y, (255, 90, 60)); put(8, y, (255, 160, 120))
+        # contour sombre
+        m = a[:, :, 3] > 0
+        ring = np.zeros_like(m)
+        for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            ring |= np.roll(np.roll(m, dy, 0), dx, 1)
+        ring &= ~m
+        a[ring] = (20, 10, 12, 255)
+        frames.append(Image.fromarray(a))
+    sheet = Image.new('RGBA', (W * len(frames), H))
+    for i, f in enumerate(frames):
+        sheet.alpha_composite(f, (i * W, 0))
+    os.makedirs(TRAPS_DIR, exist_ok=True)
+    sheet.save(os.path.join(TRAPS_DIR, f'war_totem_{W}x{H}.png'))
+    print('ok', cid)
+
+
+BUILDERS = {**{k: build_spider for k in SPIDERS}, **{k: build_mimic for k in MIMICS}, **{k: build_bat for k in BATS}, 'war_totem': build_war_totem}
 
 if __name__ == '__main__':
     for cid in sys.argv[1:] or list(BUILDERS):

@@ -171,6 +171,15 @@ public static class CharacterImporter
                     if (s >= 2) { t.webCount = s == 2 ? 2 : 4; t.webSprite = TrapArt.Frames("web").FirstOrDefault(); }
                     if (s == 3) { t.summonPrefab = Prefab("spider_1"); t.summonCount = 2; t.summonCooldown = 15f; t.summonLifetime = 45f; t.summonName = "Araignée"; }
                 } },
+            new Family { id = "bat", folder = "Bat", names = new[] { "Chauve-souris", "Vampire volant", "Seigneur de la nuée" },
+                hp = 40, dmg = 7, range = 1.0f, chase = 2.4f, cd = 0.7f, cost = 35, level = 3, upkeep = 3,
+                desc = "Rapide et insaisissable, elle fond sur les archers et les mages. Le vampire volant boit le sang, le seigneur de la nuée appelle ses sœurs.",
+                traits = (go, s) =>
+                {
+                    var t = T(go); t.preferRanged = true;
+                    if (s >= 2) t.lifesteal = s == 2 ? 0.2f : 0.3f;
+                    if (s == 3) { t.summonPrefab = Prefab("bat_1"); t.summonCount = 2; t.summonCooldown = 14f; t.summonLifetime = 40f; t.summonName = "Chauve-souris"; }
+                } },
             new Family { id = "mimic", folder = "Mimic", names = new[] { "Coffre mordeur", "Mimique", "Mimique royale" },
                 hp = 120, dmg = 18, range = 1.2f, chase = 1.5f, cd = 1.2f, cost = 80, level = 6, upkeep = 6,
                 desc = "Ne se cache que dans une salle du trésor : immobile, il passe pour un coffre et mord par surprise. La Mimique attire les curieux, la Mimique royale les engloutit.",
@@ -212,6 +221,18 @@ public static class CharacterImporter
                 var t = T(go); t.projectileColor = new Color(1f, 0.55f, 0.2f); t.burnDps = 2f; t.burnSeconds = 2f;
                 t.healAuraPct = s == 3 ? 0.1f : 0.07f;
                 if (s == 3) t.buffAuraMult = 1.25f;
+            } },
+        new Branch { family = "orc", role = "berserker", names = new[] { "Orc berserker", "Seigneur de guerre fou" },
+            hp = 1.05f, dmg = 1.05f, chase = 1.1f,
+            desc = "Plus il est blessé, plus il frappe vite et fort. Le seigneur de guerre fou entre dans une rage terrible.",
+            traits = (go, s) => T(go).berserk = s == 3 ? 1.4f : 1f },
+        new Branch { family = "orc", role = "shaman", names = new[] { "Orc chaman", "Chaman de sang" },
+            hp = 0.85f, dmg = 0.75f, range = 3.5f, cd = 1.4f,
+            desc = "Traits de sang qui le soignent ; au combat, plante un totem de guerre : les orcs autour frappent plus fort. Le chaman de sang les régénère aussi.",
+            traits = (go, s) =>
+            {
+                var t = T(go); t.projectileColor = new Color(0.85f, 0.1f, 0.15f); t.lifesteal = 0.25f;
+                t.totemFrames = TrapArt.Frames("war_totem"); t.totemMult = s == 3 ? 1.3f : 1.15f; t.totemHealPct = s == 3 ? 0.03f : 0f; t.totemSeconds = s == 3 ? 20f : 15f;
             } },
         new Branch { family = "skeleton", role = "archer", names = new[] { "Squelette archer", "Archer d'ossements" },
             hp = 0.85f, dmg = 0.95f, range = 4.5f, cd = 1.2f,

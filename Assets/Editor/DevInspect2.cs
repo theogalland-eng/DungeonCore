@@ -1153,10 +1153,13 @@ public static class DevInspect3
     {
         string[] ids = { "goblin_archer_3", "goblin_archer_2", "goblin_shaman_3", "goblin_shaman_2", "goblin_3", "goblin_2", "goblin_1",
                          "skeleton_archer_3", "skeleton_archer_2", "skeleton_mage_3", "skeleton_mage_2", "skeleton_3", "skeleton_2", "skeleton_1",
-                         "spider_3", "spider_2", "spider_1", "mimic_3", "mimic_2", "mimic_1" };
+                         "spider_3", "spider_2", "spider_1", "mimic_3", "mimic_2", "mimic_1",
+                         "orc_berserker_3", "orc_berserker_2", "orc_shaman_3", "orc_shaman_2", "orc_3", "orc_2", "orc_1",
+                         "bat_3", "bat_2", "bat_1" };
+        TrapArt.ImportAll();
         UnityEditor.AssetDatabase.Refresh();
         string r = CharacterImporter.ImportOnly(ids);
-        CharacterImporter.ImportOnly("spider_3");
+        CharacterImporter.ImportOnly("spider_3", "bat_3");
         return r;
     }
     static GobelinAI SpawnMon(string id, Vector2 off)
@@ -1215,6 +1218,28 @@ public static class DevInspect3
         return sb.ToString();
     }
     public static string GoblinHealth() { var sb = new System.Text.StringBuilder(); foreach (var g in GobelinAI.All) if (g != null && g.GetComponent<MonsterUnit>()?.familyId == "goblin") sb.Append($"{g.gobelinName}:{g.currentHealth:0}/{g.maxHealth:0} "); return sb.ToString(); }
+    public static string Salvo3Setup()
+    {
+        for (int i = 0; i < 8; i++) PlayerLevel.Instance.AddXP(PlayerLevel.Instance.xpForNextLevel);
+        var be = SpawnMon("orc_berserker_3", new Vector2(-1.2f, -1f)); if (be != null) be.currentHealth = be.maxHealth * 0.3f;
+        SpawnMon("orc_shaman_3", new Vector2(0.8f, 0.6f));
+        SpawnMon("orc_2", new Vector2(1.2f, -1f));
+        SpawnMon("bat_3", new Vector2(-1.5f, 1f));
+        SpawnMon("bat_2", new Vector2(1.8f, 1.2f));
+        return "salve 3 en place";
+    }
+    public static string MakeArcher() { foreach (var a in AdventurerAI.All) if (a != null && !a.IsDead) { a.role = AdventurerAI.Role.Archer; return a.combat.adventurerName + " devient archer"; } return "aucun"; }
+    public static string Salvo3State()
+    {
+        var sb = new System.Text.StringBuilder();
+        foreach (var g in GobelinAI.All) if (g != null)
+        {
+            var tgt = g.MissionTarget != null ? g.MissionTarget.GetComponent<AdventurerAI>() : null;
+            sb.Append($"[{g.gobelinName} pv={g.currentHealth:0}/{g.maxHealth:0} cd={g.attackCooldown:0.00} cible={(tgt != null ? tgt.role.ToString() : "-")}] ");
+        }
+        sb.Append($" totems={Object.FindObjectsByType<WarTotem>(FindObjectsSortMode.None).Length}");
+        return sb.ToString();
+    }
     public static string NewMonstersFight()
     {
         var core = Object.FindFirstObjectByType<DungeonCore>().transform.position;

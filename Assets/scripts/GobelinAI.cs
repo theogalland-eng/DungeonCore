@@ -1310,6 +1310,13 @@ public class GobelinAI : MonoBehaviour, IDamageable
 
     public bool CanAttack() => Time.time - lastAttackTime >= attackCooldown;
 
+    /// <summary>Change de proie en plein combat (chauves-souris qui fondent sur les tireurs).</summary>
+    public void Retarget(Transform t)
+    {
+        if (t == null || !isOnMission || currentMission != MissionType.ChaseEnemy) return;
+        missionTarget = t;
+    }
+
     // galvanisé par un chaman de sa famille
     private float buffMult = 1f, buffUntil;
     public void Buff(float mult, float seconds) { buffMult = Mathf.Max(Time.time < buffUntil ? buffMult : 1f, mult); buffUntil = Time.time + seconds; }

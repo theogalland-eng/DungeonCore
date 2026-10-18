@@ -109,6 +109,21 @@ MonoBehaviour:
     unlockLevel: 2
     prestige: 0
     upkeep: 0
+  - id: bat_1
+    displayName: Chauve-souris
+    description: "Rapide et insaisissable, elle fond sur les archers et les mages.
+      Le vampire volant boit le sang, le seigneur de la nu\xE9e appelle ses s\u0153urs.
+      \xC9volue en Vampire volant puis Seigneur de la nu\xE9e. Entretien : 3 mana/jour."
+    category: 1
+    kind: 1
+    tool: 0
+    icon: {fileID: 21300000, guid: 536fcccc69128664a9a05cc31a1b0d3c, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 5436914470809000624, guid: ea257d2eb8fccc747b50c05012a6a891, type: 3}
+    cost: 35
+    unlockLevel: 3
+    prestige: 0
+    upkeep: 0
   - id: skeleton_1
     displayName: Squelette
     description: "Soldat mort-vivant infatigable. \xC9volue en Squelette guerrier
@@ -156,7 +171,8 @@ MonoBehaviour:
   - id: orc_1
     displayName: Orc
     description: "Guerrier robuste qui donne l'alerte. \xC9volue en Orc guerrier
-      puis Seigneur orc. Entretien : 7 mana/jour."
+      puis Seigneur orc \u2014 ou prend une autre voie : Orc berserker, Orc chaman.
+      Entretien : 7 mana/jour."
     category: 1
     kind: 1
     tool: 0

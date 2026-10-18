@@ -310,6 +310,12 @@ MonoBehaviour:
   pierceMult: 0
   lureAsChest: 0
   swallowSeconds: 0
+  berserk: 0
+  totemFrames: []
+  totemMult: 1
+  totemHealPct: 0
+  totemSeconds: 15
+  preferRanged: 0
   raiseDead: 3
   raisePrefab: {fileID: 321398268140917867, guid: bd84cd152d2f45445adec630f0fcb80d, type: 3}
   summonPrefab: {fileID: 0}

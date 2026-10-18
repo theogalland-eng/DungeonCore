@@ -67,6 +67,18 @@ ROLES = {
               (0, 30, 0.45, 0.1, R('0e0e12', '1e1e26', '32323e', '50505e'))],
         head=[(330, 360, 0.3, 0.1, R('0e0e12', '1e1e26', '32323e', '50505e')),
               (0, 30, 0.45, 0.1, R('0e0e12', '1e1e26', '32323e', '50505e'))]),
+    'orc_berserker_2': dict(base='orc_2', weapon='keep',
+        body=[], head=[(0, 32, 0.55, 0.2, R('3a0606', '7a0e0e', 'b81c1c', 'ee4a3a'))]),
+    'orc_berserker_3': dict(base='orc_3', weapon='keep',
+        body=[(340, 360, 0.6, 0.2, R('121014', '24202a', '3a3442', '5a5266')), (0, 12, 0.6, 0.2, R('121014', '24202a', '3a3442', '5a5266'))],
+        head=[(200, 260, 0.1, 0.1, R('3a0606', '7a0e0e', 'b81c1c', 'ee4a3a'), 0.4)]),
+    'orc_shaman_2': dict(base='orc_2', weapon='staff', orb=R('7a0a0a', 'd02020', 'ffb0a0'), skull=True,
+        body=[(20, 50, 0.45, 0.25, R('3a0a0e', '5e1218', '8a2026', 'b83a3a'))],
+        head=[(0, 32, 0.55, 0.2, R('6a6e78', 'a8acb4', 'd8dce0', 'ffffff'))]),
+    'orc_shaman_3': dict(base='orc_3', weapon='staff', orb=R('7a0a0a', 'd02020', 'ffb0a0'), skull=True,
+        body=[(340, 360, 0.6, 0.2, R('2a0408', '520a12', '8a1420', 'c42a32')), (0, 12, 0.6, 0.2, R('2a0408', '520a12', '8a1420', 'c42a32'))],
+        head=[(200, 260, 0.1, 0.1, R('6a6e78', 'a8acb4', 'd8dce0', 'ffffff'), 0.4)],
+        feathers=[(30, 20, 20), (200, 30, 40), (240, 236, 220), (200, 30, 40), (30, 20, 20)]),
     'skeleton_mage_2': dict(base='skeleton_2', weapon='staff', orb=R('2a7a3a', '5fe07a', 'd8ffe0'),
         body=[(190, 260, 0.2, 0.1, R('1e1036', '3a2066', '5e3a9a', '8c66cc'))],
         head=[(190, 260, 0.2, 0.1, R('1e1036', '3a2066', '5e3a9a', '8c66cc'))],
@@ -310,8 +322,8 @@ def role_layers(ch, anim, role):
     L = M8.load_monster_layers(ch, anim)
     out = {}
     for k, v in L.items():
-        if k == 'back' or any(w in k for w in WEAPON_WORDS):
-            continue
+        if role['weapon'] != 'keep' and (k == 'back' or any(w in k for w in WEAPON_WORDS)):
+            continue                                        # arme d'origine retirée (sauf voies qui la gardent)
         if k == 'body':
             v = recolor(v, role['body'])
         elif k == 'head':
@@ -471,7 +483,8 @@ def build(rid):
             continue
         M8.F = layers['body'].height // 4
         side = state in ('Hurt', 'Death') or 'head' not in layers
-        if state in ('Attack', 'WalkAttack', 'RunAttack'):
+        keep = role['weapon'] == 'keep'
+        if state in ('Attack', 'WalkAttack', 'RunAttack') and not keep:
             src = role_layers(ch, {'Attack': 'idle', 'WalkAttack': 'walk', 'RunAttack': 'run'}[state], role)
             if 'body' not in src:
                 src = role_layers(ch, 'idle', role)
@@ -481,7 +494,11 @@ def build(rid):
             fr = frames_for(layers, d, side)
             back = FACE[d][1] < -0.1
             row = []
-            if state == 'Attack':
+            if keep:
+                for k, (sh, body) in enumerate(fr):
+                    hat = hat_for(role, layers, d, k, body) if state != 'Death' else None
+                    row.append(assemble(sh, body, None, back, hat))
+            elif state == 'Attack':
                 for k, ph in enumerate(ATTACK_PHASES):
                     sh, body = fr[k % len(fr)]
                     row.append(assemble(sh, body, weapon_ink(role, d, body, ph), back, hat_for(role, layers, d, k % len(fr), body),

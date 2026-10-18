@@ -53,6 +53,23 @@ public class MonsterTraits : MonoBehaviour
     public float swallowSeconds;
     private float nextLure;
 
+    [Header("Rage (berserker)")]
+    [Tooltip("Plus il est blessé, plus il frappe vite et fort (0 = aucun effet, 1 = jusqu'à +45 % vitesse d'attaque et +40 % de dégâts)")]
+    public float berserk;
+    private float baseCooldown = -1f, baseChase;
+    private bool raging;
+
+    [Header("Totem de guerre (orc chaman)")]
+    public Sprite[] totemFrames;
+    public float totemMult = 1f, totemHealPct, totemSeconds = 15f;
+    private WarTotem totem;
+    private float nextTotem;
+
+    [Header("Chasseur de tireurs (chauves-souris)")]
+    [Tooltip("Fond sur les archers, mages et soigneurs à portée plutôt que sur les guerriers")]
+    public bool preferRanged;
+    private float nextRetarget;
+
     [Header("Nécromancie")]
     [Tooltip("Intrus tués relevés en squelettes en même temps (0 = aucun)")]
     public int raiseDead;
@@ -143,6 +160,49 @@ public class MonsterTraits : MonoBehaviour
         if (any) Fx.Play("smoke_skull", transform.position + Vector3.up * 0.4f, 0.8f, 18f, 16, new Color(1f, 0.6f, 0.3f, 0.6f));
     }
 
+    /// <summary>Berserker : la douleur le rend plus rapide et plus fort.</summary>
+    private void Rage()
+    {
+        if (berserk <= 0f) return;
+        if (baseCooldown < 0f) { baseCooldown = owner.attackCooldown; baseChase = owner.chaseSpeed; }
+        float missing = 1f - Mathf.Clamp01(owner.currentHealth / Mathf.Max(1f, owner.maxHealth));
+        owner.attackCooldown = baseCooldown * (1f - 0.45f * berserk * missing);
+        owner.chaseSpeed = baseChase * (1f + 0.4f * berserk * missing);
+        owner.Buff(1f + 0.4f * berserk * missing, 0.3f);
+        bool now = missing > 0.5f;
+        if (now && !raging) FloatingText.Spawn(transform.position + Vector3.up * 0.9f, "Rage !", new Color(1f, 0.3f, 0.25f), 1f);
+        raging = now;
+    }
+
+    /// <summary>Orc chaman : plante un totem de guerre dès qu'il se bat (un à la fois).</summary>
+    private void PlantTotem()
+    {
+        if (totemMult <= 1f || !owner.IsOnMission || Time.time < nextTotem || totem != null) return;
+        nextTotem = Time.time + totemSeconds + 6f;
+        var u = GetComponent<MonsterUnit>();
+        Vector2 p = transform.position;
+        totem = WarTotem.Plant(p + Random.insideUnitCircle * 0.4f, totemFrames, u != null ? u.familyId : null, totemMult, totemHealPct, totemSeconds, transform.parent);
+        SpeechBubble.Show(transform, "Par le sang !", new Color(1f, 0.45f, 0.4f), 1.6f, 0.85f);
+    }
+
+    /// <summary>Chauve-souris : fond sur les tireurs (archers, mages, soigneurs) qui passent à portée.</summary>
+    private void HuntRanged()
+    {
+        if (!preferRanged || !owner.IsOnMission || Time.time < nextRetarget) return;
+        nextRetarget = Time.time + 1f;
+        var cur = owner.MissionTarget != null ? owner.MissionTarget.GetComponent<AdventurerAI>() : null;
+        if (cur != null && cur.role != AdventurerAI.Role.Warrior) return;
+        AdventurerAI best = null;
+        float bd = 6f;
+        foreach (var a in AdventurerAI.All)
+        {
+            if (a == null || a.IsDead || a.role == AdventurerAI.Role.Warrior) continue;
+            float d = Vector2.Distance(a.transform.position, transform.position);
+            if (d < bd) { bd = d; best = a; }
+        }
+        if (best != null) owner.Retarget(best.transform);
+    }
+
     /// <summary>Mimique : un intrus qui passe voit un coffre... et s'en approche.</summary>
     private void LureAsChest()
     {
@@ -196,7 +256,7 @@ public class MonsterTraits : MonoBehaviour
 
     private void Update()
     {
-        if (owner != null && owner.IsAlive()) { SpinWebs(); Aura(); LureAsChest(); }
+        if (owner != null && owner.IsAlive()) { SpinWebs(); Aura(); LureAsChest(); Rage(); PlantTotem(); HuntRanged(); }
         if (summonCount <= 0 || summonPrefab == null || owner == null || !owner.IsAlive()) return;
         minions.RemoveAll(m => m == null || !m.IsAlive());
         // La liche invoque quand un intrus est proche

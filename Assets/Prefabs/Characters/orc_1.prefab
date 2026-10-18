@@ -267,7 +267,13 @@ MonoBehaviour:
   familyId: orc
   familyName: Orc
   stage: 1
+  role: 
+  pathDesc: 
+  portrait: {fileID: 0}
   nextStage: {fileID: 9063739389461843914, guid: 8d9b1cfd9abedb24793139d7671d5948, type: 3}
+  branches:
+  - {fileID: 4099490410487380912, guid: 4add6208d03a6c24e882f48549fe3f10, type: 3}
+  - {fileID: 232230779760333036, guid: ce3bc2a920534614db819c53dab6c473, type: 3}
   xpToEvolve: 60
   evolveCost: 72
   evolveLevelRequired: 7
