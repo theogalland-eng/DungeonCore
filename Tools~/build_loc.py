@@ -6,7 +6,8 @@ de la nouvelle extraction sont conservées.
 
 Sortie : Assets/Resources/Localization/en.txt
 
-    python "Tools~/build_loc.py"
+    python "Tools~/build_loc.py"                       (tout)
+    python "Tools~/build_loc.py" "Tools~/loc/add_N.txt"  (ajout après extract_strings.py --missing)
 """
 import glob
 import os
@@ -22,8 +23,12 @@ def lines(path):
 
 fr = lines(os.path.join(HERE, "strings_fr.txt"))
 en = []
-for p in sorted(glob.glob(os.path.join(HERE, "loc", "en_[0-9]*.txt")), key=lambda s: int(s.rsplit("_", 1)[1].split(".")[0])):
-    en += lines(p)
+if len(sys.argv) > 1:
+    # ajout : strings_fr.txt vient de « extract_strings.py --missing », l'anglais est dans le fichier donné
+    en = lines(sys.argv[1])
+else:
+    for p in sorted(glob.glob(os.path.join(HERE, "loc", "en_[0-9]*.txt")), key=lambda s: int(s.rsplit("_", 1)[1].split(".")[0])):
+        en += lines(p)
 fr = [l for l in fr if l.strip()]
 en = [l for l in en if l.strip()]
 if len(fr) != len(en):

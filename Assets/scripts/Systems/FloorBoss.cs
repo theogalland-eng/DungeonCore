@@ -256,8 +256,8 @@ public class NameBossDialog : MonoBehaviour
         var u = g.GetComponent<MonsterUnit>();
         string fam = u != null ? u.familyName : g.gobelinName;
         var desc = UIKit.LabelAt(win,
-            $"{fam} évoluera aussitôt jusqu'à sa forme ultime et deviendra le gardien de cet étage (un seul par étage). " +
-            "Il prendra son poste devant l'escalier qui descend — ou devant le cristal — et un sceau fermera le passage : seule sa mort l'ouvrira. " +
+            $"{fam} évoluera aussitôt jusqu'à sa forme ultime et deviendra le gardien de cet étage (un seul par étage).\n" +
+            "Il prendra son poste devant l'escalier qui descend — ou devant le cristal — et un sceau fermera le passage : seule sa mort l'ouvrira.\n" +
             "Il combat en trois phases : rage et renforts, puis ondes de choc.", 20, UIKit.Sub, new Vector2(30, -82), new Vector2(840, 150));
         desc.textWrappingMode = TextWrappingModes.Normal;
         var input = UIKit.Input(win, "Son nom...", new Vector2(0, 1), new Vector2(30, -250), new Vector2(560, 70), 30);

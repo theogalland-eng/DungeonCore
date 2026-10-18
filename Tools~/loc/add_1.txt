@@ -1,0 +1,79 @@
+# AdventurerLife.cs
+You still owe me ten coins!
+I paid you back, liar!
+Pay what you owe!
+Get lost!
+You cheated at dice last night!
+Sore loser!
+Give me back my money!
+Never!
+Say that again?
+Are you deaf as well as ugly?
+You'll eat your words!
+Just try it!
+*hic* You spilled my beer!
+That was my beer, you drunk!
+Come here, I'll teach you!
+*hic* Hold still!
+It's your fault we're stuck here!
+You're the one who wanted to go down!
+We should have stayed at the harbour!
+Stop whining!
+I saw it first!
+Let go of that!
+Share, or I'll take it!
+— I'm going to kill you!
+# CinematicIntro.cs
+...I'm floating. A slow rocking, like in a boat.
+...I'm not breathing!
+Water everywhere. An island. And me... a ball of blue crystal, half in the water.
+I went to bed in my own room... and woke up as a pebble.
+A conscious crystal, on a lost island... A dungeon core. I know this.
+Status? Menu?... Nothing. No system. So I focus... and I breathe.
+Points of light. Mana. They come when I breathe in.
+Days pass. The sphere does nothing but breathe.
+It's alive... and my mana is inside it. Does it obey me? Fly.
+I'm flying! The jungle, a smoking volcano... and sails, far away. Humans.
+I can't stay on this beach.
+Shelter... that crack, in the side of the mountain.
+I breathe out, into the ground, into the walls... All of this is me.
+A pedestal. And I breathe with the whole cave.
+# FloorBoss.cs
+The boss has fallen: the crystal's seal breaks!
+The boss has fallen: the stairs' seal breaks
+A guardian has fallen: its seal is broken.
+Name a floor boss
+{0} will instantly evolve to its ultimate form and become this floor's guardian (only one per floor).
+It will take its post in front of the stairs going down — or in front of the crystal — and a seal will close the way: only its death will open it.
+It fights in three phases: rage and reinforcements, then shockwaves.
+Its name...
+Another name
+Name ({0} mana)
+# MonsterMind.cs
+It's already this floor's boss
+This floor already has a named boss
+Nothing to guard here: dig the stairs to the next floor (or move the crystal here)
+{0} is named {1}.
+Boss {0}
+# Talents.cs
+Sharpened blades
+Placing a trap costs 30 % less mana.
++3 maximum traps (again).
+Architect of the abyss
+Stairs and new floors 40 % cheaper.
+Prolific brood
+Each hatchery hatches two creatures every morning.
+Bestial fury
+Your monsters deal 12 % more damage.
+Kings of the deep
+Naming a boss costs 30 % less mana; your bosses have 25 % more HP.
+The Core's spells cost 25 % less mana.
+Inside the dungeon, intruders deal 15 % less damage.
+A monster that devours a corpse gives 15 mana to the crystal.
+Requires "{0}"
+# GameHUD.cs
+Name boss
+Name floor boss ({0} mana)
+Boss: {0}
+# TalentTreeWindow.cs
+Learn (1 point)
