@@ -1004,6 +1004,13 @@ public static class DevInspect3
     public static string BossTo50() { foreach (var b in CrawlerBoss.All) if (b != null) b.Ai.currentHealth = b.Ai.maxHealth * 0.5f; return BossInfo(); }
     public static string KillBoss() { foreach (var b in CrawlerBoss.All.ToArray()) if (b != null) b.Ai.TakeDamage(1e7f); return "boss tué"; }
     public static string BossShot() { foreach (var b in CrawlerBoss.All) if (b != null) { var p = b.transform.position; return DevInspect.Shot(p.x, p.y + 1f, 4.5f, 1200, 800, "boss"); } return "aucun"; }
+    public static string TalentTreeOpen()
+    {
+        PlayerLevel.Instance.AddXP(4000);
+        foreach (var id in new[] { "a1", "a2", "a3", "b1", "c1" }) { var d = Talents.Get(id); if (d != null && Talents.CanBuy(d, out _)) Talents.Buy(d); }
+        TalentTreeWindow.Instance?.Open();
+        return $"points={Talents.Points} acquis={Talents.Spent}";
+    }
     public static string TacticsCount() =>$"tactiques lancées : {GobelinAI.TacticsUsed}";
 }
 #endif

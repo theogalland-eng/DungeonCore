@@ -50,7 +50,7 @@ public class CoreSpells : MonoBehaviour
         why = null;
         if (Level < s.level) { why = $"Niv. {s.level}"; return false; }
         if (Time.time < s.readyAt) { why = $"{Mathf.CeilToInt(s.readyAt - Time.time)} s"; return false; }
-        if (ManaSystem.Instance != null && !ManaSystem.Instance.CanAfford(s.cost)) { why = $"{s.cost} mana"; return false; }
+        if (ManaSystem.Instance != null && !ManaSystem.Instance.CanAfford(CostOf(s))) { why = $"{CostOf(s)} mana"; return false; }
         return true;
     }
 
@@ -61,9 +61,12 @@ public class CoreSpells : MonoBehaviour
         if (!CanCast(s, out string why)) { GameHUD.Toast($"{s.name} : {why}", GameHUD.WarningColor); return; }
         bool ok = s.id switch { "fear" => Fear(), "heal" => Heal(), "cavein" => CaveIn(), "shadow" => Shadows(), _ => false };
         if (!ok) return;
-        ManaSystem.Instance?.TrySpend(s.cost);
+        ManaSystem.Instance?.TrySpend(CostOf(s));
         s.readyAt = Time.time + s.cooldown;
     }
+
+    /// <summary>Prix réel d'un sort (talent « Cauchemars »).</summary>
+    public static int CostOf(Spell s) => Mathf.RoundToInt(s.cost * Talents.SpellCostMult);
 
     private static List<AdventurerAI> Inside()
     {

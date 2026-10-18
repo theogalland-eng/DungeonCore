@@ -801,7 +801,7 @@ public class GameHUD : MonoBehaviour
             bool ok = cs.CanCast(s, out string why);
             b.interactable = ok;
             icon.color = CoreSpells.Level >= s.level ? Color.white : new Color(1f, 1f, 1f, 0.3f);
-            label.text = ok ? $"{s.cost} mana" : why;
+            label.text = ok ? $"{CoreSpells.CostOf(s)} mana" : why;
             label.color = ok ? ManaColor : SubTextColor;
             cd.anchorMax = new Vector2(1f, cs.Cooldown01(s));
         }

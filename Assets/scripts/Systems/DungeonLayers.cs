@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Pathfinding;
 using UnityEngine;
@@ -136,7 +136,7 @@ public class DungeonLayers : MonoBehaviour
         if (!layers[i - 1].unlocked) { reason = "Débloquez d'abord l'étage précédent"; return false; }
         int lvl = PlayerLevel.Instance != null ? PlayerLevel.Instance.currentLevel : 1;
         if (lvl < l.unlockLevel) { reason = $"Niveau {l.unlockLevel} requis"; return false; }
-        if (ManaSystem.Instance != null && !ManaSystem.Instance.CanAfford(l.unlockCost)) { reason = $"{l.unlockCost} mana requis"; return false; }
+        if (ManaSystem.Instance != null && !ManaSystem.Instance.CanAfford(UnlockCost(i))) { reason = $"{UnlockCost(i)} mana requis"; return false; }
         return true;
     }
 
@@ -151,7 +151,7 @@ public class DungeonLayers : MonoBehaviour
             GameHUD.Toast(reason, GameHUD.WarningColor);
             return false;
         }
-        if (ManaSystem.Instance != null && !ManaSystem.Instance.TrySpend(layers[i].unlockCost)) return false;
+        if (ManaSystem.Instance != null && !ManaSystem.Instance.TrySpend(UnlockCost(i))) return false;
 
         ApplyUnlock(i, themeIndex);
         var theme = ThemeOf(i);
@@ -226,7 +226,7 @@ public class DungeonLayers : MonoBehaviour
             GameHUD.Toast("Placez l'escalier sur le sol du donjon", GameHUD.WarningColor);
             return false;
         }
-        if (ManaSystem.Instance != null && !ManaSystem.Instance.TrySpend(stairsCost)) return false;
+        if (ManaSystem.Instance != null && !ManaSystem.Instance.TrySpend(StairsCost)) return false;
 
         ConnectLayer(target, cell);
         GameHUD.Toast($"Escalier creusé vers {layers[target].name}", GameHUD.GoldColor);
@@ -254,6 +254,10 @@ public class DungeonLayers : MonoBehaviour
     }
 
     public void NotifyChanged() => OnLayersChanged?.Invoke();
+
+    /// <summary>Prix réels (talent « Architecte de l'abîme »).</summary>
+    public int UnlockCost(int i) => Mathf.RoundToInt(layers[i].unlockCost * Talents.LayerCostMult);
+    public int StairsCost => Mathf.RoundToInt(stairsCost * Talents.LayerCostMult);
 
     private DungeonStairs CreateStairs(Vector3 pos, bool down, int layer)
     {

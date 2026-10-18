@@ -609,9 +609,9 @@ public class DungeonBuilder : MonoBehaviour
             reason = "Plus d'exemplaire de cet objet dans le trésor";
             return false;
         }
-        if (ManaSystem.Instance != null && !ManaSystem.Instance.CanAfford(item.cost))
+        if (ManaSystem.Instance != null && !ManaSystem.Instance.CanAfford(CostOf(item)))
         {
-            reason = $"Pas assez de mana ({item.cost} requis)";
+            reason = $"Pas assez de mana ({CostOf(item)} requis)";
             return false;
         }
         return true;
@@ -674,7 +674,7 @@ public class DungeonBuilder : MonoBehaviour
             return;
         }
 
-        if (ManaSystem.Instance != null && !ManaSystem.Instance.TrySpend(item.cost)) return;
+        if (ManaSystem.Instance != null && !ManaSystem.Instance.TrySpend(CostOf(item))) return;
         GameObject obj = Instantiate(item.prefab, pos, Quaternion.identity, objectsParent);
         obj.name = item.displayName;
         var po = obj.GetComponent<PlacedObject>();
@@ -685,7 +685,7 @@ public class DungeonBuilder : MonoBehaviour
         po.upkeepPerDay = item.upkeep;
         Sfx.Play("place", po.transform.position, 0.8f);
         po.prestige = item.prestige;
-        FloatingText.Spawn(pos + Vector3.up * 0.4f, $"-{item.cost}", GameHUD.ManaColor, 1f);
+        FloatingText.Spawn(pos + Vector3.up * 0.4f, $"-{CostOf(item)}", GameHUD.ManaColor, 1f);
         if (item.kind == ItemKind.Decor) StoryManager.Instance?.OnDecorPlaced();
         UpdateUI();
     }
@@ -987,4 +987,8 @@ public class DungeonBuilder : MonoBehaviour
     public void AddMana(int amount) => ManaSystem.Instance?.Add(amount);
     public int GetMana() => ManaSystem.Instance != null ? ManaSystem.Instance.Current : 0;
     public BuildMode GetCurrentMode() => currentMode;
+
+    /// <summary>Prix réel d'un élément du catalogue (talents : pièges moins chers).</summary>
+    public static int CostOf(CatalogItem item) =>
+        item == null ? 0 : item.kind == ItemKind.Trap ? Mathf.RoundToInt(item.cost * Talents.TrapCostMult) : item.cost;
 }

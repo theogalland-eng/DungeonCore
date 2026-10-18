@@ -101,11 +101,16 @@ public class ThemedRooms : MonoBehaviour
                 if (u != null && u.familyId == fam && u.stage <= 1) { prefab = it.prefab; break; }
             }
             if (prefab == null) continue;
-            var g = MonsterSpawner.Instance.SpawnFree(prefab, r.center, r.center, prefab.GetComponent<GobelinAI>()?.gobelinName ?? prefab.name);
-            if (g != null)
+            for (int k = 0; k < Talents.HatchCount; k++)
             {
-                Fx.Play("shine", r.center, 1.2f);
-                GameHUD.Toast($"Couvoir : une nouvelle créature est née ({g.gobelinName})", GameHUD.GoldColor);
+                if (PlayerLevel.Instance != null && MonsterUnit.All.Count >= PlayerLevel.Instance.GetMaxMonsters()) break;
+                Vector2 at = r.center + Random.insideUnitCircle * 0.6f * k;
+                var g = MonsterSpawner.Instance.SpawnFree(prefab, at, at, prefab.GetComponent<GobelinAI>()?.gobelinName ?? prefab.name);
+                if (g != null)
+                {
+                    Fx.Play("shine", at, 1.2f);
+                    GameHUD.Toast($"Couvoir : une nouvelle créature est née ({g.gobelinName})", GameHUD.GoldColor);
+                }
             }
         }
     }

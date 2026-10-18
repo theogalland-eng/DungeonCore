@@ -66,7 +66,7 @@ public static class FloorBoss
             u = su;
             stage = su != null ? su.nextStage : null;
         }
-        return cost;
+        return Mathf.RoundToInt(cost * Talents.BossCostMult);
     }
 
     /// <summary>Évolue jusqu'à la forme ultime, sans condition (la promotion paie tout d'un coup).</summary>
@@ -100,6 +100,8 @@ public static class FloorBoss
                 var rb = g.GetComponent<Rigidbody2D>();
                 if (rb != null) rb.position = lair;
                 Fx.Play("smoke_puff", lair, 1.2f);
+                g.maxHealth *= Talents.BossHpMult;
+                g.currentHealth = g.maxHealth;
             }
             BossSeal.Create(g, stairs, core ? Object.FindFirstObjectByType<DungeonCore>() : null, target);
         }

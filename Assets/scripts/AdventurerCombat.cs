@@ -168,6 +168,7 @@ public class AdventurerCombat : MonoBehaviour, IDamageable
             return;
         }
         float dmg = attackDamage * damageMult;
+        if (ai != null && ai.IsInsideDungeon) dmg *= Talents.IntruderDamageMult;
         if (critChance > 0f && Random.value < critChance)
         {
             dmg *= 2f;

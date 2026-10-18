@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -324,7 +324,7 @@ public class SidePanel : MonoBehaviour
             Place(name.rectTransform, new Vector2(tx, -12), new Vector2(bw - tx - 6, 56));
             name.textWrappingMode = TextWrappingModes.Normal;
             int shownCost = item.kind == ItemKind.Tool && item.tool == DungeonBuilder.BuildMode.MovingCore && DungeonBuilder.Instance != null
-                ? DungeonBuilder.Instance.MoveCoreCost : item.cost;
+                ? DungeonBuilder.Instance.MoveCoreCost : DungeonBuilder.CostOf(item);
             bool freeMove = item.kind == ItemKind.Tool && item.tool == DungeonBuilder.BuildMode.MovingCore && DungeonBuilder.Instance != null && DungeonBuilder.Instance.FirstCoreMoveFree;
             if (freeMove)
             {
@@ -505,7 +505,7 @@ public class SidePanel : MonoBehaviour
             Place(t.rectTransform, new Vector2(14, -10), new Vector2(Width - 60, 32));
 
             string status;
-            if (!l.unlocked) status = $"<color=#FF9A8A>Verrouillé</color> · Niveau {l.unlockLevel} · {l.unlockCost} mana";
+            if (!l.unlocked) status = $"<color=#FF9A8A>Verrouillé</color> · Niveau {l.unlockLevel} · {DungeonLayers.Instance.UnlockCost(i)} mana";
             else status = $"{theme?.displayName}" + (i > 0 && !l.connected ? "  <color=#FFC266>· à relier par un escalier</color>" : "");
             var st = Txt(card, status, 18, SubText, TextAlignmentOptions.TopLeft);
             Place(st.rectTransform, new Vector2(14, -44), new Vector2(Width - 60, 50));

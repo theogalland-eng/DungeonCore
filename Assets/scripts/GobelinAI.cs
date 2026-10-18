@@ -1378,7 +1378,7 @@ public class GobelinAI : MonoBehaviour, IDamageable
     private float ThemeDamageMult()
     {
         var theme = DungeonLayers.Instance != null ? DungeonLayers.Instance.ThemeAt(rb.position) : null;
-        if (theme == null) return 1f;
+        if (theme == null) return Talents.MonsterDamageMult;
         float m = theme.monsterDamageMult;
         if (theme.undeadDamageMult != 1f)
         {
@@ -1386,7 +1386,7 @@ public class GobelinAI : MonoBehaviour, IDamageable
             string f = unit != null ? unit.familyId : "";
             if (f == "skeleton" || f == "zombie" || f == "lich" || f == "ghost" || f == "vampire" || f == "temple_spirit") m *= theme.undeadDamageMult;
         }
-        return m;
+        return m * Talents.MonsterDamageMult;
     }
 
     private float stairsCooldown;
