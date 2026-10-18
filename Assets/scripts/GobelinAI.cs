@@ -130,6 +130,7 @@ public class GobelinAI : MonoBehaviour, IDamageable
         // la vie du monstre (besoins, humeur, liens) — pas pour les invocations ni dans le mode Aventurier
         var mu = GetComponent<MonsterUnit>();
         if (!CrawlerMode.Active && mu != null && !mu.summoned) life = GetComponent<MonsterLife>() ?? gameObject.AddComponent<MonsterLife>();
+        if (!CrawlerMode.Active && Talents.MonsterHpMult > 1f) { maxHealth *= Talents.MonsterHpMult; currentHealth *= Talents.MonsterHpMult; }
         if (dungeonCore == null)
         {
             var core = FindFirstObjectByType<DungeonCore>();
@@ -1152,7 +1153,7 @@ public class GobelinAI : MonoBehaviour, IDamageable
         bool calm = currentBehavior == GoblinBehavior.Stay && !isOnMission && !IsPossessed && movement.sqrMagnitude < 0.01f && Ambushers.Contains(Family);
         if (!calm) { stillSince = -1f; if (ambushing) { ambushing = false; RevealAmbush(); } return; }
         if (stillSince < 0f) stillSince = Time.time;
-        if (!ambushing && Time.time - stillSince > 5f)
+        if (!ambushing && Time.time - stillSince > Talents.AmbushDelay)
         {
             ambushing = true;
             if (spriteRenderer != null) { var c = spriteRenderer.color; c.a = 0.55f; spriteRenderer.color = c; }   // repère pour le joueur
@@ -1204,7 +1205,7 @@ public class GobelinAI : MonoBehaviour, IDamageable
         if (damageable != null && damageable.IsAlive())
         {
             attackAnimTimer = 0.4f;
-            float ambushMult = (ambushing ? 1.5f : 1f) * (life != null ? life.DamageMult : 1f) * IslandEvents.FireMult(Family);
+            float ambushMult = (ambushing ? Talents.AmbushMult : 1f) * (life != null ? life.DamageMult : 1f) * IslandEvents.FireMult(Family);
             if (ambushing) { ambushing = false; RevealAmbush(); FloatingText.Spawn(transform.position + Vector3.up * 0.7f, "Embuscade !", new Color(1f, 0.55f, 0.35f), 1f); }
             float dmg = ambushMult * attackDamage * ThemeDamageMult() * (IslandEvents.Instance != null ? IslandEvents.Instance.MonsterDamageMult : 1f)
                         * ThemedRooms.DamageMult(rb.position, Family);

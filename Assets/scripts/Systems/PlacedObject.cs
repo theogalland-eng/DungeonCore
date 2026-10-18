@@ -128,6 +128,6 @@ public class PlacedObject : MonoBehaviour
     {
         float t = 0f;
         foreach (var p in All) if (p != null) t += p.prestige * ThemedRooms.PrestigeMult(p);
-        return t;
+        return t * Talents.PrestigeMult;
     }
 }

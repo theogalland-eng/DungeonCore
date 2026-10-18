@@ -758,6 +758,14 @@ public static class DevInspect3
         var lava = f != null ? (System.Collections.IList)f.GetValue(ev) : null;
         return $"événement={ev.Current} brume={ev.MorningFog} saison={Seasons.CurrentName} torches mouillées={wet} lave nouvelle={lava?.Count}";
     }
+    public static string TalentTest()
+    {
+        for (int i = 0; i < 4; i++) PlayerLevel.Instance.AddXP(PlayerLevel.Instance.xpForNextLevel);
+        Talents.Buy(Talents.All.Find(t => t.id == "a1"));
+        Talents.Buy(Talents.All.Find(t => t.id == "c1"));
+        TalentTreeWindow.Instance.Open();
+        return $"points={Talents.Points} acquis={Talents.Spent} max monstres={PlayerLevel.Instance.GetMaxMonsters()}";
+    }
     public static string CallExpedition() { ExpeditionManager.Instance.CallNextExpedition(); return "expédition appelée"; }
     public static string CampState()
     {

@@ -36,7 +36,7 @@ public class PressurePlate : MonoBehaviour
         FloatingText.Spawn(p + Vector2.up * 0.7f, "Clic !", new Color(1f, 0.8f, 0.5f), 1f);
         // fléchettes des murs
         Projectile.FireFx("arrow", (Vector3)p + new Vector3(-2.5f, 0.4f, 0f), victim.transform.position + Vector3.up * 0.2f, 0.4f, true,
-            () => { if (victim != null && victim.IsAlive()) victim.TakeDamage(damage); }, 18f, 0.1f);
+            () => { if (victim != null && victim.IsAlive()) victim.TakeDamage(damage * Talents.PlateDamageMult); }, 18f, 0.1f);
         // les portes voisines claquent
         foreach (var d in DungeonDoor.All)
             if (d != null && Vector2.Distance(d.transform.position, p) <= doorRadius) d.Slam(lockSeconds);

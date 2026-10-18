@@ -470,7 +470,7 @@ public class DungeonBuilder : MonoBehaviour
 
             var mana = ManaSystem.Instance;
             if (mana != null && !mana.CanAfford(miningCost)) return;   // attend d'avoir du mana
-            if (mana != null) mana.TrySpend(miningCost, false);
+            if (mana != null) mana.TrySpend(Mathf.RoundToInt(miningCost * Talents.DigCostMult), false);
 
             isMining = true;
             miningProgress = 0f;
@@ -585,7 +585,7 @@ public class DungeonBuilder : MonoBehaviour
         if (item.kind == ItemKind.Monster)
         {
             if (MonsterSpawner.Instance == null) { reason = "Pas de spawner"; return false; }
-            return MonsterSpawner.Instance.CanSummonAt(center, item.cost, out reason);
+            return MonsterSpawner.Instance.CanSummonAt(center, Mathf.RoundToInt(item.cost * Talents.SummonCostMult), out reason);
         }
 
         var territory = DungeonTerritory.Instance;
@@ -662,7 +662,7 @@ public class DungeonBuilder : MonoBehaviour
 
         if (item.kind == ItemKind.Monster)
         {
-            MonsterSpawner.Instance.TrySummonAt(pos, item.prefab, item.cost, item.displayName);
+            MonsterSpawner.Instance.TrySummonAt(pos, item.prefab, Mathf.RoundToInt(item.cost * Talents.SummonCostMult), item.displayName);
             return;
         }
         if (LootSystem.IsTrophyItem(item))

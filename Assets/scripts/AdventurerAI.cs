@@ -588,7 +588,11 @@ public class AdventurerAI : MonoBehaviour
             StoryManager.Instance?.OnIntruderEntered(this);
         }
         IsInsideDungeon = inside;
+        // talent « Torches mourantes » : au bout de 40 s sous la montagne, la flamme s'éteint
+        if (inside) { if (enteredAt < 0f) enteredAt = Time.time; else if (Talents.TorchesDie && !TorchWet && Time.time - enteredAt > 40f) { TorchWet = true; Speak("Ma torche s'éteint...", new Color(0.8f, 0.8f, 0.9f)); } }
+        else enteredAt = -1f;
     }
+    private float enteredAt = -1f;
 
     // ═══════════════════════════════════════════
     // ÉTATS
@@ -1018,7 +1022,7 @@ public class AdventurerAI : MonoBehaviour
         var theme = IsInsideDungeon && DungeonLayers.Instance != null ? DungeonLayers.Instance.ThemeAt(rb.position) : null;
         if (theme != null) chance = Mathf.Clamp01(chance + theme.intruderFleeBonus);
         if (IslandEvents.Instance != null) chance = Mathf.Clamp01(chance + IslandEvents.Instance.FleeBonus);
-        chance = Mathf.Clamp01(chance + fleeBias);
+        chance = Mathf.Clamp01(chance + fleeBias + Talents.IntruderFleeBonus);
         // À l'agonie, même les braves hésitent... une dernière fois
         if (hp <= healthThreshold * 0.5f && !lastStand)
         {
@@ -1281,7 +1285,7 @@ public class AdventurerAI : MonoBehaviour
 
     private Transform DetectNearestEnemy()
     {
-        float sight = detectionRange * IslandEvents.Detection * (TorchWet && IsInsideDungeon ? 0.75f : 1f);
+        float sight = detectionRange * IslandEvents.Detection * (TorchWet && IsInsideDungeon ? 0.75f : 1f) * (IsInsideDungeon ? Talents.IntruderSightMult : 1f);
         Collider2D[] hits = Physics2D.OverlapCircleAll(rb.position, sight, enemyLayer);
         float closestDist = Mathf.Infinity;
         Transform closest = null;

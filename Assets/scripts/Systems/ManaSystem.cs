@@ -90,7 +90,7 @@ public class ManaSystem : MonoBehaviour
             if (a == null || !a.IsInsideDungeon) continue;
             inside++;
             var theme = layers != null ? layers.ThemeAt(a.transform.position) : null;
-            drain += intruderDrainPerSecond * (theme != null ? theme.manaDrainMult : 1f);
+            drain += intruderDrainPerSecond * (theme != null ? theme.manaDrainMult : 1f) * Talents.ManaDrainMult;
         }
         IntrudersInside = inside;
         regen += drain;

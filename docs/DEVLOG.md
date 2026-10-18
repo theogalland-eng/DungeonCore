@@ -162,3 +162,10 @@ Mise en ligne du projet sur GitHub (ce dépôt), avec cette documentation.
 - 🌧️ **Pluie** : les torches des intrus restés dehors s'éteignent ; dans le donjon ils voient moins loin. **Brume matinale** certains jours. **Orages** : chaque coup de tonnerre fait sursauter les intrus du donjon (les peureux détalent).
 - 🌋 **Réveil du volcan** : les **coulées de lave avancent** sur les hautes terres, il **pleut des cendres**, diablotins et démons s'enhardissent ; la lave nouvelle refroidit ensuite.
 - ⛺ **Camps d'expédition** : un groupe d'au moins trois intrus plante ses tentes et allume un feu près de la plage ; les blessés s'y soignent, et **la nuit ceux qui sont dehors y dorment**. **Raid sur le camp** (fenêtre Colonie, la nuit) : vos monstres fondent sur les dormeurs (dégâts doublés), puis rentrent avant l'aube.
+
+### L'arbre de talents du Noyau
+
+- 🌟 **Un point de talent par niveau**, à dépenser dans trois branches de cinq talents (bouton **Talents** du HUD) :
+  - **Architecte** : creuser moins cher, +3 pièges, entretien des pièges et décors -25 %, portes plus dures à forcer et plaques plus cruelles, prestige ×1,5 ;
+  - **Maître des bêtes** : invocations moins chères, monstres plus robustes, moins affamés, +3 monstres, évolutions moins chères et expérience accrue ;
+  - **Ombre** : intrus plus prompts à fuir, qui voient moins loin, drain de mana accru, embuscades plus rapides et plus cruelles, torches qui s'éteignent dans le donjon.

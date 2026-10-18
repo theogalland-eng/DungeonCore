@@ -43,6 +43,8 @@ public class GameHUD : MonoBehaviour
     private TextMeshProUGUI hpText, manaText, xpText, dayText, countsText, threatText, expeditionText;
     private readonly List<KeyValuePair<float, Image>> speedButtons = new List<KeyValuePair<float, Image>>();
     private Image pauseButtonImage;
+    private Button talentButton;
+    private TextMeshProUGUI talentBadge;
     private GameObject callBoatButton;
     private TextMeshProUGUI pausedLabel;
 
@@ -340,6 +342,12 @@ public class GameHUD : MonoBehaviour
             () => MountainRelief.Instance?.Toggle(), 19);
         viewButton.GetComponent<Image>().color = new Color(0.27f, 0.19f, 0.15f, 0.97f);
         WithIcon(viewButton, "volcano");
+        // talents du Noyau, avec le nombre de points libres
+        talentButton = MakeButton(root, "Talents", "Talents", new Vector2(0, 1), new Vector2(0, 1), new Vector2(588, -224), new Vector2(150, 58),
+            () => TalentTreeWindow.Instance?.Toggle(), 19);
+        talentButton.GetComponent<Image>().color = new Color(0.25f, 0.2f, 0.36f, 0.97f);
+        WithIcon(talentButton, "star");
+        talentBadge = Label((RectTransform)talentButton.transform, "", 15, GoldColor, new Vector2(0, -38), new Vector2(150, 22), TextAlignmentOptions.Center, true);
 
         // ── Centre : jour ──
         var center = Panel("DayPanel", root, new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -16), new Vector2(460, 112));
@@ -609,6 +617,7 @@ public class GameHUD : MonoBehaviour
             string layerLabel = lay != null && lay.layers.Count > 1 ? $"  ·  {lay.layers[lay.CurrentView].name}" : "";
             var ev = IslandEvents.Instance;
             string evLabel = ev != null && ev.Current != IslandEvent.None ? $"  ·  <color=#FFB36B>{ev.Name}</color>" : "";
+            if (talentBadge != null) { int tp = Talents.Points; talentBadge.text = tp > 0 ? $"{tp} point{(tp > 1 ? "s" : "")}" : ""; }
             dayText.text = $"Jour {gm.CurrentDay}  ·  {Seasons.CurrentName}  ·  {gm.GetTimeOfDayLabel()}{layerLabel}{evLabel}";
             SetBar(dayFill, gm.DayProgress);
             pauseButtonImage.color = gm.UserPaused ? ButtonActiveColor : SegmentColor;

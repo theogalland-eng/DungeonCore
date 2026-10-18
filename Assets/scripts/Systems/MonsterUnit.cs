@@ -31,7 +31,7 @@ public class MonsterUnit : MonoBehaviour
 
     public bool IsFinalForm => nextStage == null;
     /// <summary>Coût réel de l'évolution (une forge des monstres le réduit).</summary>
-    public int EffectiveEvolveCost => Mathf.RoundToInt(evolveCost * ThemedRooms.EvolveCostMult(transform.position));
+    public int EffectiveEvolveCost => Mathf.RoundToInt(evolveCost * ThemedRooms.EvolveCostMult(transform.position) * Talents.EvolveCostMult);
     public bool ReadyToEvolve => !IsFinalForm && xp >= xpToEvolve;
     public bool CanEvolveNow(out string reason)
     {
@@ -69,7 +69,7 @@ public class MonsterUnit : MonoBehaviour
     public void AddXp(int amount)
     {
         if (IsFinalForm || summoned) return;
-        xp += amount;
+        xp += Mathf.RoundToInt(amount * Talents.MonsterXpMult);
         if (ReadyToEvolve && !announced)
         {
             announced = true;

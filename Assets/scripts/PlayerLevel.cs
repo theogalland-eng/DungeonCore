@@ -53,6 +53,7 @@ public class PlayerLevel : MonoBehaviour
         currentXP -= xpForNextLevel;
         xpForNextLevel = XpFor(currentLevel);
         OnLevelUp?.Invoke(currentLevel);
+        if (!CrawlerMode.Active) GameHUD.Toast("Un point de talent à dépenser (bouton Talents)", GameHUD.GoldColor);
     }
 
     /// <summary>
@@ -66,8 +67,8 @@ public class PlayerLevel : MonoBehaviour
         if (currentLevel <= 1 && currentXP == 0) xpForNextLevel = XpFor(1);
     }
 
-    public int GetMaxMonsters() => baseMonsterLimit + (currentLevel - 1) * monstersPerLevel;
-    public int GetMaxTraps() => baseTrapLimit + (currentLevel - 1) * trapsPerLevel;
+    public int GetMaxMonsters() => baseMonsterLimit + (currentLevel - 1) * monstersPerLevel + Talents.MonsterLimitBonus;
+    public int GetMaxTraps() => baseTrapLimit + (currentLevel - 1) * trapsPerLevel + Talents.TrapLimitBonus;
 
     public int GetCurrentMonsterCount()
     {

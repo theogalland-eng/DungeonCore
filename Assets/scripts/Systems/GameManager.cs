@@ -90,6 +90,7 @@ public class GameManager : MonoBehaviour
             Destroy(gameObject);
             return;
         }
+        Talents.Reset();   // nouvelle partie (une sauvegarde les restaure ensuite)
         Instance = this;
         Time.timeScale = 1f;
 
@@ -136,6 +137,7 @@ public class GameManager : MonoBehaviour
         Ensure<SaveSystem>();
         Ensure<MainMenu>();
         Ensure<ColonyWindow>();
+        Ensure<TalentTreeWindow>();
 
         if (FindFirstObjectByType<PlayerLevel>() == null) gameObject.AddComponent<PlayerLevel>();
 

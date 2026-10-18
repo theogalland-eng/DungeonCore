@@ -138,7 +138,7 @@ public class DungeonDoor : MonoBehaviour
             if (forcedAt < 0f)
             {
                 // le premier arrivé force la porte ; elle cède au bout de quelques secondes
-                forcedAt = Time.time + holdSeconds;
+                forcedAt = Time.time + holdSeconds * Talents.DoorHoldMult;
                 Sfx.Play(biteDamage > 0f ? "growl" : "door_break", transform.position, 0.8f);
                 if (biteDamage > 0f) ai.GetComponent<AdventurerCombat>()?.TakeDamage(biteDamage);
                 FloatingText.Spawn(transform.position + Vector3.up * 0.7f, forceText, new Color(0.9f, 0.8f, 0.6f), 0.8f);
