@@ -52,6 +52,20 @@ public static class GameSettings
         set => PlayerPrefs.SetInt("opt_autosave", value ? 1 : 0);
     }
 
+    /// <summary>Échelle de l'interface (0,8 à 1,4) : plus grand = boutons et textes plus gros.</summary>
+    public static float UiScale
+    {
+        get => PlayerPrefs.GetFloat("opt_uiscale", 1f);
+        set => PlayerPrefs.SetFloat("opt_uiscale", Mathf.Clamp(Mathf.Round(value * 10f) / 10f, 0.8f, 1.4f));
+    }
+
+    /// <summary>Vibrations du téléphone (cristal frappé, héros blessé).</summary>
+    public static bool Vibration
+    {
+        get => PlayerPrefs.GetInt("opt_vibrate", 1) == 1;
+        set => PlayerPrefs.SetInt("opt_vibrate", value ? 1 : 0);
+    }
+
     public static bool ScreenShake
     {
         get => PlayerPrefs.GetInt("opt_shake", 1) == 1;

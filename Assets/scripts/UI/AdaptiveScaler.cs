@@ -15,7 +15,7 @@ public class AdaptiveScaler : MonoBehaviour
     public static void Setup(CanvasScaler s)
     {
         s.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        s.referenceResolution = new Vector2(1920, 1080);
+        s.referenceResolution = new Vector2(1920, 1080) / GameSettings.UiScale;
         s.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
         if (s.GetComponent<AdaptiveScaler>() == null) s.gameObject.AddComponent<AdaptiveScaler>();
         s.matchWidthOrHeight = Match();
@@ -29,8 +29,13 @@ public class AdaptiveScaler : MonoBehaviour
 
     private void Awake() => scaler = GetComponent<CanvasScaler>();
 
+    private float lastScale = -1f;
+
     private void Update()
     {
+        // échelle choisie dans les options : appliquée tout de suite
+        float sc = GameSettings.UiScale;
+        if (!Mathf.Approximately(sc, lastScale)) { lastScale = sc; scaler.referenceResolution = new Vector2(1920, 1080) / sc; }
         float aspect = Screen.height > 0 ? Screen.width / (float)Screen.height : 0f;
         if (Mathf.Abs(aspect - lastAspect) < 0.001f) return;
         lastAspect = aspect;

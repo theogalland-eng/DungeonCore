@@ -106,6 +106,7 @@ public class DungeonCore : MonoBehaviour, IDamageable
 
         currentHealth -= amount;
         lastDamageTime = Time.time;
+        Haptics.Pulse();
         Sfx.Play("core_hit", transform.position, 0.8f, 0.1f, 0.15f);
         FloatingText.Spawn(transform.position + Vector3.up * 0.6f, Mathf.RoundToInt(amount).ToString(), new Color(1f, 0.3f, 0.3f), 1f);
 

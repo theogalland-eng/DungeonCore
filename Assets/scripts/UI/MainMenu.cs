@@ -629,36 +629,45 @@ public class MainMenu : MonoBehaviour
     // ── Options
     private void ShowOptions()
     {
-        var box = OpenModal("Options", new Vector2(900, 980));
+        var box = OpenModal("Options", new Vector2(1760, 700));
         float y = 100f;
+        colX = -440f;
         VolumeRow(box, "Volume général", "Tous les sons du jeu", () => GameSettings.Volume, v => GameSettings.Volume = v, ref y);
         VolumeRow(box, "Musique", "Thèmes du jour, de la nuit, des combats", () => GameSettings.MusicVolume, v => GameSettings.MusicVolume = v, ref y);
         VolumeRow(box, "Ambiance", "Grotte, ressac, battements de cœur", () => GameSettings.AmbienceVolume, v => GameSettings.AmbienceVolume = v, ref y);
         VolumeRow(box, "Bruitages", "Combats, pièges, creusage, interface", () => GameSettings.SfxVolume, v => GameSettings.SfxVolume = v, ref y);
+        VolumeRow(box, "Taille de l'interface", "Boutons et textes plus grands (ou plus petits)", () => (GameSettings.UiScale - 0.8f) / 0.6f,
+            v => GameSettings.UiScale = 0.8f + Mathf.Clamp01(v) * 0.6f, ref y, () => $"{Mathf.RoundToInt(GameSettings.UiScale * 100)} %", 1f / 6f);
+        y = 100f;
+        colX = 440f;
         ToggleRow(box, "Cinématiques", "Naissance de l'orbe, premier bateau", () => GameSettings.Cinematics, v => GameSettings.Cinematics = v, ref y);
         ToggleRow(box, "Effets de lumière", "Halo, vignettage, couleurs (désactiver sur un téléphone modeste)", () => GameSettings.PostProcessing, v => GameSettings.PostProcessing = v, ref y);
         ToggleRow(box, "Particules d'ambiance", "Lucioles, nuages, poussière, reflets sur l'eau", () => GameSettings.Ambient, v => GameSettings.Ambient = v, ref y);
         ToggleRow(box, "Tremblements de l'écran", "Secousses lors des impacts", () => GameSettings.ScreenShake, v => GameSettings.ScreenShake = v, ref y);
         ToggleRow(box, "Sauvegarde automatique", "À chaque aube et en quittant l'application", () => GameSettings.AutoSave, v => GameSettings.AutoSave = v, ref y);
+        ToggleRow(box, "Vibrations", "Quand le cristal est frappé ou que votre héros est blessé", () => GameSettings.Vibration, v => GameSettings.Vibration = v, ref y);
+        colX = 0f;
     }
 
-    private void VolumeRow(RectTransform box, string label, string desc, Func<float> get, Action<float> set, ref float y)
+    private float colX;
+
+    private void VolumeRow(RectTransform box, string label, string desc, Func<float> get, Action<float> set, ref float y, Func<string> format = null, float step = 0.1f)
     {
-        var row = UIKit.PanelBox("Row", box, new Vector2(0.5f, 1), new Vector2(0, -y), new Vector2(840, 86), UIKit.Card);
+        var row = UIKit.PanelBox("Row", box, new Vector2(0.5f, 1), new Vector2(colX, -y), new Vector2(840, 86), UIKit.Card);
         row.pivot = new Vector2(0.5f, 1);
         UIKit.LabelAt(row, label, 28, UIKit.Text, new Vector2(24, -14), new Vector2(300, 36));
         var val = UIKit.LabelAt(row, "", 24, UIKit.Gold, new Vector2(-150, 0), new Vector2(110, 40), TextAlignmentOptions.Center, new Vector2(1, 0.5f));
-        void Show() => val.text = $"{Mathf.RoundToInt(get() * 100)} %";
+        void Show() => val.text = format != null ? format() : $"{Mathf.RoundToInt(get() * 100)} %";
         Show();
-        UIKit.BtnAt(row, "-", () => { set(get() - 0.1f); Show(); }, new Vector2(1, 0.5f), new Vector2(-270, 0), new Vector2(70, 60), 34);
-        UIKit.BtnAt(row, "+", () => { set(get() + 0.1f); Show(); }, new Vector2(1, 0.5f), new Vector2(-24, 0), new Vector2(70, 60), 34);
+        UIKit.BtnAt(row, "-", () => { set(get() - step); Show(); }, new Vector2(1, 0.5f), new Vector2(-270, 0), new Vector2(70, 60), 34);
+        UIKit.BtnAt(row, "+", () => { set(get() + step); Show(); }, new Vector2(1, 0.5f), new Vector2(-24, 0), new Vector2(70, 60), 34);
         UIKit.LabelAt(row, desc, 18, UIKit.Sub, new Vector2(24, -50), new Vector2(460, 30));
         y += 94f;
     }
 
     private void ToggleRow(RectTransform box, string label, string desc, Func<bool> get, Action<bool> set, ref float y)
     {
-        var row = UIKit.PanelBox("Row", box, new Vector2(0.5f, 1), new Vector2(0, -y), new Vector2(840, 86), UIKit.Card);
+        var row = UIKit.PanelBox("Row", box, new Vector2(0.5f, 1), new Vector2(colX, -y), new Vector2(840, 86), UIKit.Card);
         row.pivot = new Vector2(0.5f, 1);
         UIKit.LabelAt(row, label, 28, UIKit.Text, new Vector2(24, -14), new Vector2(560, 36));
         UIKit.LabelAt(row, desc, 18, UIKit.Sub, new Vector2(24, -50), new Vector2(560, 30));

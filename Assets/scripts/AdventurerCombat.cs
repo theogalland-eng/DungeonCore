@@ -69,6 +69,7 @@ public class AdventurerCombat : MonoBehaviour, IDamageable
         }
 
         currentHealth -= amount;
+        if (GetComponent<CrawlerPlayer>() != null) Haptics.Pulse();
         Sfx.Play("hit_flesh", transform.position, 0.6f);
         FloatingText.Spawn(transform.position + Vector3.up * 0.5f, Mathf.RoundToInt(amount).ToString(), new Color(1f, 0.85f, 0.4f), 0.9f);
 
