@@ -89,7 +89,7 @@ public partial class CinematicDirector
         StartCoroutine(OrbLoop());
         StartCoroutine(CamLoop());
 
-        // ══ 1. RÉVEIL EN MER ══
+        // ══ 1. RÉVEIL EN MER ══ (version courte : une minute environ)
         MountainRelief.Instance?.SetUserView(false);
         ForceDungeonView = false;
         fade.color = Color.black;
@@ -97,215 +97,138 @@ public partial class CinematicDirector
         orbBob = 1f;
         SetCam(geo.sea + new Vector3(0f, 0.25f, 0f), 3f);
         SpawnFish(geo.sea);
-        yield return Fade(1f, 0f, 3f);
-        yield return Thought("...Je flotte.", 1.4f);
-        yield return Thought("C'est agréable. Un balancement lent, comme dans une barque... Je n'ai pas envie de me réveiller.", 1.6f);
-        yield return Thought("Une barque ? Non. Je me suis couché dans mon lit hier soir. Je m'en souviens très bien.", 1.6f);
-        yield return Thought("Je prends une grande inspiration pour me réveiller pour de bon...", 0.8f);
-        yield return Wait(1.4f);
-        StartCoroutine(OrbPanic(3f));
-        camCtrl?.Shake(0.05f, 0.4f);
-        yield return Thought("...Ma poitrine ne bouge pas. Je ne respire pas.", 1f);
+        yield return Fade(1f, 0f, 1.1f);
+        yield return Thought("...Je flotte. Un balancement lent, comme dans une barque.", 1.1f);
+        StartCoroutine(OrbPanic(2f));
         camCtrl?.Shake(0.1f, 0.5f);
-        yield return Thought("Je ne respire pas !", 1f);
-        StartCoroutine(MoveCamera(Vector3.Lerp(geo.sea, geo.beach, 0.6f) - (Vector3)geo.seaDir * 4f, 13f, 5f));
-        yield return Thought("De l'eau partout. Une île, juste là. Des poissons sous moi... Je les vois. Je vois dans toutes les directions en même temps.", 2.2f);
-        yield return Thought("C'est un rêve. Je cligne des yeux et je me réveille.", 1.2f);
-        yield return Wait(0.8f);
-        yield return Thought("...Je n'arrive pas à cligner. Je ne sens pas mes bras. Je ne sens rien du tout.", 1.6f);
-        StartCoroutine(MoveCamera(geo.sea + new Vector3(0f, 0.12f, 0f), 1.8f, 3f));
-        yield return Thought("Il n'y a que ça. Une boule de cristal bleu, à moitié dans l'eau.", 1.8f);
-        yield return Thought("C'est moi. Je suis cette chose.", 2.2f);
+        yield return Thought("...Je ne respire pas !", 0.9f);
+        StartCoroutine(MoveCamera(Vector3.Lerp(geo.sea, geo.beach, 0.6f) - (Vector3)geo.seaDir * 4f, 13f, 3f));
+        yield return Thought("De l'eau partout. Une île. Et moi... une boule de cristal bleu, à moitié dans l'eau.", 0.9f);
+        StartCoroutine(MoveCamera(geo.beach + new Vector3(0f, 0.8f, 0f), 6f, 4f));
+        StartCoroutine(DriftOrb(geo.sea, geo.beach, 4f));
+        yield return Thought("Je me suis couché dans mon lit... et je me réveille en caillou.", 0.7f);
+        yield return Caption("La marée pousse la sphère vers une plage de sable noir, au pied du volcan.", 0.8f);
 
-        // ══ 2. ÉCHOUÉ — « STATUT ? » ══
-        StartCoroutine(MoveCamera(geo.beach + new Vector3(0f, 0.8f, 0f), 6f, 7f));
-        StartCoroutine(DriftOrb(geo.sea, geo.beach, 7f));
-        yield return Caption("La marée pousse la sphère vers une plage de sable noir, au pied du volcan.", 4.2f);
-        StartCoroutine(LightTo(SunsetC, 0.85f, 5f));
-        yield return Thought("Je me suis endormi chez moi, et je me réveille en caillou. Je suis mort dans mon sommeil ? C'est tout ?", 2.2f);
-        yield return Thought("Un cristal, ça n'a pas de cerveau. Pas de nerfs. Alors avec quoi je pense ? Avec quoi je vois ?", 2f);
-        StartCoroutine(LightTo(NightC, 0.42f, 5f));
-        StartCoroutine(OrbLightTo(1.3f, 4f));
-        yield return Caption("Le soleil se couche. Personne ne vient.", 2.4f);
-        yield return Thought("Attends. Un cristal conscient, sur une île perdue... Je connais ça. Je l'ai lu des dizaines de fois.", 1.8f);
-        yield return Thought("Un cœur de donjon. Une pierre vivante qui se nourrit de mana, creuse des galeries et les remplit de monstres pour se protéger.", 2.4f);
-        yield return Thought("Si c'est ça, il doit y avoir un système. Une interface. Quelque chose.", 1.6f);
-        MusicManager.Silence = true;
-        yield return Thought("Statut ?", 2.6f);
-        yield return Thought("...Statut. Menu. Aide.", 1.6f);
-        yield return Wait(0.8f);
-        yield return Thought("...Merde.", 1.8f);
-        MusicManager.Silence = false;
-        yield return Thought("Personne pour m'expliquer. D'accord. On se calme.", 1.4f);
-        yield return Thought("Il n'y a rien à lire. Mais si je me concentre sur moi-même... je sens des choses.", 1.2f);
+        // ══ 2. UN CŒUR DE DONJON ══
+        StartCoroutine(LightTo(NightC, 0.42f, 3f));
+        StartCoroutine(OrbLightTo(1.3f, 3f));
+        yield return Thought("Un cristal conscient, sur une île perdue... Un cœur de donjon. Je connais ça.", 0.8f);
         mana?.SetRaw(0f);
         GameHUD.Instance?.IntroHud(true);
         StartCoroutine(TopBarTo(0f, 1f));
-        StartCoroutine(HudIn("coeur", 1.6f));
-        StartCoroutine(OrbBreath(1, 2.4f, 0.12f));
-        yield return Thought("Ma solidité, d'abord. Pas une fêlure. Tant que je reste entier, je vis. Si je me brise... je préfère ne pas y penser.", 2.4f);
-
-        // ══ 3. RESPIRER ══
-        StartCoroutine(MoveCamera(geo.beach + new Vector3(0f, 0.4f, 0f), 3.4f, 3f));
-        yield return Thought("Je vois sans yeux. Donc j'utilise déjà quelque chose. Du mana ?", 1.4f);
-        yield return Thought("Je n'ai plus de poumons, mais l'idée de respirer est toujours là. J'essaie. Inspirer... expirer.", 0.6f);
-        yield return OrbBreath(2, 2.8f, 0.1f);                    // rien ne vient
+        StartCoroutine(HudIn("coeur", 1.2f));
+        yield return Thought("Statut ? Menu ?... Rien. Pas de système. Alors je me concentre... et je respire.", 0.3f);
+        StartCoroutine(MoveCamera(geo.beach + new Vector3(0f, 0.4f, 0f), 3.4f, 2f));
         SpawnFreeMotes(geo.beach, 36);
         StartCoroutine(MoteLoop());
-        yield return Breathe(2, mana, manaMax * 0.15f);
-        yield return Thought("...Là. Des points de lumière, sans couleur. Ils se rapprochent quand j'inspire.", 0.4f);
-        StartCoroutine(HudIn("mana", 1.4f));
-        yield return Breathe(2, mana, manaMax * 0.3f);
-        yield return Thought("Et ceux que j'ai avalés, je peux les renvoyer. Les diriger. Mal, mais je peux.", 1.6f);
-        // le temps passe : les jours et les nuits défilent, les orbites deviennent des anneaux
-        var cycles = StartCoroutine(DayNightCycles(4, 2.2f));
-        StartCoroutine(GrowRings(geo.beach, 9f, mana, manaMax));
-        yield return Caption("Des jours passent. Peut-être deux semaines. La sphère ne fait rien d'autre que respirer.", 2.6f);
-        yield return Thought("La nuit, le mana vient tout seul. Le jour, il faut forcer.", 2f);
-        yield return Thought("Et je ne peux pas tout garder. Au-delà d'un certain point, ça déborde et ça m'échappe.", 0.4f);
-        StartCoroutine(Overflow(8));
-        yield return Wait(1.6f);
-        if (cycles != null) StopCoroutine(cycles);   // nulle si elle s'est déjà terminée (cinématique passée)
-        StartCoroutine(LightTo(DawnC, 0.8f, 2.5f));
-        yield return Thought("Des anneaux tout autour de moi. C'est beau... et ça ne sert à rien. Je les fais tourner, c'est tout.", 1.8f);
-        StartCoroutine(MoveCamera(geo.beach + new Vector3(0f, 1.6f, 0f), 6.5f, 2f));
-        yield return Thought("Je ne vais pas passer l'éternité à tourner en rond sur une plage !", 0.6f);
+        StartCoroutine(HudIn("mana", 1.2f));
+        yield return Breathe(1, mana, manaMax * 0.3f);
+        yield return Thought("Des points de lumière. Du mana. Ils viennent quand j'inspire.", 0.5f);
+        var cycles = StartCoroutine(DayNightCycles(2, 1.6f));
+        StartCoroutine(GrowRings(geo.beach, 4f, mana, manaMax));
+        yield return Caption("Des jours passent. La sphère ne fait que respirer.", 0.8f);
+        StartCoroutine(Overflow(4));
+        if (cycles != null) StopCoroutine(cycles);
+        StartCoroutine(LightTo(DawnC, 0.8f, 1.5f));
+        StartCoroutine(MoveCamera(geo.beach + new Vector3(0f, 1.6f, 0f), 6.5f, 1.5f));
+        yield return Thought("Je ne vais pas passer l'éternité à tourner en rond sur une plage !", 0.2f);
 
-        // ══ 4. LA MOUETTE ══
-        // elle traverse le ciel au moment où tout part : le mana l'atteint en plein vol
+        // ══ 3. LA MOUETTE ══
         Vector3 gullFrom = geo.beach + new Vector3(-10f, 3.4f, 0f), gullTo = geo.beach + new Vector3(10f, 3.6f, 0f);
         CreateGull(gullFrom, 1f, 90f - 180f);
         gullStop = false;
-        StartCoroutine(GullFly(new List<Vector3> { gullTo }, 6f, 1f, false));
-        yield return Thought("...ASSEZ !", 0.2f);
+        StartCoroutine(GullFly(new List<Vector3> { gullTo }, 7f, 1f, false));
+        yield return Thought("...ASSEZ !", 0.1f);
         yield return Blast(geo.beach, mana);
-        // la poussière qui la vise
-        Vector3 hit = GullVisual() + (Vector3)(Forward(gullHeading) * 6f * 0.35f);
+        Vector3 hit = GullVisual() + (Vector3)(Forward(gullHeading) * 7f * 0.35f);
         yield return ShootMote(geo.beach, hit, 0.35f);
         gullStop = true;
         Fx.Play("shine", hit, 1f, 18f, 82, new Color(0.7f, 0.9f, 1f));
         Sfx.Play("hit_claw_1", hit, 0.5f);
         yield return GullFall(geo.beach + new Vector3(1.4f, 0.5f, 0f));
-        StartCoroutine(LightTo(DayC, 1f, 4f));
-        StartCoroutine(OrbLightTo(0.7f, 3f));
-        StartCoroutine(MoveCamera(Vector3.Lerp(geo.beach, gullPos, 0.5f) + new Vector3(0f, 0.3f, 0f), 2.6f, 2f));
-        yield return Caption("Une mouette passait par là. Mauvais moment.", 1.6f);
-        yield return Thought("Non, non... je ne voulais pas...", 1.2f);
-        StartCoroutine(PossessGull(geo.beach, 4f));
-        yield return Thought("Elle est vivante. Je la sens. Il y a du mana en elle aussi, chaud, qui circule partout... et le mien est en train de le remplacer.", 2.4f);
-        yield return Thought("Je pourrais tout prendre. Je sens que ça me ferait grandir.", 1.8f);
-        yield return Thought("...Non. Pas comme ça.", 1.4f);
+        StartCoroutine(LightTo(DayC, 1f, 3f));
+        StartCoroutine(OrbLightTo(0.7f, 2f));
+        StartCoroutine(MoveCamera(Vector3.Lerp(geo.beach, gullPos, 0.5f) + new Vector3(0f, 0.3f, 0f), 2.6f, 1.5f));
+        yield return Caption("Une mouette passait par là. Mauvais moment.", 0.6f);
+        StartCoroutine(PossessGull(geo.beach, 2f));
+        yield return Thought("Elle est vivante... et mon mana est en elle. Est-ce qu'elle m'obéit ? Vole.", 0.6f);
         gullPose = 5;
         gullHeading = 0f;
         Fx.Play("smoke_circle", gullPos, 0.8f, 16f, 30, new Color(0.3f, 0.3f, 0.32f, 0.7f));
-        yield return Thought("Mais si mon mana est en elle... est-ce qu'elle m'obéit ? Vole.", 1f);
 
-        // ══ 5. SURVOL DE L'ÎLE ══
+        // ══ 4. SURVOL, PUIS LA FISSURE ══
         Vector3 crater = geo.crater;
         Vector3 toCrater = (crater - geo.beach).normalized;
         Vector3 side = new Vector3(-toCrater.y, toCrater.x, 0f);
         var flight = new List<Vector3>
         {
             geo.beach + toCrater * 3f + side * 1.5f,
-            Vector3.Lerp(geo.beach, crater, 0.45f) + side * 5f,
-            crater + new Vector3(-3.5f, -2.5f, 0f),
-            crater + new Vector3(2.5f, -1f, 0f),
-            crater + new Vector3(2f, 3f, 0f),
-            crater + new Vector3(-3f, 2f, 0f),
-            Vector3.Lerp(crater, geo.outside, 0.5f) - side * 2f,
+            crater + new Vector3(-3f, -2f, 0f),
+            crater + new Vector3(2f, 2.5f, 0f),
             geo.outside + side * 1.5f,
-            geo.beach - (Vector3)geo.seaDir * 6f + side * 4f,
-            geo.beach + (Vector3)geo.seaDir * 3f + side * 2f,
             geo.beach + new Vector3(0f, -0.55f, 0f),
         };
         var sails = SpawnSails(geo.sails);
-        StartCoroutine(ManaTo(mana, manaMax, 14f));
+        StartCoroutine(ManaTo(mana, manaMax, 8f));
         camFollow = gull;
-        camFollowSize = 11f;
+        camFollowSize = 14f;
         gullStop = false;
-        StartCoroutine(GullFly(flight, 9f, 1f, true));
-        yield return Thought("Je vois à travers ses yeux. Je sens le vent sous ses ailes... Je vole.", 1.6f);
-        camFollowSize = 15f;
-        while (!skip && gullWp < 2) yield return null;
-        yield return Thought("Une seule plage. De la jungle partout. Et le volcan au milieu, qui fume. Il est vivant, lui aussi.", 2f);
-        while (!skip && gullWp < 7) yield return null;
-        camFollowSize = 12f;
-        while (!skip && gullWp < 9) yield return null;
-        // la mouette regarde vers le large : des voiles
-        camFollow = null;
-        StartCoroutine(MoveCamera(Vector3.Lerp(geo.beach, geo.sails, 0.6f), 9f, 2f));
-        yield return Thought("Des voiles, là-bas. Il y a des humains, quelque part de l'autre côté.", 1.6f);
-        camFollow = gull;
-        camFollowSize = 6f;
-        yield return Thought("S'ils accostent, la première chose qu'ils trouveront, c'est une pierre précieuse posée sur le sable. Je ne peux pas rester là.", 1.4f);
+        StartCoroutine(GullFly(flight, 15f, 1f, true));
+        yield return Thought("Je vole ! La jungle, un volcan qui fume... et des voiles, au loin. Des humains.", 0.6f);
+        yield return Thought("Je ne peux pas rester sur cette plage.", 0.4f);
         while (!skip && gullPose != 5) yield return null;
         camFollowSize = 5f;
         gullHeading = 0f;
         orbHeld = true;
         orbBob = 0f;
-        yield return Wait(0.5f);
-        // vers la fissure : par la jungle, puis dans le tunnel
         var toCave = new List<Vector3>
         {
-            geo.beach - (Vector3)geo.seaDir * 4f,
             Vector3.Lerp(geo.beach, geo.outside, 0.5f) + side * 2f,
             geo.outside,
         };
         camFollowSize = 10f;
-        StartCoroutine(GullFly(toCave, 9f, 0.8f, false));
-        yield return Thought("Il me faut un abri... Cette fissure, dans le flanc de la montagne.", 1.2f);
+        StartCoroutine(GullFly(toCave, 13f, 0.8f, false));
+        yield return Thought("Un abri... cette fissure, dans le flanc de la montagne.", 0.3f);
         while (!skip && gullWp < toCave.Count) yield return null;
         ForceDungeonView = true;
         camFollowSize = 4.5f;
         var inside = new List<Vector3>(geo.tunnel);
         Vector3 drop = corePos + new Vector3(0.04f, -0.36f, 0f) * coreScale.y;
         inside[inside.Count - 1] = drop + new Vector3(0f, -0.5f, 0f);
-        yield return GullDirect(inside, 5f, 0.35f);
+        yield return GullDirect(inside, 8f, 0.35f);
         gullHeading = 0f;
         yield return DropOrb(drop);
-        yield return Thought("Doucement... Voilà. Tu peux partir. Merci.", 1f);
         var back = new List<Vector3>(geo.tunnel);
         back.Reverse();
         back.Add(geo.outside + (geo.outside - geo.entrance).normalized * 3f);
         camFollow = null;
         StartCoroutine(GullLeave(back));
 
-        // ══ 6. DEVENIR LA GROTTE ══
-        StartCoroutine(LightTo(CaveC, 0.18f, 2.5f));
-        StartCoroutine(OrbLightTo(1.6f, 2.5f));
-        StartCoroutine(MoveCamera(orb.position, 3.2f, 2.5f));
-        yield return Thought("Sur la plage, mon mana s'était accroché à la roche. Ici, il n'y a que de la roche.", 1.6f);
-        yield return Thought("J'expire. Lentement. Dans le sol, dans les parois...", 0.6f);
-        StartCoroutine(OrbBreath(1, 3f, -0.08f));
-        StartCoroutine(ManaTo(mana, manaMax * 0.55f, 3f));
-        StartCoroutine(MoveCamera(Vector3.Lerp(corePos, geo.entrance, 0.4f), 5.5f, 4f));
+        // ══ 5. DEVENIR LA GROTTE ══
+        StartCoroutine(LightTo(CaveC, 0.18f, 1.5f));
+        StartCoroutine(OrbLightTo(1.6f, 1.5f));
+        StartCoroutine(OrbBreath(1, 2f, -0.08f));
+        StartCoroutine(ManaTo(mana, manaMax * 0.55f, 2f));
+        StartCoroutine(MoveCamera(Vector3.Lerp(corePos, geo.entrance, 0.4f), 5.5f, 2.5f));
+        StartCoroutine(Thought("J'expire, dans le sol, dans les parois... Tout ça, c'est moi.", 0.6f));
         yield return Ripple(geo);
-        yield return Thought("...Oh.", 1.2f);
-        yield return Thought("Je sens la pierre comme je sentais la mouette. Le sol, les murs, le tunnel jusqu'à l'entrée. Tout ça, c'est moi.", 2.4f);
-        StartCoroutine(MoveCamera(corePos + new Vector3(0f, 0.2f, 0f), 2.8f, 2f));
-        yield return Thought("Et si c'est mon corps, je peux le bouger.", 1f);
+        StartCoroutine(MoveCamera(corePos + new Vector3(0f, 0.2f, 0f), 2.8f, 1.5f));
         yield return RaisePedestal(coreSr, corePos, coreScale, mana, manaMax);
         if (core != null) core.transform.localScale = coreScale;
         if (coreLight != null) coreLight.intensity = coreLightI * 1.4f;
         if (orb != null) orb.gameObject.SetActive(false);
-        yield return Thought("Un socle. Pour ne plus traîner par terre.", 1.6f);
-        yield return Thought("...C'est épuisant. Chaque chose que je façonne me vide.", 2f);
-
-        // ══ 7. LE PREMIER SOUFFLE ══
-        yield return Thought("Alors je respire. Pas seulement avec moi. Avec toute la grotte.", 0.6f);
-        StartCoroutine(MoveCamera(Vector3.Lerp(corePos, geo.entrance, 0.45f), 5.5f, 3f));
-        StartCoroutine(LightTo(DayC, 1f, 5f));
-        StartCoroutine(ManaTo(mana, Mathf.Max(mana0, manaMax * 0.9f), 4.5f));
-        yield return CaveBreath(geo, corePos, 4.5f);
-        if (coreLight != null) StartCoroutine(Pulse(coreLight, coreLightI, 2.5f, 1.6f));
-        yield return Thought("C'est tellement plus fort...", 1.4f);
-        StartCoroutine(MoveCamera(corePos, 6.5f, 3f));
-        StartCoroutine(HudIn("xp", 1.4f));
-        yield return Thought("Pour l'instant, je ne suis qu'un trou dans une montagne. Mais je peux grandir.", 2f);
-        StartCoroutine(HudIn("jour", 1.4f));
-        yield return Caption("Jour 1. Sous la montagne, quelque chose respire.", 2.4f);
+        StartCoroutine(MoveCamera(Vector3.Lerp(corePos, geo.entrance, 0.45f), 5.5f, 2f));
+        StartCoroutine(LightTo(DayC, 1f, 3f));
+        StartCoroutine(ManaTo(mana, Mathf.Max(mana0, manaMax * 0.9f), 2.5f));
+        StartCoroutine(Thought("Un socle. Et je respire avec toute la grotte.", 0.4f));
+        yield return CaveBreath(geo, corePos, 2f);
+        if (coreLight != null) StartCoroutine(Pulse(coreLight, coreLightI, 2f, 1.6f));
+        StartCoroutine(MoveCamera(corePos, 6.5f, 2f));
+        StartCoroutine(HudIn("xp", 1.2f));
+        StartCoroutine(HudIn("jour", 1.2f));
+        yield return Caption("Jour 1. Sous la montagne, quelque chose respire.", 0.9f);
         EvolutionFx.Play(corePos, new Color(0.55f, 0.85f, 1f), 1.6f);
-        yield return Thought("Si je dois être un donjon... autant être un bon donjon.", 2.6f);
+        yield return Thought("Si je dois être un donjon... autant être un bon donjon.", 1.3f);
         caption.text = "";
         yield return Bars(false);
 

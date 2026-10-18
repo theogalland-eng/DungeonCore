@@ -967,6 +967,17 @@ public static class DevInspect3
     public static string English() { GameSettings.Language = "en"; Loc.Apply(true); return "english " + Loc.T("Monstres {0}"); }
     public static string French() { GameSettings.Language = "fr"; Loc.Apply(false); return "français"; }
     public static string LocTest() => Loc.T("Jour 3  ·  Printemps  ·  Aube") + " | " + Loc.T("Talent acquis : Maçon des abîmes") + " | " + Loc.T("Accompli : Creuser un vrai repaire  (+60 mana)") + " | " + Loc.T("<color=#B79CFF>Pensées du Noyau</color>\nCreuser un vrai repaire  <color=#9A96B0>(13/20)</color>");
+    public static string ForceBrawl()
+    {
+        AdventurerAI a = null, b = null;
+        foreach (var x in AdventurerAI.All) { if (x == null || x.IsDead || x.Life == null) continue; if (a == null) a = x; else if (b == null && Vector2.Distance(a.transform.position, x.transform.position) < 6f) b = x; }
+        if (a == null || b == null) return "pas de paire";
+        bool ok = a.Life.StartBrawl(b.Life, null);
+        var p = (a.transform.position + b.transform.position) / 2f;
+        return $"bagarre={ok} " + DevInspect.Shot(p.x, p.y + 0.6f, 3.2f, 1200, 800, "brawl");
+    }
+    public static string BrawlShot() { foreach (var x in AdventurerAI.All) if (x != null && x.Life != null && x.Life.Activity != null && x.Life.Activity.Contains("bagarre")) { var p = x.transform.position; return DevInspect.Shot(p.x, p.y + 0.6f, 3.2f, 1200, 800, "brawl"); } return "aucune"; }
+    public static string IntroState() { var c = CinematicDirector.Instance; if (c == null) return "pas de directeur"; bool r = (bool)typeof(CinematicDirector).GetField("introRunning", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(c); return $"intro={r} t={Time.realtimeSinceStartup:0.0}"; }
     public static string TacticsCount() =>$"tactiques lancées : {GobelinAI.TacticsUsed}";
 }
 #endif

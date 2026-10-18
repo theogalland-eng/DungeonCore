@@ -203,3 +203,9 @@ Mise en ligne du projet sur GitHub (ce dépôt), avec cette documentation.
 ### English
 
 - 🇬🇧 **Version anglaise** (Options → *English*, ou automatiquement si le téléphone est en anglais) : un pré-processeur TextMesh Pro (`Loc`) traduit chaque texte juste avant l'affichage, sans toucher au code. Le texte est découpé par balises et par lignes ; chaque morceau est cherché dans `Resources/Localization/en.txt` (≈ 1 850 entrées : interface, dialogues, cinématiques, catalogue, rumeurs, chroniques), sinon comparé aux modèles à trous (`Talent acquis : {0}`) dont le contenu est traduit à son tour, puis découpé par séparateurs (`·`, `→`, virgules, ponctuation finale). Outils : `Tools~/extract_strings.py` + `build_loc.py`.
+
+### Retours de jeu (bagarres, bulles, intro)
+
+- 🥊 **Bagarres plus rares**, presque jamais au fond du donjon ; **à mort** seulement exceptionnellement (≈ 3 à 10 %, l'alcool ou l'or s'en mêlant, trois fois moins dans le donjon).
+- 💬 **Bulles de dialogue** au-dessus des têtes (intrus, colons, monstres), qui suivent le personnage et s'écartent pour ne pas se chevaucher. Une bagarre a désormais une **raison** que l'on comprend en lisant leurs répliques : dette, triche aux dés, insulte, bière renversée, butin, peur au fond du donjon.
+- 🎬 **Cinématique d'introduction raccourcie à une minute** (même histoire : réveil en mer, la plage, le mana, la mouette, la fissure, la grotte) ; texte des sous-titres à vitesse constante.

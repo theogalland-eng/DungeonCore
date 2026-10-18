@@ -1658,7 +1658,7 @@ public class AdventurerAI : MonoBehaviour
     {
         if (!force && Time.time < nextSpeak) return;
         nextSpeak = Time.time + 2.5f;
-        FloatingText.Spawn(transform.position + Vector3.up * 0.85f, text, c, 0.9f);
+        SpeechBubble.Show(transform, text, c);
     }
 
     private void UpdateAnimator()

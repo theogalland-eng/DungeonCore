@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -250,10 +250,13 @@ public partial class CinematicDirector : MonoBehaviour
         if (!thoughtMode) { caption.fontStyle = FontStyles.Normal; caption.color = NarratorColor; }
         caption.text = "";
         caption.alpha = 1f;
-        for (int i = 1; i <= text.Length && !skip; i++)
+        // machine à écrire à vitesse constante (≈ 55 caractères par seconde, quel que soit le nombre d'images)
+        for (float el = 0f; !skip; el += Time.unscaledDeltaTime)
         {
-            caption.text = text.Substring(0, i);
-            yield return new WaitForSecondsRealtime(0.022f);
+            int n = Mathf.Min(text.Length, Mathf.FloorToInt(el * 55f) + 1);
+            caption.text = text.Substring(0, n);
+            if (n >= text.Length) break;
+            yield return null;
         }
         caption.text = text;
         for (float t = 0f; t < hold && !skip; t += Time.unscaledDeltaTime) yield return null;

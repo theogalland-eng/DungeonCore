@@ -75,6 +75,21 @@ public class AdventurerLife : MonoBehaviour
     private FoodBait bait;
     private AdventurerLife opponent;
     private bool brawlToDeath;
+    private string[] brawlLines;
+    private int brawlLine;
+    private bool brawlLead;   // celui qui a lancé la dispute mène l'échange de répliques
+    private float nextBrawlLine;
+
+    // Raisons des bagarres : ce qu'ils se crient (bulles), pour que l'on comprenne la dispute
+    private static readonly string[][] Quarrels =
+    {
+        new[] { "Tu me dois encore dix pièces !", "Je t'ai remboursé, menteur !", "Paie ce que tu dois !", "Va te faire voir !" },
+        new[] { "Tu as triché aux dés hier soir !", "Mauvais perdant !", "Rends-moi mon argent !", "Jamais !" },
+        new[] { "Répète un peu, pour voir ?", "T'es sourd en plus d'être laid ?", "Tu vas ravaler tes mots !", "Essaie donc !" },
+    };
+    private static readonly string[] DrunkQuarrel = { "*hic* T'as renversé ma bière !", "C'était ma bière, ivrogne !", "Viens là que je t'apprenne !", "*hic* Tiens-toi tranquille !" };
+    private static readonly string[] FearQuarrel = { "C'est ta faute si on est coincés ici !", "C'est toi qui voulais descendre !", "On aurait dû rester au port !", "Arrête de pleurnicher !" };
+    private static readonly string[] LootQuarrel = { "Ce trésor est à moi !", "Je l'ai vu en premier !", "Lâche ça !", "Partage, ou je te le prends !" };
     private float nextPunch, recklessUntil;
     private GameObject campfire;
 
@@ -287,10 +302,11 @@ public class AdventurerLife : MonoBehaviour
 
         // bagarre
         bool hotHead = Has(Trait.Brawler) || drunk > 0.55f;
-        if (hotHead && Random.value < (Has(Trait.Brawler) ? 0.05f : 0.025f) * (1f + drunk))
+        float brawlChance = (Has(Trait.Brawler) ? 0.018f : 0.008f) * (1f + drunk) * (ai.IsInsideDungeon ? 0.15f : 1f);
+        if (hotHead && Random.value < brawlChance)
         {
             var other = PickQuarrel(pos);
-            if (other != null) StartBrawl(other, "Tu me cherches ?!");
+            if (other != null) StartBrawl(other, null);
         }
     }
 
@@ -534,16 +550,28 @@ public class AdventurerLife : MonoBehaviour
     public bool StartBrawl(AdventurerLife other, string line)
     {
         if (other == null || other == this || !other.ai.CanBeBusy || !ai.CanBeBusy) return false;
-        // à mort ? surtout quand l'alcool ou l'or s'en mêle
-        bool lethal = Random.value < 0.3f + (drunk > 0.5f || other.drunk > 0.5f ? 0.3f : 0f) + (Has(Trait.Greedy) ? 0.1f : 0f);
+        // à mort ? très rarement (l'alcool ou l'or s'en mêlent), presque jamais au fond du donjon
+        bool lethal = Random.value < (0.03f + (drunk > 0.5f || other.drunk > 0.5f ? 0.05f : 0f) + (Has(Trait.Greedy) ? 0.02f : 0f)) * (ai.IsInsideDungeon ? 0.3f : 1f);
         if (!Begin(Task.Brawl, 16f)) return false;
         if (!other.Begin(Task.Brawl, 16f)) { Finish(); ai.EndBusy(); return false; }
         opponent = other; other.opponent = this;
         Brawls++;
         CoreVoice.Say("brawl", lethal ? "Qu'ils s'entretuent. Moins de travail pour moi." : "Ils se battent entre eux... Délicieux.");
         brawlToDeath = other.brawlToDeath = lethal;
-        ai.Speak(line, new Color(1f, 0.5f, 0.4f), true);
-        other.ai.Speak(Random.value < 0.5f ? "Viens là !" : "Tu vas le regretter !", new Color(1f, 0.5f, 0.4f), true);
+        // la raison de la dispute, qu'ils se crient à tour de rôle
+        string[] lines = line == "Ce trésor est à moi !" ? LootQuarrel
+                       : drunk > 0.5f || other.drunk > 0.5f ? DrunkQuarrel
+                       : ai.IsInsideDungeon ? FearQuarrel
+                       : Quarrels[Random.Range(0, Quarrels.Length)];
+        brawlLines = other.brawlLines = lines;
+        brawlLead = true;
+        other.brawlLead = false;
+        brawlLine = 2;
+        nextBrawlLine = Time.time + 2.6f;
+        var red = new Color(1f, 0.5f, 0.4f);
+        ai.Speak(lines[0], red, true);
+        other.ai.Speak(lines[1], red, true);
+        if (lethal) ai.Speak(lines[0] + "  — Je vais te tuer !", new Color(1f, 0.3f, 0.25f), true);
         if (Has(Trait.Brawler)) Reveal(Trait.Brawler);
         if (drunk > 0.5f) Reveal(Trait.Drunkard);
         return true;
@@ -577,6 +605,14 @@ public class AdventurerLife : MonoBehaviour
         if (d > 0.85f) { ai.LifeFollow(opponent.transform); ai.LifeMove(1.1f); return true; }
         ai.LifeStop();
         ai.LifeFace(opponent.transform.position);
+        // ils continuent de s'invectiver
+        if (brawlLead && brawlLines != null && Time.time >= nextBrawlLine)
+        {
+            nextBrawlLine = Time.time + Random.Range(2.4f, 3.4f);
+            var who = brawlLine % 2 == 0 ? ai : opponent.ai;
+            who.Speak(brawlLines[brawlLine % brawlLines.Length], new Color(1f, 0.5f, 0.4f), true);
+            brawlLine++;
+        }
         if (Time.time >= nextPunch)
         {
             nextPunch = Time.time + Random.Range(0.8f, 1.2f);
@@ -633,7 +669,7 @@ public class AdventurerLife : MonoBehaviour
             if (a == null || a == looter || a.Life == null || a.Map != looter.Map) continue;
             if (!a.Life.Has(Trait.Greedy) || Vector2.Distance(a.transform.position, looter.transform.position) > 6f) continue;
             a.Life.Reveal(Trait.Greedy);
-            if (Random.value < 0.45f) a.Life.StartBrawl(looter.Life, "Ce trésor est à moi !");
+            if (Random.value < (a.IsInsideDungeon ? 0.08f : 0.25f)) a.Life.StartBrawl(looter.Life, "Ce trésor est à moi !");
             else a.Speak("Et ma part ?!", new Color(1f, 0.85f, 0.3f), true);
             break;
         }

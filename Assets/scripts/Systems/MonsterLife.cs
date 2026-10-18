@@ -148,7 +148,7 @@ public class MonsterLife : MonoBehaviour
     {
         if (Time.time < nextBark) return;
         nextBark = Time.time + 6f;
-        FloatingText.Spawn(transform.position + Vector3.up * 0.75f, text, c, 0.8f);
+        SpeechBubble.Show(transform, text, c, 2f, 0.85f);
     }
 
     // ─────────────────────────────────────────────

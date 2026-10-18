@@ -62,8 +62,7 @@ public class SettlerAI : MonoBehaviour
         }
     }
 
-    public void Say(string text, float dur = 1.6f) =>
-        FloatingText.Spawn(transform.position + Vector3.up * 0.9f, text, new Color(0.95f, 0.92f, 0.8f), dur);
+    public void Say(string text, float dur = 2.6f) => SpeechBubble.Show(transform, text, new Color(0.55f, 0.45f, 0.3f), dur);
 
     private enum Phase { Idle, Moving, Working, Hidden }
     private Phase phase = Phase.Idle;
