@@ -639,6 +639,7 @@ public class MainMenu : MonoBehaviour
         VolumeRow(box, "Bruitages", "Combats, pièges, creusage, interface", () => GameSettings.SfxVolume, v => GameSettings.SfxVolume = v, ref y);
         VolumeRow(box, "Taille de l'interface", "Boutons et textes plus grands (ou plus petits)", () => (GameSettings.UiScale - 0.8f) / 0.6f,
             v => GameSettings.UiScale = 0.8f + Mathf.Clamp01(v) * 0.6f, ref y, () => $"{Mathf.RoundToInt(GameSettings.UiScale * 100)} %", 1f / 6f);
+        ToggleRow(box, "Tutoriel guidé", "Conseils et flèche vers le bouton à toucher", () => GameSettings.TutorialHints, v => GameSettings.TutorialHints = v, ref y);
         y = 100f;
         colX = 440f;
         ToggleRow(box, "Cinématiques", "Naissance de l'orbe, premier bateau", () => GameSettings.Cinematics, v => GameSettings.Cinematics = v, ref y);

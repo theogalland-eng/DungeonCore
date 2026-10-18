@@ -881,6 +881,15 @@ public static class DevInspect3
         sb.Append($" | chasses={AdventurerLife.Hunts} bagarres={AdventurerLife.Brawls} intrus={AdventurerAI.All.Count} | tactiques={GobelinAI.TacticsUsed} temps x{Time.timeScale} jour {GameManager.Instance?.CurrentDay} {GameManager.Instance?.DayProgress:0.00}");
         return sb.ToString();
     }
+    public static string TutoState()
+    {
+        var os = ObjectiveSystem.Instance;
+        var lbl = os != null ? (TMPro.TextMeshProUGUI)typeof(ObjectiveSystem).GetField("label", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(os) : null;
+        var g = TutorialGuide.Instance;
+        string tn = g != null ? (string)typeof(TutorialGuide).GetField("targetName", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(g) : "-";
+        return $"idx={os?.Index} hints={GameSettings.TutorialHints} guide={(g != null)} cible={tn} label={lbl?.text}";
+    }
+    public static string TutoExpand() { GameHUD.Instance.Side.SetExpanded(true); return "panneau ouvert"; }
     public static string TacticsCount() =>$"tactiques lancées : {GobelinAI.TacticsUsed}";
 }
 #endif

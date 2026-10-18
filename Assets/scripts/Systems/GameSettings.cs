@@ -66,6 +66,13 @@ public static class GameSettings
         set => PlayerPrefs.SetInt("opt_vibrate", value ? 1 : 0);
     }
 
+    /// <summary>Tutoriel guidé : conseil sous l'objectif et flèche vers le bouton à toucher.</summary>
+    public static bool TutorialHints
+    {
+        get => PlayerPrefs.GetInt("opt_tuto", 1) == 1;
+        set => PlayerPrefs.SetInt("opt_tuto", value ? 1 : 0);
+    }
+
     public static bool ScreenShake
     {
         get => PlayerPrefs.GetInt("opt_shake", 1) == 1;

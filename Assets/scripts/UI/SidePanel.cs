@@ -41,6 +41,7 @@ public class SidePanel : MonoBehaviour
     private readonly List<ItemButton> itemButtons = new List<ItemButton>();
 
     public bool Expanded => expanded;
+    public CatalogCategory CurrentTab => currentTab;
 
     public static SidePanel Create(RectTransform parent)
     {

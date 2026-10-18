@@ -96,6 +96,8 @@ public class GameHUD : MonoBehaviour
 
     /// <summary>Masque tout le HUD (cinématiques).</summary>
     /// <summary>Panneau supplémentaire dans le HUD (objectifs...).</summary>
+    public RectTransform Root => root;
+    public SidePanel Side => sidePanel;
     public RectTransform AddPanel(string name, Vector2 anchor, Vector2 pivot, Vector2 pos, Vector2 size) => Panel(name, root, anchor, pivot, pos, size);
     public static TextMeshProUGUI AddLabel(RectTransform parent, string text, float size, Color color, Vector2 pos, Vector2 box, TextAlignmentOptions align) =>
         Label(parent, text, size, color, pos, box, align);
