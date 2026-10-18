@@ -48,7 +48,7 @@ public class CrawlerMode : MonoBehaviour
 
     /// <summary>Tout est figé (dialogue, boutique, menu, transition).</summary>
     public bool Frozen =>
-        victory || GearWindow.IsOpen || shop != null || transitioning || (StoryManager.Instance != null && StoryManager.Instance.IsShowing) ||
+        victory || GearWindow.IsOpen || SkillTreeWindow.IsOpen || shop != null || transitioning || (StoryManager.Instance != null && StoryManager.Instance.IsShowing) ||
         (MainMenu.Instance != null && MainMenu.Instance.InPause) || (InteriorSystem.Instance != null && InteriorSystem.Instance.Moving);
     public bool InputBlocked => Frozen;
 
@@ -121,6 +121,16 @@ public class CrawlerMode : MonoBehaviour
         if (it.rarity >= CrawlerGear.Rarity.Epic) { Sfx.Play("shine"); Haptics.Pulse(); }
     }
 
+    private Button talentsBtn;
+    private RectTransform bossPanel, bossFill;
+    private TextMeshProUGUI bossName;
+
+    /// <summary>Données d'un étage déjà créé (renforts des boss).</summary>
+    public CrawlerDungeon.Floor FloorData(int n) => floors.TryGetValue(n, out var f) ? f : null;
+
+    /// <summary>Un talent de classe vient d'être appris.</summary>
+    public void OnSkillsChanged() => RefreshStats(false);
+
     private class Recruit { public string name; public AdventurerAI.Role role; public int rank, cost; public bool female; }
 
     private static readonly string[] MaleClass = { "Guerrier", "Archer", "Mage", "Soigneur" };
@@ -161,6 +171,7 @@ public class CrawlerMode : MonoBehaviour
                                       "first_dig", "first_summon", "first_decor", "first_room", "first_guardian", "tavern_first", "guild_first" }) story.SetFlag(f);
 
         CrawlerContracts.Reset();
+        CrawlerSkills.Reset();
         bag.Clear();
         for (int i = 0; i < equipped.Length; i++) equipped[i] = null;
         BuildTown();
@@ -236,6 +247,7 @@ public class CrawlerMode : MonoBehaviour
             {
                 MonsterMind.For(g).MakeGuardian(new[] { "Azhra", "Morvenna", "Kharn", "Vorth" }[rng.Next(4)], true);
                 g.SetBehavior(GobelinAI.GoblinBehavior.Stay);
+                CrawlerBoss.Attach(g, f.number);
             }
         }
     }
@@ -303,6 +315,7 @@ public class CrawlerMode : MonoBehaviour
         if (shop != null && kb != null && (kb.escapeKey.wasPressedThisFrame || kb.eKey.wasPressedThisFrame)) { CloseShop(); return; }
         if (!Frozen && kb != null && kb.tKey.wasPressedThisFrame) UseRecall();
         if (kb != null && kb.iKey.wasPressedThisFrame && shop == null) GearWindow.Toggle();
+        if (kb != null && kb.kKey.wasPressedThisFrame && shop == null) SkillTreeWindow.Toggle();
         TickHunger();
         // entrer dans un bâtiment en marchant vers sa porte
         if (!Frozen && Player.MoveInput.y > 0.5f && InteriorSystem.Instance != null && !InteriorSystem.Instance.Inside)
@@ -350,6 +363,7 @@ public class CrawlerMode : MonoBehaviour
             if (floor > deepest)
             {
                 deepest = floor;
+                GameHUD.Toast("Nouvel étage : +1 point de talent (touche K)", GameHUD.GoldColor);
                 if (System.Array.IndexOf(Checkpoints, floor) >= 0)
                     GameHUD.Toast($"Étage {floor} atteint : la Guilde peut désormais vous y faire descendre directement", GameHUD.GoldColor);
             }
@@ -489,7 +503,7 @@ public class CrawlerMode : MonoBehaviour
         if (c.currentHealth >= c.maxHealth) return;
         if (Player.InGesture) return;
         potions--;
-        float heal = c.maxHealth * 0.5f;
+        float heal = c.maxHealth * 0.5f * (1f + CrawlerSkills.Get("potion"));
         Player.Gesture(false, 0.7f, () =>
         {
             c.currentHealth = Mathf.Min(c.maxHealth, c.currentHealth + heal);
@@ -531,7 +545,7 @@ public class CrawlerMode : MonoBehaviour
         if (!indoors) satiety = Mathf.Max(0f, satiety - 100f / satietyDuration * Time.deltaTime * (Player.Running ? 1.6f : 1f) * Seasons.HungerMult);
         Player.StaminaRegenMult = satiety <= 0f ? 0.4f : satiety < 25f ? 0.65f : 1f;
         var c = Player.Combat;
-        c.damageMult = satiety <= 0f ? 0.8f : 1f;
+        c.damageMult = (satiety <= 0f ? 0.8f : 1f) * (c.currentHealth < c.maxHealth * 0.5f ? 1f + CrawlerSkills.Get("rage") : 1f);
         // affamé : les PV ne dépassent plus 80 %
         if (satiety <= 0f && c.currentHealth > c.maxHealth * 0.8f) c.currentHealth = c.maxHealth * 0.8f;
         if (satiety < 25f && satiety + 100f / satietyDuration * Time.deltaTime >= 25f)
@@ -713,17 +727,20 @@ public class CrawlerMode : MonoBehaviour
 
     private int WeaponCost => 60 + 55 * weaponLvl;
     private int ArmorCost => 50 + 50 * armorLvl;
-    private float HpMult => (1f + 0.25f * armorLvl) * (1f + 0.08f * rank) * (1f + GearSum(CrawlerGear.Stat.Health));
-    private float DmgMult => (1f + 0.22f * weaponLvl) * (1f + 0.08f * rank) * (1f + GearSum(CrawlerGear.Stat.Damage));
+    private float HpMult => (1f + 0.25f * armorLvl) * (1f + 0.08f * rank) * (1f + GearSum(CrawlerGear.Stat.Health)) * (1f + CrawlerSkills.Get("hp"));
+    private float DmgMult => (1f + 0.22f * weaponLvl) * (1f + 0.08f * rank) * (1f + GearSum(CrawlerGear.Stat.Damage)) * (1f + CrawlerSkills.Get("dmg"));
     public int PartyCount { get { int n = 0; foreach (var c in CrawlerCompanion.All) if (c != null && !c.IsDead) n++; return n; } }
 
     private void RefreshStats(bool heal)
     {
         Player.ApplyStats(HpMult, DmgMult, heal);
-        Player.SpeedMult = 1f + GearSum(CrawlerGear.Stat.Speed);
-        Player.GearStaminaMult = 1f + GearSum(CrawlerGear.Stat.Stamina);
-        Player.Combat.critChance = GearSum(CrawlerGear.Stat.Crit);
-        Player.Combat.dodgeChance = Mathf.Min(0.5f, GearSum(CrawlerGear.Stat.Dodge));
+        Player.SpeedMult = 1f + GearSum(CrawlerGear.Stat.Speed) + CrawlerSkills.Get("speed");
+        Player.GearStaminaMult = 1f + GearSum(CrawlerGear.Stat.Stamina) + CrawlerSkills.Get("stamina");
+        Player.Combat.critChance = GearSum(CrawlerGear.Stat.Crit) + CrawlerSkills.Get("crit");
+        Player.Combat.dodgeChance = Mathf.Min(0.5f, GearSum(CrawlerGear.Stat.Dodge) + CrawlerSkills.Get("dodge"));
+        Player.Combat.damageTakenMult = Mathf.Max(0.4f, 1f - CrawlerSkills.Get("taken"));
+        Player.Combat.lifeSteal = CrawlerSkills.Get("lifesteal");
+        if (Player.role == AdventurerAI.Role.Mage) Player.Combat.splashRadius = 1.3f * (1f + CrawlerSkills.Get("splash"));
         Player.SetTier(1 + armorLvl);   // chaque renfort d'armure se voit
     }
 
@@ -1087,6 +1104,26 @@ public class CrawlerMode : MonoBehaviour
         Act("Rappel", new Vector2(-450, 150), new Vector2(160, 80), new Color(0.2f, 0.3f, 0.5f, 0.9f), UseRecall);
         Act("Manger", new Vector2(-450, 240), new Vector2(160, 80), new Color(0.45f, 0.3f, 0.16f, 0.9f), () => { if (Player) Player.touchEat = true; });
         UIKit.BtnAt(hud, "Sac", GearWindow.Toggle, new Vector2(1, 1), new Vector2(-170, -16), new Vector2(140, 60), 24);
+        talentsBtn = UIKit.BtnAt(hud, "Talents", SkillTreeWindow.Toggle, new Vector2(1, 1), new Vector2(-324, -16), new Vector2(160, 60), 24);
+
+        // jauge du boss d'étage
+        bossPanel = UIKit.PanelBox("Boss", hud, new Vector2(0.5f, 1), new Vector2(0, -80), new Vector2(760, 74));
+        bossPanel.pivot = new Vector2(0.5f, 1);
+        bossName = UIKit.LabelAt(bossPanel, "", 22, new Color(1f, 0.75f, 0.6f), new Vector2(0, -6), new Vector2(720, 30), TextAlignmentOptions.Top, new Vector2(0.5f, 1));
+        UIKit.StyleHead(bossName);
+        var bbg = UIKit.PanelBox("Jauge", bossPanel, new Vector2(0.5f, 1), new Vector2(0, -40), new Vector2(720, 22), new Color(0.15f, 0.05f, 0.06f, 1f));
+        bbg.pivot = new Vector2(0.5f, 1);
+        bossFill = UIKit.Rect("Fill", bbg);
+        UIKit.Image(bossFill, new Color(0.85f, 0.22f, 0.2f), false);
+        bossFill.anchorMin = Vector2.zero; bossFill.anchorMax = Vector2.one; bossFill.offsetMin = new Vector2(3, 3); bossFill.offsetMax = new Vector2(-3, -3);
+        // repères des phases (66 % et 33 %)
+        foreach (float mark in new[] { 0.66f, 0.33f })
+        {
+            var m = UIKit.Rect("Phase", bbg);
+            m.anchorMin = new Vector2(mark, 0); m.anchorMax = new Vector2(mark, 1); m.sizeDelta = new Vector2(3, 0);
+            UIKit.Image(m, new Color(1f, 0.9f, 0.7f, 0.7f), false, false);
+        }
+        bossPanel.gameObject.SetActive(false);
 
         fade = UIKit.Image(UIKit.Stretch(UIKit.Rect("Fondu", go.transform)), new Color(0f, 0f, 0f, 0f), false, false);
         fade.raycastTarget = false;
@@ -1150,6 +1187,15 @@ public class CrawlerMode : MonoBehaviour
             sb.Append($"<size=85%><color=#E8C77F>Contrat</color> {ct.Title} <color={(ct.Done ? "#9CF0A8" : "#FFD966")}>{(ct.Done ? "rempli : prime au hall" : ct.Progress)}</color></size>\n");
         partyText.text = sb.ToString();
         skillFill.anchorMax = new Vector2(1f, Player.SkillReady);
+        var boss = CrawlerBoss.Near(Player.transform.position);
+        bossPanel.gameObject.SetActive(boss != null);
+        if (boss != null)
+        {
+            bossName.text = $"{boss.Title}  <size=75%><color=#C8BFA8>phase {boss.Phase}/3</color></size>";
+            bossFill.anchorMax = new Vector2(boss.Health01, 1f);
+        }
+        int pts = CrawlerSkills.Points;
+        UIKit.SetLabel(talentsBtn, pts > 0 ? $"Talents <color=#FFD966>+{pts}</color>" : "Talents");
         string label = Frozen ? null : InteractionLabel(out _);
         prompt.text = label != null ? $"[E] {label}" : "";
     }

@@ -54,6 +54,8 @@ public class AdventurerCombat : MonoBehaviour, IDamageable
     [System.NonSerialized] public float missChance;
     [System.NonSerialized] public float dodgeChance;
     [System.NonSerialized] public float critChance;
+    /// <summary>Dégâts subis (talents défensifs du mode Aventurier) et vol de vie.</summary>
+    [System.NonSerialized] public float damageTakenMult = 1f, lifeSteal;
 
     public void TakeDamage(float amount)
     {
@@ -69,6 +71,7 @@ public class AdventurerCombat : MonoBehaviour, IDamageable
             return;
         }
 
+        amount *= damageTakenMult;
         currentHealth -= amount;
         if (GetComponent<CrawlerPlayer>() != null) Haptics.Pulse();
         Sfx.Play("hit_flesh", transform.position, 0.6f);
@@ -170,6 +173,7 @@ public class AdventurerCombat : MonoBehaviour, IDamageable
         }
         if (target is WildAnimal beast) beast.TakeDamage(dmg, transform);
         else target.TakeDamage(dmg);
+        if (lifeSteal > 0f && currentHealth > 0f) currentHealth = Mathf.Min(maxHealth, currentHealth + dmg * lifeSteal);
         if (target is GobelinAI goblin) goblin.OnAttackedBy(transform);
         DLog.Log($"{adventurerName} attaque {target.GetName()} pour {dmg} dégâts");
     }

@@ -18,7 +18,9 @@ public class CrawlerPlayer : MonoBehaviour
     public float skillCooldown = 8f;
 
     public AdventurerCombat Combat { get; private set; }
-    public float SkillReady => Mathf.Clamp01(1f - (nextSkill - Time.time) / skillCooldown);
+    public float SkillReady => Mathf.Clamp01(1f - (nextSkill - Time.time) / EffectiveSkillCooldown);
+    /// <summary>Recharge réduite par les talents de classe.</summary>
+    public float EffectiveSkillCooldown => skillCooldown * Mathf.Max(0.3f, 1f - CrawlerSkills.Get("skillCd"));
     public Vector2 Facing => facing;
     public Vector2 MoveInput => move;
 
@@ -382,44 +384,54 @@ public class CrawlerPlayer : MonoBehaviour
     private void Skill()
     {
         if (Time.time < nextSkill) return;
-        nextSkill = Time.time + skillCooldown;
+        nextSkill = Time.time + EffectiveSkillCooldown;
         attackAnim = 0.5f;
+        float pow = 1f + CrawlerSkills.Get("skillPow"), rad = 1f + CrawlerSkills.Get("skillRad");
         switch (role)
         {
             case AdventurerAI.Role.Warrior:
                 // Tourbillon : frappe tout ce qui est autour
-                Fx.Play("smoke_ring", transform.position, 2.4f, 16f, 16, new Color(1f, 0.9f, 0.7f, 0.8f));
+                Fx.Play("smoke_ring", transform.position, 2.4f * rad, 16f, 16, new Color(1f, 0.9f, 0.7f, 0.8f));
                 Sfx.Play("swing", transform.position);
                 foreach (var g in new List<GobelinAI>(GobelinAI.All))
-                    if (g != null && g.IsAlive() && Vector2.Distance(g.transform.position, rb.position) <= 1.9f) { g.TakeDamage(Combat.attackDamage * 1.6f); g.OnAttackedBy(transform); }
+                    if (g != null && g.IsAlive() && Vector2.Distance(g.transform.position, rb.position) <= 1.9f * rad) { g.TakeDamage(Combat.attackDamage * 1.6f * pow); g.OnAttackedBy(transform); }
                 break;
             case AdventurerAI.Role.Archer:
             {
                 // Volée : trois flèches sur les trois cibles les plus proches
                 var list = new List<GobelinAI>();
-                foreach (var g in GobelinAI.All) if (g != null && g.IsAlive() && Vector2.Distance(g.transform.position, rb.position) <= 6f && Visible(rb.position, g.transform.position)) list.Add(g);
+                foreach (var g in GobelinAI.All) if (g != null && g.IsAlive() && Vector2.Distance(g.transform.position, rb.position) <= 6f * rad && Visible(rb.position, g.transform.position)) list.Add(g);
                 list.Sort((a, b) => Vector2.Distance(a.transform.position, rb.position).CompareTo(Vector2.Distance(b.transform.position, rb.position)));
-                for (int i = 0; i < Mathf.Min(3, list.Count); i++)
+                int arrows = 3 + Mathf.RoundToInt(CrawlerSkills.Get("arrows"));
+                for (int i = 0; i < Mathf.Min(arrows, list.Count); i++)
                 {
                     var g = list[i];
                     Projectile.FireFx("arrow", transform.position + Vector3.up * 0.35f, g.transform.position + Vector3.up * 0.25f, 0.55f, true,
-                        () => { if (g != null && g.IsAlive()) { g.TakeDamage(Combat.attackDamage * 1.3f); g.OnAttackedBy(transform); } }, 18f, 0.1f);
+                        () => { if (g != null && g.IsAlive()) { g.TakeDamage(Combat.attackDamage * 1.3f * pow); g.OnAttackedBy(transform); } }, 18f, 0.1f);
                 }
                 Sfx.Play("arrow_shoot", transform.position);
                 break;
             }
             case AdventurerAI.Role.Mage:
                 // Nova de feu autour de soi
-                Fx.Play("explosion", transform.position, 3.2f, 18f, 16, null, false, null, new Color(1f, 0.55f, 0.2f));
+                Fx.Play("explosion", transform.position, 3.2f * rad, 18f, 16, null, false, null, new Color(1f, 0.55f, 0.2f));
                 Sfx.Play("explosion", transform.position);
                 CameraController.Instance?.Shake(0.1f, 0.3f);
                 foreach (var g in new List<GobelinAI>(GobelinAI.All))
-                    if (g != null && g.IsAlive() && Vector2.Distance(g.transform.position, rb.position) <= 2.6f) { g.TakeDamage(Combat.attackDamage * 1.8f); g.OnAttackedBy(transform); }
+                    if (g != null && g.IsAlive() && Vector2.Distance(g.transform.position, rb.position) <= 2.6f * rad) { g.TakeDamage(Combat.attackDamage * 1.8f * pow); g.OnAttackedBy(transform); }
                 break;
             default:
                 // Prière : à genoux, soins importants
                 Gesture(true, 0.9f);
-                float heal = Combat.maxHealth * 0.45f;
+                float heal = Combat.maxHealth * 0.45f * pow;
+                if (CrawlerSkills.Get("partyHeal") > 0f)
+                    foreach (var m in CrawlerCompanion.All)
+                        if (m != null && !m.IsDead)
+                        {
+                            float h = m.Combat.maxHealth * 0.35f * pow;
+                            m.Combat.currentHealth = Mathf.Min(m.Combat.maxHealth, m.Combat.currentHealth + h);
+                            FloatingText.Spawn(m.transform.position + Vector3.up * 0.8f, $"+{Mathf.RoundToInt(h)}", new Color(0.45f, 1f, 0.5f), 1.1f);
+                        }
                 Combat.currentHealth = Mathf.Min(Combat.maxHealth, Combat.currentHealth + heal);
                 Fx.Play("heal", transform.position, 1.6f, 14f, 16, null, false, transform, new Color(0.4f, 1f, 0.5f));
                 Sfx.Play("heal", transform.position);

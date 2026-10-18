@@ -231,6 +231,8 @@ public static class CrawlerDungeon
         return 3;
     }
 
+    private static readonly string[] BossNames = { "", "", "Skrag la Fouine", "Mère Moisissure", "Ossegrince", "", "Hurle-Lune", "Vrask", "", "Comtesse Ysolde", "" };
+
     /// <summary>Familles de monstres d'un étage (contrats de chasse).</summary>
     public static string[] FamiliesOn(int floor) => Families[Mathf.Clamp(floor, 1, FloorCount)];
 
@@ -296,15 +298,18 @@ public static class CrawlerDungeon
                 if (item != null && rng.Next(3) > 0) builder.PlaceItemFree(item, RandomCell());
             }
         }
-        // gardiens : un seigneur orc à l'étage 5, une archiliche à l'étage 8
-        if (fl == 5 || fl == 8)
+        // gardiens : un boss dans la dernière salle de chaque étage (seigneur orc au 5, archiliche au 8 ;
+        // au 10, le seigneur de l'antre est posé devant le cristal par CrawlerMode)
+        if (fl >= 2 && fl < FloorCount)
         {
             var room = f.Last;
-            var g = SpawnMonster(fl == 5 ? "orc" : "lich", 3, room.Center + Vector3.down * 0.5f, f);
+            string fam = fl == 5 ? "orc" : fl == 8 ? "lich" : Families[fl][Families[fl].Length - 1];
+            var g = SpawnMonster(fam, Mathf.Min(3, 1 + (fl + 1) / 3), room.Center + Vector3.down * 0.5f, f);
             if (g != null)
             {
-                MonsterMind.For(g).MakeGuardian(fl == 5 ? "Grukk" : "Sa'Veth", true);
+                MonsterMind.For(g).MakeGuardian(fl == 5 ? "Grukk" : fl == 8 ? "Sa'Veth" : BossNames[fl], true);
                 g.SetBehavior(GobelinAI.GoblinBehavior.Stay);
+                CrawlerBoss.Attach(g, fl);
             }
         }
     }

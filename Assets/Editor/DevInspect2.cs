@@ -949,6 +949,20 @@ public static class DevInspect3
         }
         return $"{n} slimes ({fams}) kills={cm.kills} " + CrawlerContractsState();
     }
+    public static string BossState() { var sb = new System.Text.StringBuilder(); foreach (var b in CrawlerBoss.All) if (b != null) sb.Append($"[{b.Title} phase={b.Phase} pv={b.Health01:0.00} d={Vector2.Distance(b.transform.position, CrawlerMode.Instance.Player.transform.position):0}] "); return sb.ToString(); }
+    public static string BossTo60() => BossTo(0.6f);
+    public static string BossTo30() => BossTo(0.3f);
+    private static string BossTo(float r)
+    {
+        var cm = CrawlerMode.Instance; var b = CrawlerBoss.Near(cm.Player.transform.position, 999f);
+        if (b == null) return "aucun boss";
+        b.Ai.currentHealth = b.Ai.maxHealth * r;
+        if (r < 0.5f) { var p = b.transform.position + Vector3.down * 1.2f; cm.Player.transform.position = p; cm.Player.GetComponent<Rigidbody2D>().position = p; }
+        return BossState();
+    }
+    public static string CrawlerToBoss() { var cm = CrawlerMode.Instance; var b = CrawlerBoss.Near(cm.Player.transform.position, 999f); if (b == null) return "aucun"; var p = b.transform.position + Vector3.down * 5f; cm.Player.transform.position = p; cm.Player.GetComponent<Rigidbody2D>().position = p; return BossState(); }
+    public static string LearnFirst() { var cm = CrawlerMode.Instance; foreach (var n in CrawlerSkills.For(cm.Player.role).nodes) if (CrawlerSkills.CanLearn(n, out _)) { CrawlerSkills.Learn(n); return n.name + $" pts={CrawlerSkills.Points}"; } return "rien"; }
+    public static string SkillTree() { SkillTreeWindow.Toggle(); return "arbre " + SkillTreeWindow.IsOpen; }
     public static string TacticsCount() =>$"tactiques lancées : {GobelinAI.TacticsUsed}";
 }
 #endif
