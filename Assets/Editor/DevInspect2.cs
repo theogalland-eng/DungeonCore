@@ -890,6 +890,32 @@ public static class DevInspect3
         return $"idx={os?.Index} hints={GameSettings.TutorialHints} guide={(g != null)} cible={tn} label={lbl?.text}";
     }
     public static string TutoExpand() { GameHUD.Instance.Side.SetExpanded(true); return "panneau ouvert"; }
+    public static string ColonyFriendly() { RelationSystem.Instance.relation = 40f; ManaSystem.Instance.Add(800); return "relation 40, +800 mana"; }
+    public static string ColonyPage1() { ColonyWindow.Instance.Open(); ColonyWindow.Instance.SetPage(1); return "habitants"; }
+    public static string ColonyPage2() { ColonyWindow.Instance.Open(); ColonyWindow.Instance.SetPage(2); return "commerce"; }
+    public static string ColonyClose() { ColonyWindow.Instance.Close(); return "fermé"; }
+    public static string ColonyEmpty() { int n = 0; foreach (var s in SettlerAI.All.ToArray()) { s.Kill(); n++; } return $"{n} colons tués"; }
+    public static string BuyAll() { int n = 0; foreach (var o in ColonyTrade.Offers) if (ColonyTrade.Buy(o)) n++; return $"{n} achats, creuser x{ColonyTrade.DigCostMult}"; }
+    public static string Evening() { var gm = GameManager.Instance; gm.DebugSetDayProgress(1f - gm.nightPortion - 0.06f); return "soir"; }
+    public static string SettlerReport()
+    {
+        var sb = new System.Text.StringBuilder();
+        var sm = SettlementManager.Instance;
+        sb.Append($"stade={sm.stage} pop={sm.Population} cap={sm.Capacity} outpost={sm.Outpost} catalog={DungeonCatalog.Get().settlerPrefabs.Count} | ");
+        foreach (var s in SettlerAI.All) sb.Append($"[{s.Title} {s.Activity} maison={(s.home != null ? s.home.def.name : "-")}] ");
+        return sb.ToString();
+    }
+    public static string Annex() { PlayerLevel.Instance.AddXP(600); ManaSystem.Instance.Add(800); bool ok = SettlementManager.Instance.CanAnnex(out string why); SettlementManager.Instance.Annex(); return ok ? $"annexée, +{SettlementManager.Instance.OutpostDailyMana}/jour" : why; }
+    public static string ColonyShot() { var sm = SettlementManager.Instance; var p = (Vector2)sm.Site.LandingWorld + new Vector2(0f, 5f); return DevInspect.Shot(p.x, p.y, 12f, 1600, 1000, "colony"); }
+    public static string ToastTest() { GameHUD.Toast("La nuit tombe : le mana afflue", GameHUD.ManaColor); return "ok"; }
+    public static string FontInfo()
+    {
+        var f = TMPro.TMP_Settings.defaultFontAsset;
+        string fb = "";
+        if (f != null && f.fallbackFontAssetTable != null) foreach (var x in f.fallbackFontAssetTable) fb += (x == null ? "null" : x.name + (x.material == null ? "(mat null)" : "")) + ",";
+        var gfb = TMPro.TMP_Settings.fallbackFontAssets; string g = ""; if (gfb != null) foreach (var x in gfb) g += (x == null ? "null" : x.name + (x.material == null ? "(mat null)" : "")) + ",";
+        return $"def={f?.name} mat={(f != null && f.material != null)} atlas={f?.atlasTextures?.Length} fb=[{fb}] global=[{g}]";
+    }
     public static string TacticsCount() =>$"tactiques lancées : {GobelinAI.TacticsUsed}";
 }
 #endif

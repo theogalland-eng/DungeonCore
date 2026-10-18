@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Pathfinding;
 using UnityEngine;
@@ -17,7 +17,8 @@ public class SettlerJob
 }
 
 /// <summary>
-/// Colon de l'île : va sur place, travaille (couper, bâtir, pêcher, miner), rapporte, dort la nuit.
+/// Colon de l'île : un nom, un métier (qu'il préfère exercer) et une maison. Il va sur place, travaille
+/// (couper, bâtir, pêcher, miner), rapporte ; le soir il veille autour du feu, la nuit il dort chez lui.
 /// Ne met jamais les pieds dans le donjon.
 /// </summary>
 [RequireComponent(typeof(Seeker))]
@@ -27,6 +28,42 @@ public class SettlerAI : MonoBehaviour
 
     public float speed = 1.3f;
     public string Job => job != null ? job.label : "Repos";
+
+    // Identité
+    public string settlerName = "Colon";
+    public string profession = "Bâtisseur";
+    public string prefabId;
+    public SettlementBuilding home;
+    public int arrivedDay;
+    public string Title => $"{settlerName}, {Trade}";
+    /// <summary>Métier accordé au prénom (« pêcheuse », « bûcheron »).</summary>
+    public string Trade => SettlerNames.TradeFor(settlerName, profession);
+
+    /// <summary>Ce qu'il fait, en clair (fenêtre Colonie).</summary>
+    public string Activity
+    {
+        get
+        {
+            if (IsHidden) return "dort chez lui";
+            if (job == null) return "flâne";
+            switch (job.label)
+            {
+                case "Bûcheron": return "abat un arbre";
+                case "Carrier": return "casse des pierres";
+                case "Pêcheur": return "pêche";
+                case "Bâtisseur": return "bâtit";
+                case "Porteur": return "rapporte sa récolte";
+                case "Veillée": return "veille au coin du feu";
+                case "Fuite": return "fuit !";
+                case "Départ": return "quitte l'île";
+                case "Repos": return phase == Phase.Working ? "se repose" : "se promène";
+                default: return job.label.ToLower();
+            }
+        }
+    }
+
+    public void Say(string text, float dur = 1.6f) =>
+        FloatingText.Spawn(transform.position + Vector3.up * 0.9f, text, new Color(0.95f, 0.92f, 0.8f), dur);
 
     private enum Phase { Idle, Moving, Working, Hidden }
     private Phase phase = Phase.Idle;
@@ -218,6 +255,7 @@ public class SettlerAI : MonoBehaviour
             case "Bâtisseur": return "pan";
             case "Pêcheur": return "~";
             case "Fermier": return "·";
+            case "Veillée": return "";
             default: return "";
         }
     }
@@ -228,5 +266,46 @@ public class SettlerAI : MonoBehaviour
         if (hasSpeed) animator.SetFloat("Speed", velocity.sqrMagnitude);
         if (hasX) animator.SetFloat("MoveX", facing.x);
         if (hasY) animator.SetFloat("MoveY", facing.y);
+    }
+}
+
+/// <summary>Prénoms des colons (un seul porteur à la fois).</summary>
+public static class SettlerNames
+{
+    private static readonly string[] Pool =
+    {
+        "Aubin", "Bertille", "Colin", "Douce", "Enguerrand", "Fleur", "Gauvain", "Héloïse", "Isaure", "Jehan",
+        "Lise", "Mahaut", "Nicolas", "Ombeline", "Perrin", "Quentin", "Roselyne", "Simon", "Tiphaine", "Ursule",
+        "Victor", "Yvon", "Agathe", "Baudouin", "Clémence", "Denis", "Ermengarde", "Foulques", "Guillemette", "Hugues",
+        "Jacquette", "Lambert", "Margot", "Odon", "Pernelle", "Raoul", "Sibylle", "Thibaut", "Yolande", "Amaury",
+    };
+    public static readonly string[] Professions = { "Bûcheron", "Carrier", "Pêcheur", "Bâtisseur" };
+
+    private static readonly HashSet<string> Feminine = new HashSet<string>
+    {
+        "Bertille", "Douce", "Fleur", "Héloïse", "Isaure", "Lise", "Mahaut", "Ombeline", "Roselyne", "Tiphaine", "Ursule", "Agathe",
+        "Clémence", "Ermengarde", "Guillemette", "Jacquette", "Margot", "Pernelle", "Sibylle", "Yolande",
+    };
+
+    public static string TradeFor(string name, string profession)
+    {
+        bool f = name != null && Feminine.Contains(name.Split(' ')[0]);
+        switch (profession)
+        {
+            case "Bûcheron": return f ? "bûcheronne" : "bûcheron";
+            case "Carrier": return f ? "carrière" : "carrier";
+            case "Pêcheur": return f ? "pêcheuse" : "pêcheur";
+            case "Bâtisseur": return f ? "bâtisseuse" : "bâtisseur";
+            default: return profession != null ? profession.ToLower() : "";
+        }
+    }
+
+    public static string Pick()
+    {
+        var used = new HashSet<string>();
+        foreach (var s in SettlerAI.All) if (s != null) used.Add(s.settlerName);
+        var free = new List<string>();
+        foreach (var n in Pool) if (!used.Contains(n)) free.Add(n);
+        return free.Count > 0 ? free[UnityEngine.Random.Range(0, free.Count)] : Pool[UnityEngine.Random.Range(0, Pool.Length)] + " le Jeune";
     }
 }

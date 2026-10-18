@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 
 /// <summary>
@@ -47,7 +47,7 @@ public class RelationSystem : MonoBehaviour
         if (GameManager.Instance != null) GameManager.Instance.OnNewDay += OnNewDay;
     }
 
-    private static bool ColonyExists => SettlementManager.Instance != null && SettlementManager.Instance.stage > 0;
+    private static bool ColonyExists => SettlementManager.Instance != null && SettlementManager.Instance.stage > 0 && !SettlementManager.Instance.Outpost;
     private static int Today => GameManager.Instance != null ? GameManager.Instance.CurrentDay : 1;
 
     public string StateName
@@ -94,6 +94,9 @@ public class RelationSystem : MonoBehaviour
             GameHUD.Toast($"Colonie : {reason} ({(delta > 0 ? "+" : "")}{delta:0})", delta > 0 ? new Color(0.6f, 1f, 0.7f) : new Color(1f, 0.6f, 0.5f));
         OnChanged?.Invoke();
     }
+
+    /// <summary>Petit pas de relation sans message (commerce secret).</summary>
+    public void Nudge(float delta) => Change(delta);
 
     // ─────────────────────────────────────────────
     // ÉVÉNEMENTS

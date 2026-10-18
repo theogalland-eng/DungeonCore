@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.Tilemaps;
 
 /// <summary>
@@ -41,10 +42,13 @@ public class SettlementManager : MonoBehaviour
     public bool HasBuilding(string id) => buildings.Any(b => b.def.id == id && b.IsComplete);
 
     /// <summary>Bonus des expéditions apportés par la colonie.</summary>
-    public float AdventurerHpMult => HasBuilding("stall_weapons") ? 1.15f : 1f;
-    public float AdventurerDmgMult => HasBuilding("training") ? 1.15f : 1f;
-    public int PartyBonus => (stage >= 3 ? 1 : 0) + (stage >= 5 ? 1 : 0);
-    public float ExpeditionIntervalReduction => stage * 0.12f;
+    public float AdventurerHpMult => !Outpost && HasBuilding("stall_weapons") ? 1.15f : 1f;
+    public float AdventurerDmgMult => !Outpost && HasBuilding("training") ? 1.15f : 1f;
+    public int PartyBonus => Outpost ? 0 : (stage >= 3 ? 1 : 0) + (stage >= 5 ? 1 : 0);
+    public float ExpeditionIntervalReduction => Outpost ? 0f : stage * 0.12f;
+
+    /// <summary>La colonie conquise est devenue un avant-poste du Noyau.</summary>
+    public bool Outpost { get; private set; }
 
     public event System.Action OnChanged;
 
@@ -151,6 +155,7 @@ public class SettlementManager : MonoBehaviour
             if (famous || (known && since >= SettlementPlan.FoundLatestDay)) FoundCamp();
             return;
         }
+        if (Outpost) return;
         // Passage au stade suivant : prospérité suffisante et chantiers du stade terminés
         if (stage < SettlementPlan.StageNames.Length - 1 && prosperity >= SettlementPlan.StageProsperity[stage + 1] &&
             buildings.All(b => b.IsComplete) && morale >= 25f)
@@ -164,7 +169,12 @@ public class SettlementManager : MonoBehaviour
             if (Population < Capacity && food >= 12 && morale >= 35f)
             {
                 food -= 4;
-                SpawnSettler();
+                var s = SpawnSettler();
+                if (s != null)
+                {
+                    GameHUD.Toast($"Colonie : {s.Title} débarque", GameHUD.InfoColor);
+                    Chronicle.Add($"{s.Title} débarque à la colonie.");
+                }
             }
         }
     }
@@ -255,6 +265,7 @@ public class SettlementManager : MonoBehaviour
     private void OnNewDay(int day)
     {
         if (stage == 0) return;
+        if (Outpost) { OutpostIncome(); return; }
         int pop = Population;
         foreach (var b in buildings) if (b.IsComplete) { food += Mathf.RoundToInt(b.def.foodPerDay * Seasons.FoodMult); prosperity += b.def.prosperityPerDay; }
         food -= pop * foodPerSettlerPerDay;
@@ -268,7 +279,8 @@ public class SettlementManager : MonoBehaviour
             var leaver = SettlerAI.All[Random.Range(0, SettlerAI.All.Count)];
             leaver.CancelJob();
             leaver.Assign(new SettlerJob { label = "Départ", target = DockEnd(), duration = 0.3f, onDone = () => Destroy(leaver.gameObject) });
-            GameHUD.Toast("Terrifié par le donjon, un colon quitte l'île", GameHUD.GoldColor);
+            GameHUD.Toast($"Par peur du donjon, {leaver.Title} quitte l'île", GameHUD.GoldColor);
+            Chronicle.Add($"Par peur du donjon, {leaver.Title} quitte l'île.");
         }
 
         // Des curieux de la colonie viennent visiter le donjon (et y laissent du mana... ou leur vie)
@@ -295,11 +307,42 @@ public class SettlementManager : MonoBehaviour
         }
     }
 
+    /// <summary>Maison attitrée (la moins pleine des habitations achevées), sinon le campement.</summary>
     private Vector2 HomeFor(SettlerAI s)
     {
-        var homes = buildings.Where(b => b.IsComplete && b.def.pop > 0).ToList();
-        if (homes.Count == 0) return Site.LandingWorld + Vector3.up;
-        return homes[Mathf.Abs(s.GetInstanceID()) % homes.Count].WorkSpot(0);
+        if (s.home == null || !s.home.IsComplete)
+        {
+            s.home = null;
+            SettlementBuilding best = null;
+            int bestFree = 0;
+            foreach (var b in buildings)
+            {
+                if (!b.IsComplete || b.def.pop <= 0) continue;
+                int free = b.def.pop - Residents(b);
+                if (free > bestFree) { bestFree = free; best = b; }
+            }
+            s.home = best;
+        }
+        if (s.home == null) return (Vector2)Site.LandingWorld + Vector2.up + Random.insideUnitCircle * 0.5f;
+        int i = 0;
+        foreach (var o in SettlerAI.All) { if (o == s) break; if (o.home == s.home) i++; }
+        return s.home.WorkSpot(i);
+    }
+
+    public int Residents(SettlementBuilding b)
+    {
+        int n = 0;
+        foreach (var o in SettlerAI.All) if (o != null && o.home == b) n++;
+        return n;
+    }
+
+    /// <summary>Nom d'une maison pour la fenêtre Colonie (« Maison 2 »).</summary>
+    public string HomeName(SettlementBuilding b)
+    {
+        if (b == null) return "sous la tente";
+        int i = 0;
+        foreach (var o in buildings) if (o.def.id == b.def.id && o.IsComplete) { i++; if (o == b) break; }
+        return $"{b.def.name} {i}";
     }
 
     // ─────────────────────────────────────────────
@@ -308,15 +351,48 @@ public class SettlementManager : MonoBehaviour
 
     private Vector2 DockEnd() => Site.dockCells.Count > 0 ? (Vector2)Site.CellCenter(Site.dockCells[Site.dockCells.Count - 1]) : (Vector2)Site.LandingWorld;
 
-    private void SpawnSettler(string id = null)
+    private SettlerAI SpawnSettler(string id = null, SettlerSave from = null)
     {
         var cat = DungeonCatalog.Get();
         GameObject prefab = null;
-        if (id != null) prefab = cat.settlerPrefabs.Find(p => p != null && p.name.Contains("Pêcheur"));
+        if (from != null && !string.IsNullOrEmpty(from.prefab)) prefab = cat.settlerPrefabs.Find(p => p != null && p.name == from.prefab);
+        if (prefab == null && id != null) prefab = cat.settlerPrefabs.Find(p => p != null && p.name.Contains("Pêcheur"));
         if (prefab == null && cat.settlerPrefabs.Count > 0) prefab = cat.settlerPrefabs[Random.Range(0, cat.settlerPrefabs.Count)];
-        if (prefab == null) return;
+        if (prefab == null) return null;
         var go = Instantiate(prefab, (Vector3)DockEnd() + (Vector3)(Random.insideUnitCircle * 0.3f), Quaternion.identity, root);
-        go.name = "Colon";
+        var s = go.GetComponent<SettlerAI>();
+        if (s == null) return null;
+        s.prefabId = prefab.name;
+        everPopulated = true;
+        if (from != null)
+        {
+            s.settlerName = from.name;
+            s.profession = from.profession;
+            s.arrivedDay = from.arrivedDay;
+        }
+        else
+        {
+            s.settlerName = SettlerNames.Pick();
+            s.profession = prefab.name.Contains("Pêcheur") || id != null ? "Pêcheur" : SettlerNames.Professions[Random.Range(0, SettlerNames.Professions.Length)];
+            s.arrivedDay = GameManager.Instance != null ? GameManager.Instance.CurrentDay : 1;
+        }
+        go.name = "Colon " + s.settlerName;
+        return s;
+    }
+
+    private static readonly string[] EveningTalk =
+    {
+        "Vous avez entendu, cette nuit ?", "La montagne a grondé...", "Encore un qui n'est pas revenu.", "Belle prise aujourd'hui !",
+        "Il paraît qu'un cristal y pense.", "À la santé des vivants !", "Mon dos...", "Demain, on finit le toit.", "Chut... écoutez.",
+    };
+
+    private bool IsEvening
+    {
+        get
+        {
+            var gm = GameManager.Instance;
+            return gm != null && !gm.IsNight && gm.DayProgress >= 1f - gm.nightPortion - 0.07f;
+        }
     }
 
     /// <summary>Un colon libre demande du travail.</summary>
@@ -325,6 +401,22 @@ public class SettlementManager : MonoBehaviour
         if (Site == null || stage == 0) return;
         if (GameManager.Instance != null && GameManager.Instance.IsNight) return;
         bool terrified = morale < 20f;
+        if (s.home == null || !s.home.IsComplete) HomeFor(s);   // emménage dès qu'une maison a de la place
+
+        // 0. Le soir, on veille autour du feu
+        var fire = CampfirePosition;
+        if (IsEvening && fire.HasValue)
+        {
+            float ang = (Mathf.Abs(s.GetInstanceID()) % 9) / 9f * Mathf.PI * 2f;
+            var seat = fire.Value + new Vector2(Mathf.Cos(ang) * 1.4f, Mathf.Sin(ang) * 0.9f - 0.2f);
+            var who = s;
+            s.Assign(new SettlerJob
+            {
+                label = "Veillée", target = seat, duration = Random.Range(6f, 10f),
+                onDone = () => { if (who != null && Random.value < 0.35f) who.Say(EveningTalk[Random.Range(0, EveningTalk.Length)]); },
+            });
+            return;
+        }
 
         // 1. Bâtir (le chantier payé en priorité, sinon payer un nouveau)
         if (!terrified)
@@ -355,7 +447,17 @@ public class SettlementManager : MonoBehaviour
         foreach (var b in buildings) if (!b.paid && !b.IsComplete) { woodNeed += b.def.wood; stoneNeed += b.def.stone; }
         float r = Random.value;
 
-        // 2. Ressources manquantes
+        // 2. Son métier, le plus souvent
+        if (r < 0.55f)
+            switch (s.profession)
+            {
+                case "Bûcheron": if (AssignChop(s, NearestTree(s.transform.position), false)) return; break;
+                case "Carrier": if (AssignMine(s)) return; break;
+                case "Pêcheur": AssignFish(s); return;
+            }
+        r = Random.value;
+
+        // 3. Ressources manquantes
         if (woodNeed > wood && (stoneNeed <= stone || r < 0.65f)) { if (AssignChop(s, NearestTree(s.transform.position), false)) return; }
         if (stoneNeed > stone) { if (AssignMine(s)) return; }
         if (food < Population * 5 || r < 0.35f) { AssignFish(s); return; }
@@ -568,6 +670,7 @@ public class SettlementManager : MonoBehaviour
         if (best == null) return null;
         if (best.IsHidden) best.transform.position = HomeFor(best);
         Vector2 pos = best.transform.position;
+        Chronicle.Add($"<color=#FF9A8A>{best.Title} périt lors d'un raid nocturne.</color>");
         best.Kill();
         return pos;
     }
@@ -582,8 +685,108 @@ public class SettlementManager : MonoBehaviour
         OnChanged?.Invoke();
     }
 
+    // ─────────────────────────────────────────────
+    // AVANT-POSTE DU NOYAU (colonie conquise)
+    // ─────────────────────────────────────────────
+
+    public const int AnnexCost = 200;
+    public int OutpostDailyMana => 10 + 6 * buildings.Count(b => b.IsComplete);
+
+    public bool CanAnnex(out string why)
+    {
+        why = null;
+        if (Outpost) { why = "Déjà un avant-poste"; return false; }
+        if (stage < 1 || !EverPopulated) { why = "Aucune colonie à prendre"; return false; }
+        if (Population > 0) { why = $"Encore {Population} habitant(s) sur place"; return false; }
+        if (ManaSystem.Instance != null && !ManaSystem.Instance.CanAfford(AnnexCost)) { why = $"{AnnexCost} mana requis"; return false; }
+        return true;
+    }
+
+    public bool Annex()
+    {
+        if (!CanAnnex(out string why)) { GameHUD.Toast(why, GameHUD.WarningColor); return false; }
+        if (ManaSystem.Instance != null && !ManaSystem.Instance.TrySpend(AnnexCost)) return false;
+        MakeOutpost(false);
+        return true;
+    }
+
+    private void MakeOutpost(bool restoring)
+    {
+        Outpost = true;
+        foreach (var b in buildings)
+        {
+            if (b == null) continue;
+            foreach (var sr in b.GetComponentsInChildren<SpriteRenderer>()) if (sr.sprite != ShardSprite) sr.color = new Color(0.6f, 0.5f, 0.82f, sr.color.a);
+            if (!b.IsComplete || b.transform.Find("Lueur du Noyau") != null) continue;
+            var glow = new GameObject("Lueur du Noyau");
+            glow.transform.SetParent(b.transform, false);
+            glow.transform.position = b.WorkSpot(0) + Vector3.up * 0.4f;
+            var l = glow.AddComponent<Light2D>();
+            l.lightType = Light2D.LightType.Point;
+            l.color = new Color(0.55f, 0.25f, 1f);
+            l.intensity = 1.3f;
+            l.pointLightOuterRadius = 3f;
+            // un éclat du cristal flotte devant la porte
+            var shard = glow.AddComponent<SpriteRenderer>();
+            shard.sprite = ShardSprite;
+            shard.sortingOrder = 6;
+            glow.AddComponent<Bob>();
+        }
+        OnChanged?.Invoke();
+        if (restoring) return;
+        GameHUD.Toast($"La colonie devient un avant-poste du Noyau (+{OutpostDailyMana} mana chaque matin)", GameHUD.GoldColor);
+        Chronicle.Add("<color=#C9A8FF>Le Noyau annexe la colonie déserte : elle devient son avant-poste.</color>");
+        Sfx.Play("shine", null, 0.9f);
+        StoryManager.Instance?.Play(
+            new StoryManager.Line(StoryManager.SelfName, "Leurs maisons sont vides. Leurs feux, éteints. J'y fais brûler les miens."),
+            new StoryManager.Line(StoryManager.SystemName, "AVANT-POSTE : mana chaque matin selon les bâtiments, plus aucune milice ni renfort des expéditions, et les intrus qui débarquent sont ébranlés."));
+    }
+
+    private static Sprite shardSprite;
+
+    /// <summary>Éclat de cristal violet (pixel art, 7 × 12).</summary>
+    private static Sprite ShardSprite
+    {
+        get
+        {
+            if (shardSprite != null) return shardSprite;
+            string[] rows =
+            {
+                "...o...", "..olo..", "..olo..", ".ollmo.", ".olmmo.", "olmmmdo", "olmmmdo", ".ommdo.", ".ommdo.", "..odo..", "..odo..", "...o...",
+            };
+            var tex = new Texture2D(7, 12, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point };
+            for (int y = 0; y < 12; y++)
+                for (int x = 0; x < 7; x++)
+                {
+                    char c = rows[11 - y][x];
+                    tex.SetPixel(x, y, c == 'o' ? new Color(0.18f, 0.08f, 0.3f) : c == 'l' ? new Color(0.92f, 0.8f, 1f) : c == 'm' ? new Color(0.62f, 0.38f, 0.98f) :
+                                       c == 'd' ? new Color(0.38f, 0.2f, 0.7f) : Color.clear);
+                }
+            tex.Apply();
+            shardSprite = Sprite.Create(tex, new Rect(0, 0, 7, 12), new Vector2(0.5f, 0f), 16f);
+            return shardSprite;
+        }
+    }
+
+    /// <summary>Lent flottement de haut en bas.</summary>
+    private class Bob : MonoBehaviour
+    {
+        private Vector3 basePos;
+        private float phase;
+        private void Start() { basePos = transform.localPosition; phase = Random.value * 6f; }
+        private void Update() => transform.localPosition = basePos + Vector3.up * (Mathf.Sin(Time.time * 1.6f + phase) * 0.08f);
+    }
+
+    private void OutpostIncome()
+    {
+        int m = OutpostDailyMana;
+        ManaSystem.Instance?.Add(m);
+        GameHUD.Toast($"Avant-poste : +{m} mana", new Color(0.78f, 0.65f, 1f));
+        OnChanged?.Invoke();
+    }
+
     /// <summary>Force de la milice (stade ≥ 3) : dégâts subis par chaque monstre qui attaque.</summary>
-    public float MilitiaDamage => stage >= 3 ? 6f * (stage - 2) * (HasBuilding("training") ? 1.5f : 1f) : 0f;
+    public float MilitiaDamage => !Outpost && stage >= 3 ? 6f * (stage - 2) * (HasBuilding("training") ? 1.5f : 1f) : 0f;
 
     // ─────────────────────────────────────────────
     // SAUVEGARDE
@@ -594,8 +797,11 @@ public class SettlementManager : MonoBehaviour
         var s = new SettlementSave
         {
             stage = stage, prosperity = prosperity, morale = morale, wood = wood, stone = stone, food = food,
-            expeditionsSeen = expeditionsSeen, population = Population,
+            expeditionsSeen = expeditionsSeen, population = Population, outpost = Outpost,
         };
+        foreach (var st in SettlerAI.All)
+            if (st != null && !st.IsDying)
+                s.settlers.Add(new SettlerSave { name = st.settlerName, profession = st.profession, prefab = st.prefabId, arrivedDay = st.arrivedDay });
         foreach (var b in buildings) s.buildings.Add(new BuildingSave { id = b.def.id, progress = b.progress, paid = b.paid });
         foreach (var f in felled) { s.felledTrees.Add(f.x); s.felledTrees.Add(f.y); }
         foreach (var c in mined) { s.minedRocks.Add(c.x); s.minedRocks.Add(c.y); }
@@ -646,8 +852,10 @@ public class SettlementManager : MonoBehaviour
                 b.Work(0f);   // silhouette du chantier selon l'avancement
             }
         }
-        for (int i = 0; i < s.population; i++) SpawnSettler(i == 0 ? "settler_fisher" : null);
+        if (s.settlers != null && s.settlers.Count > 0) foreach (var st in s.settlers) SpawnSettler(null, st);
+        else for (int i = 0; i < s.population; i++) SpawnSettler(i == 0 ? "settler_fisher" : null);
         arrivalTimer = 95f;
+        if (s.outpost) MakeOutpost(true);
         OnChanged?.Invoke();
     }
 

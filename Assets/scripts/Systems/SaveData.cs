@@ -122,6 +122,15 @@ public class SettlementSave
     public List<BuildingSave> buildings = new List<BuildingSave>();
     public List<float> felledTrees = new List<float>();
     public List<int> minedRocks = new List<int>();
+    public List<SettlerSave> settlers = new List<SettlerSave>();
+    public bool outpost;
+}
+
+[Serializable]
+public class SettlerSave
+{
+    public string name, profession, prefab;
+    public int arrivedDay;
 }
 
 [Serializable]

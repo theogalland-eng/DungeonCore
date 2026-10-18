@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using UnityEngine.InputSystem;
@@ -470,7 +470,7 @@ public class DungeonBuilder : MonoBehaviour
 
             var mana = ManaSystem.Instance;
             if (mana != null && !mana.CanAfford(miningCost)) return;   // attend d'avoir du mana
-            if (mana != null) mana.TrySpend(Mathf.RoundToInt(miningCost * Talents.DigCostMult), false);
+            if (mana != null) mana.TrySpend(Mathf.RoundToInt(miningCost * Talents.DigCostMult * ColonyTrade.DigCostMult), false);
 
             isMining = true;
             miningProgress = 0f;

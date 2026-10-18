@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -225,9 +225,10 @@ public class GameHUD : MonoBehaviour
 
     public static void Toast(string message, Color color)
     {
-        if (Instance == null)
+        // HUD absent ou masqué (cinématique) : TMP ne s'initialise pas sur un objet inactif, on attend
+        if (Instance == null || Instance.feed == null || !Instance.feed.gameObject.activeInHierarchy)
         {
-            pendingToasts.Add(new KeyValuePair<string, Color>(message, color));
+            if (pendingToasts.Count < 12) pendingToasts.Add(new KeyValuePair<string, Color>(message, color));
             return;
         }
         Instance.AddToast(message, color);
@@ -270,8 +271,6 @@ public class GameHUD : MonoBehaviour
         if (GameManager.Instance != null) GameManager.Instance.OnGameOver += ShowGameOver;
         if (PossessionController.Instance != null) PossessionController.Instance.OnPossessionChanged += OnPossessionChanged;
 
-        foreach (var p in pendingToasts) AddToast(p.Key, p.Value);
-        pendingToasts.Clear();
 
         OnPossessionChanged(false);
         Refresh();
@@ -574,6 +573,12 @@ public class GameHUD : MonoBehaviour
 
     private void Update()
     {
+        if (pendingToasts.Count > 0 && feed != null && feed.gameObject.activeInHierarchy)
+        {
+            var pend = new List<KeyValuePair<string, Color>>(pendingToasts);
+            pendingToasts.Clear();
+            foreach (var p in pend) AddToast(p.Key, p.Value);
+        }
         if (debugInput && Pointer.current != null && (Pointer.current.press.wasPressedThisFrame || Pointer.current.press.wasReleasedThisFrame))
         {
             var es = EventSystem.current;

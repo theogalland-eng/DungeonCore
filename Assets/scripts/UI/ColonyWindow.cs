@@ -1,10 +1,12 @@
-﻿using TMPro;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Fenêtre « Colonie & relations » (bouton Colonie du HUD) :
-/// état de la colonie, jauge de relation, pots-de-vin, trêve, intrus épargnés, raids nocturnes.
+/// Fenêtre « Colonie & relations » (bouton Colonie du HUD), en trois onglets :
+///   - RELATIONS : jauge de relation, pots-de-vin, trêve, intrus épargnés, raids nocturnes ;
+///   - HABITANTS : chaque colon, son métier, sa maison et ce qu'il fait ;
+///   - COMMERCE : le marché secret avec le Noyau, et l'annexion de la colonie conquise en avant-poste.
 /// </summary>
 public class ColonyWindow : MonoBehaviour
 {
@@ -16,6 +18,12 @@ public class ColonyWindow : MonoBehaviour
     private RectTransform gaugeMarker;
     private Button bribeBtn, truceBtn, spareBtn, terrorBtn, bloodBtn, campBtn;
     private float refresh;
+    private int page;
+    private readonly RectTransform[] pages = new RectTransform[3];
+    private readonly Image[] tabImgs = new Image[3];
+    private TextMeshProUGUI peopleText, tradeText, outpostText;
+    private readonly System.Collections.Generic.List<(ColonyTrade.Offer offer, Button btn)> offerBtns = new System.Collections.Generic.List<(ColonyTrade.Offer, Button)>();
+    private Button annexBtn;
 
     public bool IsOpen => window != null && window.gameObject.activeSelf;
 
@@ -105,6 +113,14 @@ public class ColonyWindow : MonoBehaviour
         stageText = UIKit.LabelAt(window, "", 20, UIKit.Sub, new Vector2(32, -72), new Vector2(700, 28));
         var close = UIKit.BtnAt(window, "", Close, new Vector2(1, 1), new Vector2(-20, -20), new Vector2(60, 60));
         UIKit.Icon(close.transform, "close", Vector2.zero, 26, new Vector2(0.5f, 0.5f));
+        string[] tabNames = { "Relations", "Habitants", "Commerce" };
+        for (int i = 0; i < 3; i++)
+        {
+            int k = i;
+            var tb = UIKit.BtnAt(window, tabNames[i], () => SetPage(k), new Vector2(1, 1), new Vector2(-96 - (2 - i) * 172, -24), new Vector2(164, 52), 20);
+            tabImgs[i] = tb.GetComponent<Image>();
+            pages[i] = UIKit.Stretch(UIKit.Rect("Page" + i, window));
+        }
         var sep = UIKit.Place(UIKit.Rect("Séparateur", window), new Vector2(0.5f, 1), new Vector2(0, -108), new Vector2(812, 2));
         UIKit.Image(sep, new Color(UIKit.Trim.r, UIKit.Trim.g, UIKit.Trim.b, 0.35f), false, false);
 
@@ -120,7 +136,7 @@ public class ColonyWindow : MonoBehaviour
             20, UIKit.Sub, new Vector2(0, -132), new Vector2(760, 80), TextAlignmentOptions.Center, new Vector2(0.5f, 1));
 
         // ── Relation
-        var rel = Section(window, "Relation", "Relation", "people", -236, 272);
+        var rel = Section(pages[0], "Relation", "Relation", "people", -236, 272);
         relationState = UIKit.LabelAt(rel, "", 24, UIKit.Gold, new Vector2(-20, -16), new Vector2(320, 32), TextAlignmentOptions.TopRight, new Vector2(1, 1));
         var gauge = UIKit.Place(UIKit.Rect("Gauge", rel), new Vector2(0, 1), new Vector2(20, -62), new Vector2(772, 22));
         UIKit.Image(gauge, new Color(0.03f, 0.025f, 0.05f, 0.95f), true, false);
@@ -153,16 +169,16 @@ public class ColonyWindow : MonoBehaviour
             if (r.truce) r.BreakTruce(); else if (r.ProposeTruce()) Close();
             Refresh();
         }, new Vector2(1, 0), new Vector2(-20, 18), new Vector2(378, 66), 21);
-        punitiveText = UIKit.LabelAt(window, "", 20, GameHUD.DangerColor, new Vector2(0, -514), new Vector2(800, 30), TextAlignmentOptions.Top, new Vector2(0.5f, 1));
+        punitiveText = UIKit.LabelAt(pages[0], "", 20, GameHUD.DangerColor, new Vector2(0, -514), new Vector2(800, 30), TextAlignmentOptions.Top, new Vector2(0.5f, 1));
 
         // ── Intrus
-        var intr = Section(window, "Intrus", "Intrus sur l'île", "skull", -548, 150);
+        var intr = Section(pages[0], "Intrus", "Intrus sur l'île", "skull", -548, 150);
         spareText = UIKit.LabelAt(intr, "", 19, UIKit.Sub, new Vector2(20, -54), new Vector2(420, 84));
         spareBtn = UIKit.BtnAt(intr, "Laisser partir", () => { RelationSystem.Instance?.SpareAll(); Refresh(); }, new Vector2(1, 0), new Vector2(-20, 18), new Vector2(320, 66), 21,
             new Color(0.2f, 0.38f, 0.27f, 1f));
 
         // ── Raids
-        var raid = Section(window, "Raids", "Raids nocturnes", "torch", -710, 246);
+        var raid = Section(pages[0], "Raids", "Raids nocturnes", "torch", -710, 246);
         raidText = UIKit.LabelAt(raid, "", 18, UIKit.Sub, new Vector2(20, -52), new Vector2(772, 100));
         campBtn = UIKit.BtnAt(raid, "Raid sur le camp", () => { var c = IntruderCamp.Raidable(); if (c != null && c.LaunchRaid()) Close(); },
             new Vector2(1, 1), new Vector2(-16, -10), new Vector2(250, 44), 17, new Color(0.45f, 0.2f, 0.12f, 1f));
@@ -170,6 +186,50 @@ public class ColonyWindow : MonoBehaviour
             new Color(0.42f, 0.3f, 0.12f, 1f));
         bloodBtn = UIKit.BtnAt(raid, "Raid sanglant", () => { if (RaidSystem.Instance != null && RaidSystem.Instance.Launch(true)) Close(); }, new Vector2(1, 0), new Vector2(-20, 18), new Vector2(378, 66), 21,
             new Color(0.5f, 0.13f, 0.14f, 1f));
+
+        // ── Habitants
+        var people = Section(pages[1], "Habitants", "Habitants", "people", -236, 720);
+        peopleText = UIKit.LabelAt(people, "", 19, UIKit.Text, new Vector2(20, -58), new Vector2(772, 650));
+        peopleText.textWrappingMode = TextWrappingModes.NoWrap;
+        peopleText.overflowMode = TextOverflowModes.Ellipsis;
+
+        // ── Commerce secret
+        var trade = Section(pages[2], "Commerce", "Commerce secret", "coin", -236, 446);
+        tradeText = UIKit.LabelAt(trade, "", 18, UIKit.Sub, new Vector2(20, -52), new Vector2(772, 60));
+        float oy = -116f;
+        foreach (var o in ColonyTrade.Offers)
+        {
+            var offer = o;
+            var row = UIKit.Place(UIKit.Rect("Offre_" + o.id, trade), new Vector2(0, 1), new Vector2(20, oy), new Vector2(772, 98));
+            UIKit.Image(row, new Color(0.05f, 0.045f, 0.08f, 0.9f), true, false);
+            var nm = UIKit.LabelAt(row, o.name, 21, UIKit.Gold, new Vector2(16, -10), new Vector2(430, 30));
+            UIKit.StyleHead(nm);
+            var ds = UIKit.LabelAt(row, o.desc, 16, UIKit.Sub, new Vector2(16, -42), new Vector2(470, 52));
+            ds.textWrappingMode = TextWrappingModes.Normal;
+            var b = UIKit.BtnAt(row, "Acheter", () => { ColonyTrade.Buy(offer); Refresh(); }, new Vector2(1, 0.5f), new Vector2(-12, 0), new Vector2(256, 66), 19,
+                new Color(0.32f, 0.24f, 0.12f, 1f));
+            offerBtns.Add((offer, b));
+            oy -= 106f;
+        }
+
+        // ── Avant-poste
+        var outpost = Section(pages[2], "AvantPoste", "Avant-poste du Noyau", "skull", -698, 258);
+        outpostText = UIKit.LabelAt(outpost, "", 18, UIKit.Sub, new Vector2(20, -52), new Vector2(772, 110));
+        outpostText.textWrappingMode = TextWrappingModes.Normal;
+        annexBtn = UIKit.BtnAt(outpost, "Annexer", () => { SettlementManager.Instance?.Annex(); Refresh(); }, new Vector2(0.5f, 0), new Vector2(0, 18), new Vector2(520, 66), 21,
+            new Color(0.3f, 0.18f, 0.45f, 1f));
+        SetPage(0);
+    }
+
+    public void SetPage(int p)
+    {
+        page = p;
+        for (int i = 0; i < 3; i++)
+        {
+            pages[i].gameObject.SetActive(i == p);
+            tabImgs[i].color = i == p ? new Color(0.42f, 0.3f, 0.62f, 1f) : UIKit.Button;
+        }
+        if (IsOpen) Refresh();
     }
 
     private void Update()
@@ -236,6 +296,9 @@ public class ColonyWindow : MonoBehaviour
             punitiveText.text = rel.PunitivePending ? $"Expédition punitive attendue le jour {rel.PunitiveDay} (palier renforcé, plus nombreuse)" : "";
         }
 
+        if (page == 1) RefreshPeople(colony, exists);
+        if (page == 2) RefreshTrade(colony, exists);
+
         int present = 0;
         foreach (var a in AdventurerAI.All) if (a != null && !a.Spared) present++;
         spareText.text = present > 0
@@ -263,5 +326,57 @@ public class ColonyWindow : MonoBehaviour
             campBtn.interactable = campOk;
             UIKit.SetLabel(campBtn, campOk ? "Raid sur le camp" : $"<size=80%>Camp : {campWhy}</size>");
         }
+    }
+
+    private void RefreshPeople(SettlementManager colony, bool exists)
+    {
+        if (!exists) { peopleText.text = "<color=#A59FB6>Personne pour l'instant.</color>"; return; }
+        if (colony.Outpost) { peopleText.text = "<color=#C9A8FF>L'avant-poste n'abrite plus que les ombres du Noyau.</color>"; return; }
+        var sb = new System.Text.StringBuilder();
+        var contact = ColonyTrade.Open(out _) ? ColonyTrade.Contact : null;
+        int day = GameManager.Instance != null ? GameManager.Instance.CurrentDay : 1;
+        int shown = 0;
+        foreach (var st in SettlerAI.All)
+        {
+            if (st == null || st.IsDying) continue;
+            if (shown == 19) { sb.Append($"<color=#A59FB6>... et {SettlerAI.All.Count - shown} autre(s)</color>"); break; }
+            string since = st.arrivedDay >= day ? "arrivé(e) aujourd'hui" : $"depuis {day - st.arrivedDay} j";
+            string mark = st == contact ? " <color=#E8C872>· votre contact</color>" : "";
+            sb.Append($"<b>{st.settlerName}</b> <color=#C8BFA8>{st.Trade}</color>  <size=85%><color=#8E89A3>{colony.HomeName(st.home)} · {since}</color></size>{mark}\n");
+            sb.Append($"<size=85%>   <color=#B79CFF>{st.Activity}</color></size>\n");
+            shown++;
+        }
+        if (shown == 0) sb.Append("<color=#A59FB6>La colonie est vide.</color>");
+        peopleText.text = sb.ToString();
+    }
+
+    private void RefreshTrade(SettlementManager colony, bool exists)
+    {
+        bool open = ColonyTrade.Open(out string why);
+        var c = ColonyTrade.Contact;
+        tradeText.text = open
+            ? $"Votre contact : <color=#E8C872>{c?.Title}</color>. Les marchandises sont déposées à l'entrée de la caverne ; chaque offre une fois par jour. <color=#9CF0A8>+relation, +prospérité</color>."
+            : $"<color=#9A96B0>{why}.</color> Améliorez la relation (pots-de-vin, intrus épargnés) pour qu'un colon ose commercer avec vous.";
+        foreach (var (offer, btn) in offerBtns)
+        {
+            bool ok = ColonyTrade.CanBuy(offer, out string w);
+            btn.interactable = ok;
+            string cost = offer.food > 0 ? $"{offer.mana} mana · {offer.food} vivres" : $"{offer.mana} mana";
+            UIKit.SetLabel(btn, ok ? $"Acheter ({cost})" : $"<size=80%>{w}</size>");
+        }
+
+        if (colony == null || !exists) { outpostText.text = "Aucune colonie."; annexBtn.gameObject.SetActive(false); return; }
+        if (colony.Outpost)
+        {
+            outpostText.text = $"La colonie est votre <color=#C9A8FF>avant-poste</color> : <color=#9CF0A8>+{colony.OutpostDailyMana} mana</color> chaque matin. Plus de milice, plus de renforts pour les expéditions.";
+            annexBtn.gameObject.SetActive(false);
+            return;
+        }
+        annexBtn.gameObject.SetActive(true);
+        bool can = colony.CanAnnex(out string aw);
+        outpostText.text = "Une colonie vidée de ses habitants (raids sanglants, terreur) peut être annexée : ses maisons deviennent un avant-poste du Noyau qui rapporte du mana chaque matin, et elle ne renforce plus les expéditions." +
+                           (can ? "" : $"\n<color=#9A96B0>{aw}.</color>");
+        annexBtn.interactable = can;
+        UIKit.SetLabel(annexBtn, can ? $"Annexer la colonie ({SettlementManager.AnnexCost} mana)" : "<size=85%>Annexer la colonie</size>");
     }
 }
