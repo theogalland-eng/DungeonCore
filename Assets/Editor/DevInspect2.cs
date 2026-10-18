@@ -1122,6 +1122,45 @@ public static class DevInspect3
         v.GetComponent<Rigidbody2D>().position = t.transform.position; v.transform.position = t.transform.position; v.Hold(6f);
         return $"pendule frames={pt?.frames?.Length} sr={(pt?.sr != null)} enabled={pt?.enabled} hp={v.combat.currentHealth:0}";
     }
+    public static string LarderTest()
+    {
+        var b = DungeonBuilder.Instance; var cat = DungeonCatalog.Get();
+        var core = Object.FindFirstObjectByType<DungeonCore>();
+        var cc = b.floorTilemap.WorldToCell(core.transform.position);
+        var it = cat.Find("food_cache");
+        PlacedObject placed = null;
+        for (int r = 2; r <= 8 && placed == null; r++)
+            for (int dx = -r; dx <= r && placed == null; dx++)
+                for (int dy = -r; dy <= r; dy++)
+                {
+                    var c = cc + new Vector3Int(dx, dy, 0);
+                    Vector2 w = b.floorTilemap.GetCellCenterWorld(c);
+                    if (!DungeonTerritory.Instance.IsInsideCell(c) || Physics2D.OverlapCircle(w, 0.6f, 1 << 6) != null) continue;
+                    if ((placed = b.PlaceItemFree(it, c)) != null) break;
+                }
+        if (placed == null) return "pose impossible";
+        int n = 0;
+        foreach (var g in GobelinAI.All)
+        {
+            if (g == null || g.Life == null) continue;
+            g.Life.hunger = 80f; n++;
+            if (n == 2) g.SetBehavior(GobelinAI.GoblinBehavior.Stay);
+        }
+        return $"garde-manger posé, {n} monstres affamés (le 2e tient la position)";
+    }
+    public static string LarderShot() { var f = FoodBait.All[0]; var p = f.transform.position; return DevInspect.Shot(p.x, p.y, 4f, 1000, 800, "larder"); }
+    public static string LarderState()
+    {
+        var sb = new System.Text.StringBuilder();
+        foreach (var f in FoodBait.All) if (f != null) sb.Append($"[garde-manger portions={f.Portions}] ");
+        foreach (var g in GobelinAI.All) if (g != null && g.Life != null)
+        {
+            var f = FoodBait.All.Count > 0 ? FoodBait.All[0] : null;
+            var tf = typeof(MonsterLife).GetField("task", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            sb.Append($"[{g.gobelinName} t={tf.GetValue(g.Life)} idle={g.IdleForLife} faim={g.Life.hunger:0} {g.currentBehavior} d={(f != null ? Vector2.Distance(f.transform.position, g.transform.position) : -1):0.0}] ");
+        }
+        return sb.ToString();
+    }
     public static string TacticsCount() =>$"tactiques lancées : {GobelinAI.TacticsUsed}";
 }
 #endif

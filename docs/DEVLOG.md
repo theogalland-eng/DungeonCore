@@ -225,3 +225,7 @@ Mise en ligne du projet sur GitHub (ce dépôt), avec cette documentation.
   - Nouveaux : **Trappe** (chute à l'étage du dessous ou dans une fosse), **Dalle huilée** (on glisse dans le piège suivant ; une flamme l'embrase), **Lanceur de fléchettes** (mural), **Rocher roulant** (dévale tout le couloir).
   - Pièges de thème, posables seulement sur leur étage : **Geyser de magma** (Fournaise), **Maelström** (Englouti), **Stalactites** (Gelée), **Champignon à spores** (Fongique), **Prisme laser** (Cristal), **Mains squelettiques** (Crypte, Catacombes), **Arbalète cachée** (Forteresse).
   - Redessinés : pics (les trous rougissent avant de frapper), piège à loup, gaz, buse de flammes (crache dans l'axe du couloir), dalle spectrale, toile.
+
+### Repas des monstres
+
+- 🍖 **Les monstres vont se servir seuls au garde-manger** quand ils ont faim : un cadavre tout proche d'abord, sinon le **garde-manger** garni le plus proche **du même étage** (une portion chacun, regarni chaque matin), sinon une salle de réserves. Un monstre à qui l'on a ordonné de **tenir la position** ne quitte plus son poste, ni pour manger, ni pour se quereller (l'ordre interrompt un repas en cours).

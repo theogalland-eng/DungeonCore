@@ -184,6 +184,9 @@ public class GobelinAI : MonoBehaviour, IDamageable
             missionTarget = null;
         }
 
+        // tenir la position : le monstre abandonne repas et querelles en cours
+        if (behavior == GoblinBehavior.Stay && life != null && !life.Sleeping) life.Interrupt();
+
         switch (behavior)
         {
             case GoblinBehavior.Stay:

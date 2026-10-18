@@ -38,6 +38,7 @@ public class MonsterLife : MonoBehaviour
     private Task task;
     private float taskTimer;
     private Corpse corpse;
+    private FoodBait larder;
     private Vector2 target;
     private MonsterLife foe;
 
@@ -180,8 +181,11 @@ public class MonsterLife : MonoBehaviour
         }
         if (mood < 22f) Bark(hunger > 85f ? "J'ai faim..." : boredom > 70f ? "Je m'ennuie..." : "Grmbl...", new Color(0.75f, 0.75f, 0.85f));
 
-        // manger : un cadavre, sinon le garde-manger
-        if (hunger > 55f)
+        // un monstre qui tient la position ne quitte pas son poste (ni pour manger, ni pour se quereller)
+        bool holding = ai.currentBehavior == GobelinAI.GoblinBehavior.Stay;
+
+        // manger : un cadavre, sinon un garde-manger posé sur l'étage, sinon une salle de réserves
+        if (hunger > 55f && !holding)
         {
             Corpse best = null;
             float bd = 22f;
@@ -193,7 +197,12 @@ public class MonsterLife : MonoBehaviour
                 if (d < bd) { bd = d; best = c; }
             }
             if (best != null) { Begin(Task.Eat); corpse = best; target = best.transform.position; ai.LifeGoTo(target); return true; }
-            if (ThemedRooms.NearestRoom(pos, ThemedRooms.Kind.Pantry, 25f, out var pantry))
+            var food = NearestLarder(pos, layer);
+            if (food != null)
+            {
+                Begin(Task.Eat); corpse = null; larder = food; target = food.EatSpot(pos); ai.LifeGoTo(target); return true;
+            }
+            if (ThemedRooms.NearestRoom(pos, ThemedRooms.Kind.Pantry, 60f, out var pantry))
             {
                 Begin(Task.Eat); corpse = null; target = pantry; ai.LifeGoTo(target); return true;
             }
@@ -201,7 +210,7 @@ public class MonsterLife : MonoBehaviour
         }
 
         // querelle avec un rival tout proche
-        var rival = MonsterSociety.RivalNear(this, 2.5f);
+        var rival = holding ? null : MonsterSociety.RivalNear(this, 2.5f);
         if (rival != null && rival.task == Task.None && rival.ai.IdleForLife && Random.value < (Has(Trait.Quarrelsome) ? 0.35f : 0.12f))
         {
             Begin(Task.Quarrel); foe = rival;
@@ -229,7 +238,22 @@ public class MonsterLife : MonoBehaviour
         task = Task.None;
         Sleeping = false;
         corpse = null;
+        larder = null;
         foe = null;
+    }
+
+    /// <summary>Garde-manger garni le plus proche sur le même étage (les monstres s'y servent tout seuls).</summary>
+    private static FoodBait NearestLarder(Vector2 pos, int layer)
+    {
+        FoodBait best = null;
+        float bd = 60f;
+        foreach (var b in FoodBait.All)
+        {
+            if (b == null || b.Portions <= 0 || LayerOf(b.transform.position) != layer) continue;
+            float d = Vector2.Distance(b.transform.position, pos);
+            if (d < bd) { bd = d; best = b; }
+        }
+        return best;
     }
 
     private bool Step()
@@ -246,16 +270,20 @@ public class MonsterLife : MonoBehaviour
 
             case Task.Eat:
                 if (corpse != null && corpse.Portions <= 0) { Interrupt(); return false; }
-                if (Vector2.Distance(pos, target) > 0.8f)
+                if (larder != null && larder.Portions <= 0) { Interrupt(); return false; }   // un autre a vidé le garde-manger
+                // le garde-manger est un meuble (collision) : on mange à portée de bras
+                float reach = larder != null ? 1.0f : 0.8f;
+                bool atLarder = larder != null && Vector2.Distance(pos, larder.transform.position) < 2.3f && taskTimer > 4f;
+                if (Vector2.Distance(pos, target) > reach && !atLarder)
                 {
                     if (taskTimer > 25f) { Interrupt(); return false; }
                     ai.LifeMove(0.9f);
                     return true;
                 }
                 ai.LifeStop();
-                ai.LifeFace(target);
+                ai.LifeFace(larder != null ? (Vector2)larder.transform.position : target);
                 ai.LifeGesture(Mathf.Repeat(taskTimer, 0.6f) < 0.3f ? 0.1f : 0f);
-                if (taskTimer > 3f && (corpse == null || corpse.Eat()))
+                if (taskTimer > (atLarder ? 7f : 3f) && (corpse == null || corpse.Eat()) && (larder == null || larder.TakePortion()))
                 {
                     hunger = Mathf.Max(0f, hunger - (corpse != null ? 65f : 45f));
                     if (corpse != null && GameManager.Instance != null) lastFedDay = GameManager.Instance.CurrentDay;

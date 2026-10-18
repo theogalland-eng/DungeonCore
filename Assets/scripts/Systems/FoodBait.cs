@@ -64,6 +64,15 @@ public class FoodBait : MonoBehaviour
         return p + (d.sqrMagnitude > 0.01f ? d.normalized : Vector2.down) * 0.8f;
     }
 
+    /// <summary>Un monstre du donjon se sert : une portion de moins (false si le garde-manger est vide).</summary>
+    public bool TakePortion()
+    {
+        if (Portions <= 0) return false;
+        Portions--;
+        if (sr != null && Portions <= 0) sr.color = new Color(0.55f, 0.5f, 0.5f);
+        return true;
+    }
+
     /// <summary>Un pas de repas ; true quand la portion est avalée.</summary>
     public bool EatTick(AdventurerLife who, float dt)
     {
