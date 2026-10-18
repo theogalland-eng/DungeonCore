@@ -71,6 +71,7 @@ Prérequis : Python 3 avec **Pillow**, **NumPy** et **SciPy**. À lancer depuis 
 | `make_decals.py` | Détails de sol du donjon (fissures, cailloux, ossements, mousse, flaques), entièrement procéduraux. |
 | `make_gull.py` | La mouette de la cinématique d'intro (vol, chute, posée). |
 | `make_sfx.py` · `make_ambience.py` | **Bruitages et ambiances entièrement synthétisés** (coups, sorts, pièges, ressac, souffle de caverne, battements de cœur ; jungle, nuit, lac, volcan, village). |
+| `make_traps.py` | **Pièges animés** (16 px par case, bandes `nom_LxH.png` → `Assets/Art/Generated/Traps`, importées par `TrapArt` avec pivot (8/L, 8/H)) + planche d'aperçu `Tools~/traps_preview.png`. |
 | `make_voices.py` | **Voix non verbales** par synthèse de formants : cris des familles de monstres (repérage, blessure, mort) et des intrus homme / femme (cri de guerre, blessure, mort, panique) → `vx_*.wav`. |
 | `extract_strings.py` · `build_loc.py` | **Traduction anglaise** (source : `Assets/Resources/Localization/en.txt`). Après avoir ajouté des textes : `python "Tools~/extract_strings.py" --missing` liste dans `strings_fr.txt` les segments pas encore traduits (découpés comme à l'exécution, trous `{0}`) ; écrire l'anglais ligne à ligne (en-têtes « # fichier » compris) dans `loc/add_N.txt`, puis `python "Tools~/build_loc.py" "Tools~/loc/add_N.txt"` l'ajoute au dictionnaire. Mots isolés : `loc/en_extra.txt`. |
 | `make_music_layers.py` | **Couches musicales dynamiques** sans tempo (tambours de guerre, nappe d'effroi) mêlées par `MusicManager` selon la tension. |

@@ -57,9 +57,9 @@ public static class CrawlerDungeon
     };
     private static readonly string[][] Traps =
     {
-        null, new string[0], new[] { "spikes", "web" }, new[] { "spikes", "bear", "web" }, new[] { "blades", "bear", "flame" },
-        new[] { "guillotine", "flame", "spikes" }, new[] { "column", "bomb", "blades" }, new[] { "bomb", "ghost_trap", "guillotine" },
-        new[] { "ghost_trap", "column", "bomb" }, new[] { "flame", "bomb", "column" }, new[] { "ghost_trap", "flame" },
+        null, new string[0], new[] { "spikes", "web" }, new[] { "spikes", "bear", "web" }, new[] { "saw", "bear", "flame" },
+        new[] { "cage", "flame", "spikes" }, new[] { "pendulum", "rune", "saw" }, new[] { "rune", "ghost_trap", "cage" },
+        new[] { "ghost_trap", "pendulum", "rune" }, new[] { "flame", "rune", "pendulum" }, new[] { "ghost_trap", "flame" },
     };
     private static readonly string[][] Deco =
     {

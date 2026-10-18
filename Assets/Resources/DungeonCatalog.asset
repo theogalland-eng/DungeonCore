@@ -302,27 +302,238 @@ MonoBehaviour:
     cost: 320
     unlockLevel: 20
     prestige: 0
-    upkeep: 0
-  - id: blade
-    displayName: Roue tranchante
-    description: "Lame tournoyante : blesse \xE0 chaque passage."
+    upkeep: 2
+  - id: pendulum
+    displayName: Lame pendulaire
+    description: "Une lame balaie la case sans fin : 28 d\xE9g\xE2ts \xE0 chaque
+      passage."
     category: 2
     kind: 2
     tool: 0
-    icon: {fileID: -2866557178365404384, guid: 3bb3d26f69aa32d449162e16b9c6925f, type: 3}
+    icon: {fileID: -7904035140447979750, guid: 6602037818bad6d44b5d3e82b6f84b7c, type: 3}
     iconTint: {r: 1, g: 1, b: 1, a: 1}
-    prefab: {fileID: 9106658419862870230, guid: a23dd4bf4c647ed47844fe66369531b5, type: 3}
-    cost: 30
+    prefab: {fileID: 268888799748864171, guid: 084afc132ebc775479845e458e4ce251, type: 3}
+    cost: 35
     unlockLevel: 1
     prestige: 0
+    upkeep: 3
+  - id: saw
+    displayName: Scie au sol
+    description: "Court dans sa fente, dans l'axe du couloir : ronge et ralentit
+      qui marche dessus (15 d\xE9g\xE2ts/s)."
+    category: 2
+    kind: 2
+    tool: 0
+    icon: {fileID: -282803389941045344, guid: 50e4cb2fb2ec8ac45950517ccffe1af1, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 3471992280442836395, guid: f0e7a2ae00977084883916593ee229c7, type: 3}
+    cost: 55
+    unlockLevel: 2
+    prestige: 0
+    upkeep: 5
+  - id: cage
+    displayName: Cage tombante
+    description: "Tombe sur l'intrus et l'enferme 5 s : vos monstres n'ont plus qu'\xE0
+      frapper. Se r\xE9arme en 12 s."
+    category: 2
+    kind: 2
+    tool: 0
+    icon: {fileID: -8898262008989173997, guid: 6952816724049a94e8126f0b9e620bf9, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 2120912787045184501, guid: b8ac075656139ac4fbd1a5c609e0fb74, type: 3}
+    cost: 50
+    unlockLevel: 2
+    prestige: 0
+    upkeep: 4
+  - id: rune
+    displayName: Rune explosive
+    description: "Rougeoie 0,8 s quand on marche dessus, puis souffle la zone (70
+      d\xE9g\xE2ts). Se r\xE9arme en 20 s."
+    category: 2
+    kind: 2
+    tool: 0
+    icon: {fileID: -6586778278433882848, guid: 87357752dd500304894daa949abf7c11, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 8966347802169376908, guid: cdedd6dfb9accbf44b126e24a19c11fb, type: 3}
+    cost: 60
+    unlockLevel: 3
+    prestige: 0
+    upkeep: 5
+  - id: wallspears
+    displayName: Lances murales
+    description: "Se fixe au mur : des lances traversent le couloir toutes les 3
+      s (26 d\xE9g\xE2ts, deux cases)."
+    category: 2
+    kind: 2
+    tool: 0
+    icon: {fileID: -927151761267082929, guid: 4d5486b1890130446b70ef73ce57eae2, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 930466412872419014, guid: 5da2d246c26985142916d8637d6b3cdc, type: 3}
+    cost: 65
+    unlockLevel: 3
+    prestige: 0
+    upkeep: 5
+  - id: darts
+    displayName: "Lanceur de fl\xE9chettes"
+    description: "Se fixe au mur : trois fl\xE9chettes dans l'axe du couloir d\xE8s
+      qu'un intrus s'y engage (6 cases)."
+    category: 2
+    kind: 2
+    tool: 0
+    icon: {fileID: 8987632415514296103, guid: a3ebe569a1af9414eb2cdb264b80ea19, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 5757347918913165160, guid: bbdbb50f1ae60c64d83f704c22b54e9c, type: 3}
+    cost: 45
+    unlockLevel: 2
+    prestige: 0
+    upkeep: 3
+  - id: trapdoor
+    displayName: Trappe
+    description: "Le sol s'ouvre : l'intrus tombe \xE0 l'\xE9tage du dessous (ou
+      au fond d'une fosse). Se r\xE9arme en 15 s."
+    category: 2
+    kind: 2
+    tool: 0
+    icon: {fileID: 1775187175044650136, guid: 5d72aa7cb815bf147bf63dadbafb738b, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 3843494554163544265, guid: 0c0f376cc12ff524882dca47b38c7242, type: 3}
+    cost: 70
+    unlockLevel: 4
+    prestige: 0
+    upkeep: 5
+  - id: oil
+    displayName: "Dalle huil\xE9e"
+    description: "On y glisse sans contr\xF4le, droit dans le pi\xE8ge suivant. Une
+      flamme voisine l'embrase."
+    category: 2
+    kind: 2
+    tool: 0
+    icon: {fileID: -5328104982336953044, guid: a6e3b39d63e63d64ebf2be7e3c4f166d, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 1805103557199625589, guid: db495b2382fa87640a887d4bd88dfe25, type: 3}
+    cost: 25
+    unlockLevel: 2
+    prestige: 0
     upkeep: 2
+  - id: boulder
+    displayName: Rocher roulant
+    description: "Au bout d'un couloir : d\xE9vale toute la ligne quand un intrus
+      s'y engage (45 d\xE9g\xE2ts \xE0 chacun). Revient en 30 s."
+    category: 2
+    kind: 2
+    tool: 0
+    icon: {fileID: 3682734787062045483, guid: 38eac53e0d772ba46a8c43736bae2409, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 929567318335925486, guid: 470f7bb947e6ff249ae799cac1f49a55, type: 3}
+    cost: 80
+    unlockLevel: 4
+    prestige: 0
+    upkeep: 6
+  - id: geyser
+    displayName: Geyser de magma
+    description: "Fournaise : bouillonne, puis crache la lave toutes les 4 s (35
+      d\xE9g\xE2ts et br\xFBlure)."
+    category: 2
+    kind: 2
+    tool: 0
+    icon: {fileID: 2524434941995717630, guid: b32dd47c9866b8444a7f1ac227fe1980, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 5756204010982907074, guid: f72fd6c7fe0f6d345be8867189fffe49, type: 3}
+    cost: 60
+    unlockLevel: 3
+    prestige: 0
+    upkeep: 5
+  - id: whirlpool
+    displayName: "Maelstr\xF6m"
+    description: 'Sanctuaire englouti : aspire et ralentit les intrus alentour, noie
+      ceux qui y tombent.'
+    category: 2
+    kind: 2
+    tool: 0
+    icon: {fileID: -8203960809527574535, guid: 032d03c8e8cf86442afa54211099a773, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 5554165659849534057, guid: e703f5cde9291724881b22b87b2b2686, type: 3}
+    cost: 55
+    unlockLevel: 3
+    prestige: 0
+    upkeep: 4
+  - id: stalactite
+    displayName: Stalactites
+    description: "Caverne gel\xE9e : l'ombre grandit, le gla\xE7on tombe (40 d\xE9g\xE2ts,
+      ralentit). Se r\xE9arme en 10 s."
+    category: 2
+    kind: 2
+    tool: 0
+    icon: {fileID: -7280196873245031705, guid: 10c098a2911954b48b1714c37d17cbd0, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 585570572709159292, guid: 6f8c74af30b6e09498bbfdaaad7e5351, type: 3}
+    cost: 50
+    unlockLevel: 3
+    prestige: 0
+    upkeep: 4
+  - id: spores
+    displayName: "Champignon \xE0 spores"
+    description: 'Jardin fongique : un nuage de spores empoisonne et aveugle les
+      intrus proches.'
+    category: 2
+    kind: 2
+    tool: 0
+    icon: {fileID: -3390525655400137070, guid: 74814f9795d40f54687c547932044be9, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 7307561609364087925, guid: a05c32b6722762240910964d108ac147, type: 3}
+    cost: 50
+    unlockLevel: 3
+    prestige: 0
+    upkeep: 4
+  - id: prism
+    displayName: Prisme laser
+    description: "Temple de cristal : se charge, puis tire un rayon dans l'axe du
+      couloir (18 d\xE9g\xE2ts, 4 cases de chaque c\xF4t\xE9)."
+    category: 2
+    kind: 2
+    tool: 0
+    icon: {fileID: -7412608460818531216, guid: 03a45f72f7af5ad4a94ca7c2aa7bb1af, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 5810230362263128943, guid: ff0e9942189054e4e8c3beb6805f7bae, type: 3}
+    cost: 70
+    unlockLevel: 4
+    prestige: 0
+    upkeep: 5
+  - id: grasp
+    displayName: Mains squelettiques
+    description: 'Crypte et catacombes : des mains d''os jaillissent et agrippent
+      l''intrus 3 s.'
+    category: 2
+    kind: 2
+    tool: 0
+    icon: {fileID: 4569892264379477316, guid: 9eb8736641084b944b995cf7cd07f164, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 7240631918316249504, guid: 1589e365eeb63b343923c0afea60dff6, type: 3}
+    cost: 55
+    unlockLevel: 3
+    prestige: 0
+    upkeep: 4
+  - id: crossbow
+    displayName: "Arbal\xE8te cach\xE9e"
+    description: "Forteresse : se fixe au mur et tire un carreau dans l'axe du couloir
+      toutes les 2,5 s (30 d\xE9g\xE2ts)."
+    category: 2
+    kind: 2
+    tool: 0
+    icon: {fileID: -9208761201745400335, guid: 55d72a6d47bd29a4489182b205c0ba06, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 223173295732105237, guid: 9c411d7dce123a344a439c695740d0c9, type: 3}
+    cost: 60
+    unlockLevel: 3
+    prestige: 0
+    upkeep: 5
   - id: spikes
     displayName: "Pics r\xE9tractables"
     description: "Jaillissent du sol toutes les 2,4 s (22 d\xE9g\xE2ts)."
     category: 2
     kind: 2
     tool: 0
-    icon: {fileID: 3594381593587037778, guid: 083607b9c63815441bf8037205420178, type: 3}
+    icon: {fileID: -8328159106608433595, guid: bfc1b84348094e34391ee77d39cc0bf0, type: 3}
     iconTint: {r: 1, g: 1, b: 1, a: 1}
     prefab: {fileID: 7791918937662997066, guid: 38150e6501fdec646921ed2f4cdbdac6, type: 3}
     cost: 35
@@ -342,59 +553,6 @@ MonoBehaviour:
     unlockLevel: 1
     prestige: 0
     upkeep: 2
-  - id: blades
-    displayName: Lames rotatives
-    description: "Tournent sans fin : 16 d\xE9g\xE2ts par seconde \xE0 qui s'approche."
-    category: 2
-    kind: 2
-    tool: 0
-    icon: {fileID: -3421227793854133648, guid: c4b62f09569151c41b21217d57f07d95, type: 3}
-    iconTint: {r: 1, g: 1, b: 1, a: 1}
-    prefab: {fileID: 7659834760237493193, guid: c6692075e02fc9e47923a35fd734c8ea, type: 3}
-    cost: 65
-    unlockLevel: 2
-    prestige: 0
-    upkeep: 6
-  - id: guillotine
-    displayName: Guillotine
-    description: "Tombe toutes les 3,6 s : 48 d\xE9g\xE2ts."
-    category: 2
-    kind: 2
-    tool: 0
-    icon: {fileID: 5569180145884776716, guid: 8bd3eac523e7b8e4586297ded7e17efc, type: 3}
-    iconTint: {r: 1, g: 1, b: 1, a: 1}
-    prefab: {fileID: 6976429870238487818, guid: ce8c4cd7c5af4594e90b489e58e3abf2, type: 3}
-    cost: 60
-    unlockLevel: 2
-    prestige: 0
-    upkeep: 5
-  - id: column
-    displayName: "Colonne \xE0 lances"
-    description: "Lances dans les 4 directions : touche tout autour (26 d\xE9g\xE2ts)."
-    category: 2
-    kind: 2
-    tool: 0
-    icon: {fileID: 5843461777023794298, guid: d9303115d893f174c8b7996daa414b3f, type: 3}
-    iconTint: {r: 1, g: 1, b: 1, a: 1}
-    prefab: {fileID: 1491538688622925566, guid: ee167a2ca74f02f43b8c2432a8045f1d, type: 3}
-    cost: 70
-    unlockLevel: 3
-    prestige: 0
-    upkeep: 6
-  - id: bomb
-    displayName: Bombe
-    description: "Explose au passage d'un intrus (75 d\xE9g\xE2ts en zone). Se r\xE9arme
-      en 25 s."
-    category: 2
-    kind: 2
-    tool: 0
-    icon: {fileID: 2525089740802600966, guid: 86aaf0825e55268469e93768874bc46d, type: 3}
-    iconTint: {r: 1, g: 1, b: 1, a: 1}
-    prefab: {fileID: 4620899264937346298, guid: f3468911a8300174f8985b48f22aa546, type: 3}
-    cost: 55
-    unlockLevel: 3
-    prestige: 0
-    upkeep: 5
   - id: ghost_trap
     displayName: "Pi\xE8ge spectral"
     description: "Un spectre surgit : 30 d\xE9g\xE2ts et les intrus, glac\xE9s, ralentissent
@@ -402,7 +560,7 @@ MonoBehaviour:
     category: 2
     kind: 2
     tool: 0
-    icon: {fileID: -8773621273890103271, guid: 9d28f91f673a16542b4bf2b9515928be, type: 3}
+    icon: {fileID: -6217325669686205485, guid: e02759d2f23ac6b41970802af8fc764c, type: 3}
     iconTint: {r: 1, g: 1, b: 1, a: 1}
     prefab: {fileID: 4615325188197808921, guid: d0d2e4b0130f7bf49ad443c55e70782f, type: 3}
     cost: 80
@@ -416,7 +574,7 @@ MonoBehaviour:
     category: 2
     kind: 2
     tool: 0
-    icon: {fileID: 21300000, guid: 3803120b685a5714abbb02322e859e10, type: 3}
+    icon: {fileID: 7935234321397735378, guid: 7e5a6c24ce6855a4890671d8213e1743, type: 3}
     iconTint: {r: 1, g: 1, b: 1, a: 1}
     prefab: {fileID: 7407816658928174267, guid: c9dbccab9e6dba54fbe22b76db13e198, type: 3}
     cost: 40
@@ -429,7 +587,7 @@ MonoBehaviour:
     category: 2
     kind: 2
     tool: 0
-    icon: {fileID: 21300000, guid: 276b41fa94a1f9845b8d7f581e2d9af8, type: 3}
+    icon: {fileID: -2827147315405241775, guid: a085fc38723b7ce449f9ba1c9b781b9a, type: 3}
     iconTint: {r: 1, g: 1, b: 1, a: 1}
     prefab: {fileID: 1885946690433580581, guid: 8657a793ed72d0140a1126f0e7b02b36, type: 3}
     cost: 70

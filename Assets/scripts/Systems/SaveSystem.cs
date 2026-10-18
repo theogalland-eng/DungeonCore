@@ -330,7 +330,7 @@ public class SaveSystem : MonoBehaviour
             {
                 var c = new Vector3Int(o.x, o.y, 0);
                 if (o.id == LootSystem.TrophyId) { LootSystem.Instance?.CreateTrophy(o.data, c); continue; }
-                var item = cat.Find(o.id);
+                var item = cat.Find(TrapRules.Aliases.TryGetValue(o.id, out var newId) ? newId : o.id);   // pièges remplacés
                 if (item != null) builder.PlaceItemFree(item, c);
             }
 

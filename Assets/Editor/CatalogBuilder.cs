@@ -1,4 +1,4 @@
-﻿#if UNITY_EDITOR
+#if UNITY_EDITOR
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -188,10 +188,46 @@ public static class CatalogBuilder
         GameObject slimePrefab = BuildSlime(goblinPrefab);
 
         // ── Pièges ──
+        TrapArt.ImportAll();
+        Sprite[] TA(string n) => TrapArt.Frames(n);
+        GameObject Kit<T>(string name, string art, int order, System.Action<T> cfg = null, Color? light = null, float lightRadius = 2f) where T : TrapKit
+        {
+            var root = new GameObject(name);
+            root.AddComponent<PlacedObject>().kind = ItemKind.Trap;
+            var child = new GameObject("Sprite");
+            child.transform.SetParent(root.transform, false);
+            var sr = child.AddComponent<SpriteRenderer>();
+            var fr = TA(art);
+            sr.sprite = fr.Length > 0 ? fr[0] : null;
+            sr.sortingOrder = order;
+            sr.spriteSortPoint = SpriteSortPoint.Pivot;
+            var k = root.AddComponent<T>();
+            k.frames = fr;
+            k.sr = sr;
+            cfg?.Invoke(k);
+            if (light.HasValue) AddLight(root.transform, light.Value, lightRadius, 0.7f, Vector2.zero);
+            return SavePrefab(root);
+        }
+        var pendulumP = Kit<PendulumTrap>("LamePendulaire", "pendulum", 3);
+        var sawP = Kit<SawTrap>("ScieAuSol", "saw", 1);
+        var cageP = Kit<CageTrap>("CageTombante", "cage", 3);
+        var runeP = Kit<RuneTrap>("RuneExplosive", "rune", 1);
+        var spearsP = Kit<WallTrap>("LancesMurales", "wallspears", 3, t => { t.mode = WallTrap.Mode.Spears; t.damage = 26f; t.interval = 3f; });
+        var dartsP = Kit<WallTrap>("Flechettes", "darts", 3, t => { t.mode = WallTrap.Mode.Darts; t.damage = 12f; t.interval = 4f; });
+        var crossbowP = Kit<WallTrap>("ArbaleteCachee", "crossbow", 3, t => { t.mode = WallTrap.Mode.Crossbow; t.damage = 30f; t.interval = 2.5f; });
+        var trapdoorP = Kit<TrapdoorTrap>("Trappe", "trapdoor", 1);
+        var oilP = Kit<OilTrap>("DalleHuilee", "oil", 1);
+        var boulderP = Kit<BoulderTrap>("RocherRoulant", "boulder", 3);
+        var geyserP = Kit<GeyserTrap>("GeyserMagma", "geyser", 3, null, new Color(1f, 0.5f, 0.2f), 2f);
+        var whirlP = Kit<WhirlpoolTrap>("Tourbillon", "whirlpool", 1, null, new Color(0.35f, 0.75f, 1f), 1.6f);
+        var stalP = Kit<StalactiteTrap>("Stalactites", "stalactite", 3);
+        var sporeP = Kit<SporeTrap>("ChampignonSpores", "spores", 3, null, new Color(0.6f, 1f, 0.4f), 1.4f);
+        var prismP = Kit<PrismTrap>("PrismeLaser", "prism", 3, null, new Color(0.7f, 0.5f, 1f), 1.8f);
+        var graspP = Kit<GraspTrap>("MainsSquelettiques", "grasp", 2);
         var bladePrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/TrapSpinningBlade.prefab");
         var flame = new GameObject("FlameTrap");
         flame.AddComponent<PlacedObject>().kind = ItemKind.Trap;
-        SpriteChild(flame.transform, "Nozzle", traps.GetValueOrDefault("full_traps_1"), 0.45f, 2, new Vector2(0, -0.1f));
+        SpriteChild(flame.transform, "Nozzle", TA("flamevent").FirstOrDefault() ?? traps.GetValueOrDefault("full_traps_1"), 1f, 2, Vector2.zero);
         var flameSprite = SpriteChild(flame.transform, "Flame", traps.GetValueOrDefault("full_traps_5"), 1.4f, 5, new Vector2(0, 0.55f));
         AddLight(flame.transform, new Color(1f, 0.55f, 0.2f), 3.5f, 1.3f, new Vector2(0, 0.5f));
         var ft = flame.AddComponent<FlameTrap>();
@@ -412,12 +448,21 @@ public static class CatalogBuilder
 
         var bear = FloorTrap("PiegeALoup", PL("trap_bear_open"));
         var bt = bear.AddComponent<BearTrap>();
-        bt.openSprite = PL("trap_bear_open"); bt.closedSprite = PL("trap_bear_closed");
+        bt.openSprite = TA("bear").FirstOrDefault() ?? PL("trap_bear_open"); bt.closedSprite = TA("bear").LastOrDefault() ?? PL("trap_bear_closed");
+        bear.GetComponentInChildren<SpriteRenderer>().sprite = bt.openSprite;
+        bear.GetComponentInChildren<SpriteRenderer>().transform.localScale = Vector3.one;
         bt.spriteRenderer = bear.GetComponentInChildren<SpriteRenderer>();
         var bearPrefab = SavePrefab(bear);
 
         var gas = FloorTrap("GazToxique", PL("trap_poison"));
         gas.GetComponentInChildren<SpriteRenderer>().sortingOrder = 4;
+        if (TA("gas").Length > 0)
+        {
+            var gsr = gas.GetComponentInChildren<SpriteRenderer>();
+            gsr.sprite = TA("gas")[0];
+            gsr.transform.localScale = Vector3.one;
+            var gan = gsr.gameObject.AddComponent<SpriteAnim>(); gan.frames = TA("gas"); gan.fps = 6; gan.randomStart = true;
+        }
         AddLight(gas.transform, new Color(0.45f, 1f, 0.35f), 2.6f, 0.6f, Vector2.zero);
         gas.AddComponent<PoisonTrap>();
         var gasPrefab = SavePrefab(gas);
@@ -493,19 +538,19 @@ public static class CatalogBuilder
             if (light.HasValue) AddLight(root.transform, light.Value, 2.5f, 0f, Vector2.zero);
             return SavePrefab(root);
         }
-        var spikesAnim = Anim("PicsAnimes", "trap_spikes", AnimatedTrap.Trigger.Periodic, 22, 0.5f, a => { a.interval = 2.4f; a.fps = 14; a.hitFrame = 3; });
+        var spikesAnim = Anim("PicsAnimes", "trap_spikes", AnimatedTrap.Trigger.Periodic, 22, 0.5f, a => { a.interval = 2.4f; a.fps = 8; a.hitFrame = 3; if (TA("spikes").Length > 0) { a.frames = TA("spikes"); a.spriteRenderer.sprite = a.frames[0]; a.spriteRenderer.transform.localPosition = Vector3.zero; } });
         var guillotine = Anim("Guillotine", "trap_guillotine", AnimatedTrap.Trigger.Periodic, 48, 0.5f, a => { a.interval = 3.6f; a.fps = 16; a.hitFrame = 3; a.shake = 0.05f; });
         var column = Anim("ColonneLances", "trap_column", AnimatedTrap.Trigger.Periodic, 26, 1.35f, a => { a.interval = 3f; a.fps = 10; a.hitFrame = 3; });
         var bomb = Anim("Bombe", "trap_bomb", AnimatedTrap.Trigger.Proximity, 75, 1.7f, a => { a.fps = 10; a.hitFrame = 6; a.triggerRadius = 0.7f; a.rearmSeconds = 25f; a.hideWhileRearming = true; a.shake = 0.18f; a.hitFx = "explosion"; a.hitFxSize = 2.2f; },
             new Color(0.4f, 1f, 0.85f));
-        var ghostTrap = Anim("PiegeSpectral", "trap_ghost", AnimatedTrap.Trigger.Proximity, 30, 1f, a => { a.fps = 12; a.hitFrame = 5; a.triggerRadius = 0.8f; a.rearmSeconds = 12f; a.slowMult = 0.45f; a.slowSeconds = 3f; a.hitFx = "ice"; a.hitFxSize = 1.4f; },
+        var ghostTrap = Anim("PiegeSpectral", "trap_ghost", AnimatedTrap.Trigger.Proximity, 30, 1f, a => { a.fps = 12; a.hitFrame = 5; a.triggerRadius = 0.8f; a.rearmSeconds = 12f; a.slowMult = 0.45f; a.slowSeconds = 3f; a.hitFx = "ice"; a.hitFxSize = 1.4f; if (TA("ghostplate").Length > 0) { a.frames = TA("ghostplate"); a.fps = 8; a.hitFrame = 2; a.spriteRenderer.sprite = a.frames[0]; a.spriteRenderer.transform.localPosition = Vector3.zero; a.spriteRenderer.sortingOrder = 1; } },
             new Color(0.6f, 0.9f, 1f));
         var blades = Anim("LamesRotatives", "trap_blades", AnimatedTrap.Trigger.Continuous, 0, 0.6f, a => { a.fps = 14; a.dps = 16f; });
         var webT = new GameObject("Toile");
         webT.AddComponent<PlacedObject>().kind = ItemKind.Trap;
-        SpriteChild(webT.transform, "Sprite", ArtImporter.Single(ArtImporter.DungeonDir, "web"), 1f, 1, Vector2.zero);
+        SpriteChild(webT.transform, "Sprite", TA("web").FirstOrDefault() ?? ArtImporter.Single(ArtImporter.DungeonDir, "web"), 1f, 1, Vector2.zero);
         var webAt = webT.AddComponent<AnimatedTrap>();
-        webAt.frames = new[] { ArtImporter.Single(ArtImporter.DungeonDir, "web") };
+        webAt.frames = new[] { TA("web").FirstOrDefault() ?? ArtImporter.Single(ArtImporter.DungeonDir, "web") };
         webAt.spriteRenderer = webT.GetComponentInChildren<SpriteRenderer>();
         webAt.trigger = AnimatedTrap.Trigger.Continuous; webAt.dps = 0f; webAt.radius = 0.55f; webAt.slowMult = 0.35f; webAt.slowSeconds = 0.8f;
         var web = SavePrefab(webT);
@@ -560,17 +605,28 @@ public static class CatalogBuilder
         var demonHead = AnimDecor("AutelDemoniaque", "cave_demon_head", 7, 0, new Color(1f, 0.35f, 0.25f), 5f);
         var demonHand = AnimDecor("MainDemoniaque", "cave_demon_hand", 7, 0, new Color(1f, 0.5f, 0.3f), 2.5f);
 
-        Add("blade", "Roue tranchante", CatalogCategory.Trap, ItemKind.Trap, bladePrefab, 30, 1, bladePrefab != null ? bladePrefab.GetComponentInChildren<SpriteRenderer>()?.sprite : null, "Lame tournoyante : blesse à chaque passage."); U(3);
         U(2);
-        Add("spikes", "Pics rétractables", CatalogCategory.Trap, ItemKind.Trap, spikes, 35, 1, AF("trap_spikes").Skip(3).FirstOrDefault() ?? PL("trap_spikes_on"), "Jaillissent du sol toutes les 2,4 s (22 dégâts)."); U(3);
+        Add("pendulum", "Lame pendulaire", CatalogCategory.Trap, ItemKind.Trap, pendulumP, 35, 1, TA("pendulum").Skip(3).FirstOrDefault(), "Une lame balaie la case sans fin : 28 dégâts à chaque passage."); U(3);
+        Add("saw", "Scie au sol", CatalogCategory.Trap, ItemKind.Trap, sawP, 55, 2, TA("saw").FirstOrDefault(), "Court dans sa fente, dans l'axe du couloir : ronge et ralentit qui marche dessus (15 dégâts/s)."); U(5);
+        Add("cage", "Cage tombante", CatalogCategory.Trap, ItemKind.Trap, cageP, 50, 2, TA("cage").Skip(4).FirstOrDefault(), "Tombe sur l'intrus et l'enferme 5 s : vos monstres n'ont plus qu'à frapper. Se réarme en 12 s."); U(4);
+        Add("rune", "Rune explosive", CatalogCategory.Trap, ItemKind.Trap, runeP, 60, 3, TA("rune").Skip(2).FirstOrDefault(), "Rougeoie 0,8 s quand on marche dessus, puis souffle la zone (70 dégâts). Se réarme en 20 s."); U(5);
+        Add("wallspears", "Lances murales", CatalogCategory.Trap, ItemKind.Trap, spearsP, 65, 3, TA("wallspears").Skip(3).FirstOrDefault(), "Se fixe au mur : des lances traversent le couloir toutes les 3 s (26 dégâts, deux cases)."); U(5);
+        Add("darts", "Lanceur de fléchettes", CatalogCategory.Trap, ItemKind.Trap, dartsP, 45, 2, TA("darts").LastOrDefault(), "Se fixe au mur : trois fléchettes dans l'axe du couloir dès qu'un intrus s'y engage (6 cases)."); U(3);
+        Add("trapdoor", "Trappe", CatalogCategory.Trap, ItemKind.Trap, trapdoorP, 70, 4, TA("trapdoor").FirstOrDefault(), "Le sol s'ouvre : l'intrus tombe à l'étage du dessous (ou au fond d'une fosse). Se réarme en 15 s."); U(5);
+        Add("oil", "Dalle huilée", CatalogCategory.Trap, ItemKind.Trap, oilP, 25, 2, TA("oil").FirstOrDefault(), "On y glisse sans contrôle, droit dans le piège suivant. Une flamme voisine l'embrase."); U(2);
+        Add("boulder", "Rocher roulant", CatalogCategory.Trap, ItemKind.Trap, boulderP, 80, 4, TA("boulder").FirstOrDefault(), "Au bout d'un couloir : dévale toute la ligne quand un intrus s'y engage (45 dégâts à chacun). Revient en 30 s."); U(6);
+        Add("geyser", "Geyser de magma", CatalogCategory.Trap, ItemKind.Trap, geyserP, 60, 3, TA("geyser").Skip(3).FirstOrDefault(), "Fournaise : bouillonne, puis crache la lave toutes les 4 s (35 dégâts et brûlure)."); U(5);
+        Add("whirlpool", "Maelström", CatalogCategory.Trap, ItemKind.Trap, whirlP, 55, 3, TA("whirlpool").FirstOrDefault(), "Sanctuaire englouti : aspire et ralentit les intrus alentour, noie ceux qui y tombent."); U(4);
+        Add("stalactite", "Stalactites", CatalogCategory.Trap, ItemKind.Trap, stalP, 50, 3, TA("stalactite").Skip(2).FirstOrDefault(), "Caverne gelée : l'ombre grandit, le glaçon tombe (40 dégâts, ralentit). Se réarme en 10 s."); U(4);
+        Add("spores", "Champignon à spores", CatalogCategory.Trap, ItemKind.Trap, sporeP, 50, 3, TA("spores").Skip(2).FirstOrDefault(), "Jardin fongique : un nuage de spores empoisonne et aveugle les intrus proches."); U(4);
+        Add("prism", "Prisme laser", CatalogCategory.Trap, ItemKind.Trap, prismP, 70, 4, TA("prism").Skip(2).FirstOrDefault(), "Temple de cristal : se charge, puis tire un rayon dans l'axe du couloir (18 dégâts, 4 cases de chaque côté)."); U(5);
+        Add("grasp", "Mains squelettiques", CatalogCategory.Trap, ItemKind.Trap, graspP, 55, 3, TA("grasp").Skip(3).FirstOrDefault(), "Crypte et catacombes : des mains d'os jaillissent et agrippent l'intrus 3 s."); U(4);
+        Add("crossbow", "Arbalète cachée", CatalogCategory.Trap, ItemKind.Trap, crossbowP, 60, 3, TA("crossbow").FirstOrDefault(), "Forteresse : se fixe au mur et tire un carreau dans l'axe du couloir toutes les 2,5 s (30 dégâts)."); U(5);
+        Add("spikes", "Pics rétractables", CatalogCategory.Trap, ItemKind.Trap, spikes, 35, 1, TA("spikes").Skip(3).FirstOrDefault() ?? PL("trap_spikes_on"), "Jaillissent du sol toutes les 2,4 s (22 dégâts)."); U(3);
         Add("web", "Toile d'araignée", CatalogCategory.Trap, ItemKind.Trap, web, 15, 1, ArtImporter.Single(ArtImporter.DungeonDir, "web"), "Englue les intrus : vitesse -65 % tant qu'ils la traversent."); U(2);
-        Add("blades", "Lames rotatives", CatalogCategory.Trap, ItemKind.Trap, blades, 65, 2, AF("trap_blades").FirstOrDefault(), "Tournent sans fin : 16 dégâts par seconde à qui s'approche."); U(6);
-        Add("guillotine", "Guillotine", CatalogCategory.Trap, ItemKind.Trap, guillotine, 60, 2, AF("trap_guillotine").Skip(3).FirstOrDefault(), "Tombe toutes les 3,6 s : 48 dégâts."); U(5);
-        Add("column", "Colonne à lances", CatalogCategory.Trap, ItemKind.Trap, column, 70, 3, AF("trap_column").Skip(3).FirstOrDefault(), "Lances dans les 4 directions : touche tout autour (26 dégâts)."); U(6);
-        Add("bomb", "Bombe", CatalogCategory.Trap, ItemKind.Trap, bomb, 55, 3, AF("trap_bomb").FirstOrDefault(), "Explose au passage d'un intrus (75 dégâts en zone). Se réarme en 25 s."); U(5);
-        Add("ghost_trap", "Piège spectral", CatalogCategory.Trap, ItemKind.Trap, ghostTrap, 80, 4, AF("trap_ghost").Skip(4).FirstOrDefault(), "Un spectre surgit : 30 dégâts et les intrus, glacés, ralentissent 3 s."); U(8);
-        Add("bear", "Piège à loup", CatalogCategory.Trap, ItemKind.Trap, bearPrefab, 40, 2, PL("trap_bear_open"), "Se referme sur un intrus : le blesse et l'immobilise 3,5 s. Se réarme seul."); U(3);
-        Add("poison", "Gaz toxique", CatalogCategory.Trap, ItemKind.Trap, gasPrefab, 70, 3, PL("trap_poison"), "Nuage permanent : empoisonne et ralentit les intrus alentour."); U(6);
+        Add("ghost_trap", "Piège spectral", CatalogCategory.Trap, ItemKind.Trap, ghostTrap, 80, 4, TA("ghostplate").Skip(2).FirstOrDefault() ?? AF("trap_ghost").Skip(4).FirstOrDefault(), "Un spectre surgit : 30 dégâts et les intrus, glacés, ralentissent 3 s."); U(8);
+        Add("bear", "Piège à loup", CatalogCategory.Trap, ItemKind.Trap, bearPrefab, 40, 2, TA("bear").FirstOrDefault() ?? PL("trap_bear_open"), "Se referme sur un intrus : le blesse et l'immobilise 3,5 s. Se réarme seul."); U(3);
+        Add("poison", "Gaz toxique", CatalogCategory.Trap, ItemKind.Trap, gasPrefab, 70, 3, TA("gas").FirstOrDefault() ?? PL("trap_poison"), "Nuage permanent : empoisonne et ralentit les intrus alentour."); U(6);
         Add("door_wood", "Porte en bois", CatalogCategory.Trap, ItemKind.Decor, woodDoor, 25, 1, AF("door_wood").FirstOrDefault() ?? PL("door_wood"), "Porte voûtée : les intrus perdent 2,5 s à la forcer, puis elle reste ouverte. Fermée, elle arrête la vue, les tirs... et vos monstres, sauf sur votre ordre.", 0.5f); U(2);
         Add("lever_door", "Porte à levier", CatalogCategory.Trap, ItemKind.Decor, leverDoor, 45, 2, PropSprite("seal"), "Énigme : elle ne se force pas. Un intrus doit trouver et baisser un levier (à 12 cases au plus) : le groupe se disperse, vos monstres en profitent.", 1f); U(2);
         Add("lever", "Levier", CatalogCategory.Trap, ItemKind.Decor, leverPrefab, 20, 2, PropSprite("lever_off"), "Ouvre les portes à levier voisines (12 cases) pendant 40 s. Cachez-le au fond d'une impasse gardée.", 0.3f);

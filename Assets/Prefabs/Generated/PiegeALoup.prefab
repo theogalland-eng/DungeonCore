@@ -81,7 +81,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 1
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 21300000, guid: 3803120b685a5714abbb02322e859e10, type: 3}
+  m_Sprite: {fileID: 7935234321397735378, guid: 7e5a6c24ce6855a4890671d8213e1743, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -155,8 +155,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9fdee69a015a9d74389c3a2ea316b4a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BearTrap
-  openSprite: {fileID: 21300000, guid: 3803120b685a5714abbb02322e859e10, type: 3}
-  closedSprite: {fileID: 21300000, guid: 46dc954b879bdb044b96173ddce5e461, type: 3}
+  openSprite: {fileID: 7935234321397735378, guid: 7e5a6c24ce6855a4890671d8213e1743, type: 3}
+  closedSprite: {fileID: 1168296128566557295, guid: 7e5a6c24ce6855a4890671d8213e1743, type: 3}
   spriteRenderer: {fileID: 4388043739305355652}
   damage: 25
   holdSeconds: 3.5

@@ -595,6 +595,7 @@ public class DungeonBuilder : MonoBehaviour
         if (territory != null && !territory.IsInsideCell(c)) { reason = "À placer sur le sol du donjon"; return false; }
         if (territory != null && c == territory.CoreCell) { reason = "Pas sur le cœur !"; return false; }
         if (GetPlacedAt(c) != null || DungeonStairs.At(center) != null) { reason = "Case déjà occupée"; return false; }
+        if (item.kind == ItemKind.Trap && !TrapRules.CanPlace(item.id, c, center, out reason)) return false;
         // un objet encombrant ne doit pas couper le donjon en deux (milieu d'un couloir, entrée d'une salle...)
         if (PlacedObject.IsBlocking(item.id) && territory != null)
         {

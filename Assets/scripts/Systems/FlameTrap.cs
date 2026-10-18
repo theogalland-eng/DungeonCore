@@ -24,11 +24,35 @@ public class FlameTrap : MonoBehaviour
     private bool active;
     private Light2D glow;
 
+    /// <summary>La flamme jaillit en ce moment (dalle huilée voisine : elle s'embrase).</summary>
+    public bool IsBurning => active;
+
     private void Start()
     {
         timer = Random.Range(0f, offDuration);
         glow = GetComponentInChildren<Light2D>();
         SetActive(false);
+        OrientAlongCorridor();
+    }
+
+    /// <summary>Dans un couloir horizontal, la flamme crache vers la droite (dans l'axe du passage).</summary>
+    private void OrientAlongCorridor()
+    {
+        var t = DungeonTerritory.Instance;
+        var b = DungeonBuilder.Instance;
+        if (t == null || b == null || flameRenderer == null) return;
+        var c = b.floorTilemap.WorldToCell(transform.position);
+        int h = 0, v = 0;
+        for (int k = 1; k <= 3; k++)
+        {
+            if (t.IsInsideCell(c + new Vector3Int(k, 0, 0))) h++; if (t.IsInsideCell(c + new Vector3Int(-k, 0, 0))) h++;
+            if (t.IsInsideCell(c + new Vector3Int(0, k, 0))) v++; if (t.IsInsideCell(c + new Vector3Int(0, -k, 0))) v++;
+        }
+        if (h <= v) return;
+        var ft = flameRenderer.transform;
+        ft.localRotation = Quaternion.Euler(0, 0, -90f);
+        ft.localPosition = new Vector3(Mathf.Abs(ft.localPosition.y), 0f, 0f);
+        damageOffset = new Vector2(Mathf.Abs(damageOffset.y), 0f);
     }
 
     private void Update()

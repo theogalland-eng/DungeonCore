@@ -1,0 +1,124 @@
+# DungeonBuilder.cs
+Only lives here: {0}
+# CageTrap.cs
+A cage!
+# GraspTrap.cs
+Let go of me!
+# MonsterVariant.cs
+Ember rat
+ember
+bursts into sparks when it dies
+Fire slime
+fire
+leaves a burning trail, its hits burn
+Pyromaniac goblin
+throws fire flasks
+Burning skeleton
+its hits burn
+Sewer rat
+sewer
+fast in water
+Tidal slime
+tidal
+regenerates in water
+Fisher goblin
+throws a slowing net
+Drowned skeleton
+its hits knock back
+Snow rat
+snow
+its bite numbs
+Frost slime
+frost
+its hits slow
+Ice goblin
+ice
+throws ice javelins
+Frozen skeleton
+bursts into ice shards when it dies
+Plague rat
+its bite poisons
+Toxic slime
+releases a toxic cloud when it dies
+Spore goblin
+its spores blind
+Mossy skeleton
+regenerates
+Quartz rat
+quartz
+armoured in crystal
+Crystal slime
+crystal
+reflects 20 % of damage
+Prismatic goblin
+its glow lures intruders
+Crystal skeleton
+each hit drains mana
+Spectral rat
+dodges one hit in four
+Ectoplasm slime
+its touch chills
+Ghoul goblin
+feeds on its hits
+Crypt skeleton
+crypt
+hits harder
+Ossuary rat
+ossuary
+Bone slime
+Catacomb skeleton
+catacomb
+Garrison rat
+garrison
+Steel slime
+very tough, but slow
+Armoured goblin
+armoured
++40 % HP, slower
+Legionary skeleton
+its shield blocks a quarter of the damage
+A net!
+What's that shining over there?
+# OilTrap.cs
+It's slippery!
+# TrapdoorTrap.cs
+Aaaah!
+A pit!
+# TrapKit.cs
+Only on a floor: {0}
+Wall-mounted: place it against a wall
+# SidePanel.cs
+• here: {0}
+• at home (+15 %)
+• floor trap
+• wall-mounted
+# CatalogBuilder.cs
+Pendulum blade
+A blade sweeps the tile endlessly: 28 damage on each pass.
+Floor saw
+Runs in its slot along the corridor: gnaws and slows whoever walks on it (15 damage/s).
+Falling cage
+Drops on the intruder and locks them in for 5 s: your monsters just have to strike. Rearms in 12 s.
+Explosive rune
+Glows for 0.8 s when stepped on, then blasts the area (70 damage). Rearms in 20 s.
+Wall spears
+Wall-mounted: spears thrust across the corridor every 3 s (26 damage, two tiles).
+Dart launcher
+Wall-mounted: three darts down the corridor as soon as an intruder steps in (6 tiles).
+The floor opens: the intruder falls to the floor below (or to the bottom of a pit). Rearms in 15 s.
+Oiled slab
+You slide out of control, straight into the next trap. A nearby flame sets it ablaze.
+Rolling boulder
+At the end of a corridor: rolls down the whole line when an intruder steps in (45 damage each). Returns in 30 s.
+Magma geyser
+Furnace: bubbles, then spits lava every 4 s (35 damage and burn).
+Sunken sanctuary: pulls in and slows nearby intruders, drowns those who fall in.
+Frozen cavern: the shadow grows, the icicle falls (40 damage, slows). Rearms in 10 s.
+Spore mushroom
+Fungal garden: a cloud of spores poisons and blinds nearby intruders.
+Prism laser
+Crystal temple: charges, then fires a beam along the corridor (18 damage, 4 tiles each way).
+Skeletal hands
+Crypt and catacombs: bony hands burst out and grab the intruder for 3 s.
+Hidden crossbow
+Fortress: wall-mounted, fires a bolt down the corridor every 2.5 s (30 damage).

@@ -1055,6 +1055,73 @@ public static class DevInspect3
     public static string VariantShot2() => ShotLanding(2, "var_ice");
     public static string VariantShot3() => ShotLanding(3, "var_fungal");
     private static string ShotLanding(int layer, string name) { var L = DungeonLayers.Instance; L.SetView(layer); var p = DungeonBuilder.Instance.floorTilemap.GetCellCenterWorld(L.layers[layer].landingCell); return DevInspect.Shot(p.x, p.y + 0.4f, 3.2f, 1200, 700, name); }
+    public static string TrapShowcase()
+    {
+        var L = DungeonLayers.Instance; var b = DungeonBuilder.Instance; var cat = DungeonCatalog.Get();
+        var core = Object.FindFirstObjectByType<DungeonCore>();
+        var cc = b.floorTilemap.WorldToCell(core.transform.position);
+        var origin = cc + new Vector3Int(-8, -10, 0);
+        for (int dx = 0; dx < 17; dx++) for (int dy = 0; dy < 6; dy++) L.CarveCell(origin + new Vector3Int(dx, dy, 0));
+        DungeonTerritory.Instance?.Recompute();
+        string[] row1 = { "pendulum", "saw", "cage", "rune", "trapdoor", "oil", "boulder", "spikes" };
+        string[] row2 = { "bear", "poison", "flame", "ghost_trap", "web", "pressure_plate" };
+        int n = 0; var sb = new System.Text.StringBuilder();
+        for (int i = 0; i < row1.Length; i++) { var it = cat.Find(row1[i]); if (it != null && b.PlaceItemFree(it, origin + new Vector3Int(1 + i * 2, 4, 0)) != null) n++; else sb.Append(row1[i] + "? "); }
+        for (int i = 0; i < row2.Length; i++) { var it = cat.Find(row2[i]); if (it != null && b.PlaceItemFree(it, origin + new Vector3Int(1 + i * 2, 1, 0)) != null) n++; else sb.Append(row2[i] + "? "); }
+        // pièges muraux contre la paroi gauche et droite
+        foreach (var (id, dx, dy) in new[] { ("wallspears", 0, 2), ("darts", 16, 3) }) { var it = cat.Find(id); if (it != null && b.PlaceItemFree(it, origin + new Vector3Int(dx, dy, 0)) != null) n++; else sb.Append(id + "? "); }
+        var p = b.floorTilemap.GetCellCenterWorld(origin + new Vector3Int(8, 3, 0));
+        return $"{n} pièges {sb} " + DevInspect.Shot(p.x, p.y, 4.2f, 1600, 800, "traps_room");
+    }
+    public static string ThemedTraps()
+    {
+        var L = DungeonLayers.Instance; var b = DungeonBuilder.Instance; var cat = DungeonCatalog.Get();
+        var themes = new[] { ("lava", "geyser"), ("aqua", "whirlpool"), ("ice", "stalactite"), ("fungal", "spores") };
+        var sb = new System.Text.StringBuilder();
+        for (int i = 0; i < themes.Length && i + 1 < L.layers.Count; i++)
+        {
+            int ti = cat.themes.FindIndex(t => t.id == themes[i].Item1);
+            L.ApplyUnlock(i + 1, ti);
+            var lc = L.layers[i + 1].landingCell;
+            for (int dx = -3; dx <= 3; dx++) for (int dy = -2; dy <= 2; dy++) L.CarveCell(lc + new Vector3Int(dx, dy, 0));
+            DungeonTerritory.Instance?.Recompute();
+            var it = cat.Find(themes[i].Item2);
+            var po = it != null ? b.PlaceItemFree(it, lc) : null;
+            sb.Append($"{themes[i].Item2}={(po != null)} ");
+        }
+        return sb.ToString();
+    }
+    public static string ThemedShot1() => ShotLanding(1, "trap_lava");
+    public static string ThemedShot2() => ShotLanding(2, "trap_aqua");
+    public static string ThemedShot3() => ShotLanding(3, "trap_ice");
+    public static string ThemedShot4() => ShotLanding(4, "trap_fungal");
+    public static string TrapVictims()
+    {
+        var b = DungeonBuilder.Instance; var sb = new System.Text.StringBuilder();
+        var ids = new[] { "rune", "cage", "trapdoor", "oil", "pendulum", "saw", "wallspears", "darts", "spikes" };
+        int k = 0;
+        foreach (var a in AdventurerAI.All.ToArray())
+        {
+            if (a == null || k >= ids.Length) break;
+            PlacedObject target = null;
+            foreach (var p in PlacedObject.All) if (p != null && p.itemId == ids[k]) { target = p; break; }
+            if (target == null) { k++; continue; }
+            var rb = a.GetComponent<Rigidbody2D>(); rb.position = target.transform.position; a.transform.position = target.transform.position;
+            sb.Append($"{ids[k]}←{a.combat.adventurerName.Split(' ')[0]} ");
+            k++;
+        }
+        return sb.ToString();
+    }
+    public static string TrapReport() { var sb = new System.Text.StringBuilder(); foreach (var p in PlacedObject.All) if (p != null && p.damageDealt > 0) sb.Append($"[{p.itemId} {p.damageDealt:0}] "); return sb.Length > 0 ? sb.ToString() : "aucun dégât"; }
+    public static string PendulumTest()
+    {
+        PlacedObject t = null; foreach (var p in PlacedObject.All) if (p != null && p.itemId == "pendulum") t = p;
+        var pt = t != null ? t.GetComponent<PendulumTrap>() : null;
+        AdventurerAI v = null; foreach (var a in AdventurerAI.All) if (a != null && !a.IsDead) { v = a; break; }
+        if (t == null || v == null) return "rien";
+        v.GetComponent<Rigidbody2D>().position = t.transform.position; v.transform.position = t.transform.position; v.Hold(6f);
+        return $"pendule frames={pt?.frames?.Length} sr={(pt?.sr != null)} enabled={pt?.enabled} hp={v.combat.currentHealth:0}";
+    }
     public static string TacticsCount() =>$"tactiques lancées : {GobelinAI.TacticsUsed}";
 }
 #endif

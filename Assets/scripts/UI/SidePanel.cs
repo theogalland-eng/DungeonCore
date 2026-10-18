@@ -242,7 +242,7 @@ public class SidePanel : MonoBehaviour
             foreach (var d in LootSystem.Instance.Owned()) s += $"|{d.id}{LootSystem.Instance.CountOf(d.id)}";
             s += $"|{PlacedObject.Count(ItemKind.Decor)}";
         }
-        if (currentTab == CatalogCategory.Monster) s += $"|t{ViewTheme()}";
+        if (currentTab == CatalogCategory.Monster || currentTab == CatalogCategory.Trap) s += $"|t{ViewTheme()}";
         if (currentTab == CatalogCategory.Rooms && ThemedRooms.Instance != null) s += $"|r{ThemedRooms.Instance.Version}";
         if (currentTab == CatalogCategory.Layer && DungeonLayers.Instance != null)
         {
@@ -306,6 +306,8 @@ public class SidePanel : MonoBehaviour
         string viewTheme = ViewTheme();
         if (currentTab == CatalogCategory.Monster)
             items.RemoveAll(it => !MonsterHabitat.Allowed(MonsterHabitat.FamilyOf(it), viewTheme));
+        if (currentTab == CatalogCategory.Trap)
+            items.RemoveAll(it => !TrapRules.ThemeOk(it.id, viewTheme));
 
         const float bw = 202f, bh = 118f, gap = 8f;
         for (int i = 0; i < items.Count; i++)
@@ -360,6 +362,12 @@ public class SidePanel : MonoBehaviour
                     var tg = Txt(rt, tag, 13, vname != null ? new Color(1f, 0.7f, 0.4f) : new Color(0.6f, 0.95f, 0.65f), TextAlignmentOptions.TopLeft);
                     Place(tg.rectTransform, new Vector2(tx, -66), new Vector2(bw - tx - 6, 18));
                 }
+            }
+            if (item.kind == ItemKind.Trap && (TrapRules.ThemeOnly.ContainsKey(item.id) || TrapRules.WallMounted.Contains(item.id)))
+            {
+                string tag = TrapRules.ThemeOnly.ContainsKey(item.id) ? "• piège de l'étage" : "• se fixe au mur";
+                var tg = Txt(rt, tag, 13, new Color(0.75f, 0.85f, 1f), TextAlignmentOptions.TopLeft);
+                Place(tg.rectTransform, new Vector2(tx, -66), new Vector2(bw - tx - 6, 18));
             }
             if (ThemedRooms.TryKindOf(item.id, out var roomKind))
             {
