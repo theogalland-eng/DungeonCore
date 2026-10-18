@@ -40,6 +40,7 @@ public class Domination : MonoBehaviour
     {
         if (Has(flag)) return;
         Story.SetFlag(flag);
+        Chronicle.Add($"<color=#E8C77F>Domination de l'île : {toast}.</color>");
         GameHUD.Toast($"Domination de l'île ({Count}/3) : {toast}", GameHUD.GoldColor);
         Story.Play(new StoryManager.Line(StoryManager.SelfName, line));
     }
@@ -90,6 +91,7 @@ public class Domination : MonoBehaviour
     private void Victory()
     {
         Story.SetFlag(VictoryFlag);
+        Chronicle.Add("<color=#E8C77F><b>L'île tout entière est à vous.</b></color>");
         var go = new GameObject("Victoire");
         var canvas = go.AddComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;

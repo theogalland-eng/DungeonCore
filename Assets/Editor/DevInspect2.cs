@@ -766,6 +766,7 @@ public static class DevInspect3
         TalentTreeWindow.Instance.Open();
         return $"points={Talents.Points} acquis={Talents.Spent} max monstres={PlayerLevel.Instance.GetMaxMonsters()}";
     }
+    public static string ChronicleOpen() { ChronicleWindow.Show(); return $"entrées={Chronicle.Entries.Count}"; }
     public static string PossessTest()
     {
         GobelinAI g = null;

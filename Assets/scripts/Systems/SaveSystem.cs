@@ -210,6 +210,7 @@ public class SaveSystem : MonoBehaviour
         if (SettlementManager.Instance != null && SettlementManager.Instance.Site != null) d.colony = SettlementManager.Instance.Capture();
         TrailWear.Instance?.Capture(d.trails);
         Talents.Capture(d.talents);
+        Chronicle.Capture(d.chronicle);
         if (StoryManager.Instance != null) d.storyFlags.AddRange(StoryManager.Instance.Flags);
         LootSystem.Instance?.Capture(d);
         RelationSystem.Instance?.Capture(d);
@@ -373,6 +374,7 @@ public class SaveSystem : MonoBehaviour
         SettlementManager.Instance?.Restore(d.colony);
         TrailWear.Instance?.Restore(d.trails);
         Talents.Restore(d.talents);
+        Chronicle.Restore(d.chronicle);
         RelationSystem.Instance?.Restore(d);
         if (RaidSystem.Instance != null) RaidSystem.Instance.RaidsDone = d.raidsDone;
 

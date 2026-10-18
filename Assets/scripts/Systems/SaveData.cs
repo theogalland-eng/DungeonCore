@@ -48,7 +48,8 @@ public class SaveData
     public List<NemesisRecord> nemeses = new List<NemesisRecord>();
     public bool captureEnabled;
     public List<int> trails = new List<int>();
-    public List<string> talents = new List<string>();   // talents du Noyau acquis   // sentiers nés du passage : x, y, usure, pavé
+    public List<string> talents = new List<string>();   // talents du Noyau acquis
+    public List<string> chronicle = new List<string>();  // « jour|texte »   // sentiers nés du passage : x, y, usure, pavé
     public List<PrisonerSave> prisoners = new List<PrisonerSave>();
 
     // Donjon

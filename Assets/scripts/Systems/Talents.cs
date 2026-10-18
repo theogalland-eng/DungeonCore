@@ -76,6 +76,7 @@ public static class Talents
         if (d.id == "b2")
             foreach (var g in GobelinAI.All) if (g != null && g.IsAlive()) { g.maxHealth *= 1.15f; g.currentHealth *= 1.15f; }
         GameHUD.Toast($"Talent acquis : {d.name}", GameHUD.GoldColor);
+        Chronicle.Add($"Le Noyau acquiert un talent : {d.name}.");
         Sfx.Play("shine", null, 0.8f);
         OnChanged?.Invoke();
         return true;

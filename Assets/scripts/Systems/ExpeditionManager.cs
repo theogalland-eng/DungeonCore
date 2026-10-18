@@ -315,6 +315,7 @@ public class ExpeditionManager : MonoBehaviour
         expeditionStart = Time.time;
         isVisit = true;
         GameHUD.Toast("La Guilde envoie son Champion : Aldéric l'Invaincu accoste", GameHUD.DangerColor);
+        Chronicle.Add("Aldéric l'Invaincu, Champion de la Guilde, débarque sur l'île.");
         StoryManager.Instance?.Play(new StoryManager.Line("Aldéric l'Invaincu", "On dit qu'un cristal pense, sous cette montagne. Je suis venu le faire taire."));
         return true;
     }

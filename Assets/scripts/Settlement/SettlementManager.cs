@@ -207,6 +207,7 @@ public class SettlementManager : MonoBehaviour
         stage++;
         CreateSites(stage);
         GameHUD.Toast($"La colonie humaine devient : {StageName}", GameHUD.WarningColor);
+        Chronicle.Add($"La colonie humaine devient : {StageName}.");
         StoryManager.Instance?.OnSettlementStage(stage, StageName);
         OnChanged?.Invoke();
     }

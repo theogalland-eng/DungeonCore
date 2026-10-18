@@ -91,6 +91,7 @@ public class GameManager : MonoBehaviour
             return;
         }
         Talents.Reset();   // nouvelle partie (une sauvegarde les restaure ensuite)
+        Chronicle.Reset();
         Instance = this;
         Time.timeScale = 1f;
 

@@ -52,6 +52,7 @@ public class IntruderCamp : MonoBehaviour
         camp.expedition = map;
         camp.Build();
         GameHUD.Toast("Une expédition installe son camp près de la plage", GameHUD.InfoColor);
+        Chronicle.Add("Une expédition installe son camp près de la plage.");
         StoryManager.Instance?.PlayOnce("first_camp",
             new StoryManager.Line(StoryManager.SelfName, "Ils plantent des tentes. Ils comptent rester... Cette nuit, ils dormiront près de leur feu. Vulnérables."),
             new StoryManager.Line(StoryManager.SystemName, "Camp d'expédition : les blessés s'y soignent, les intrus y dorment la nuit. Fenêtre Colonie → Raid sur le camp, la nuit."));
@@ -208,6 +209,7 @@ public class IntruderCamp : MonoBehaviour
             raiders.Clear();
             if (ReputationSystem.Instance != null) ReputationSystem.Instance.threat += 2f;
             GameHUD.Toast("Raid sur le camp terminé", GameHUD.WarningColor);
+            Chronicle.Add("Vos monstres ont fondu sur le camp des intrus endormis.");
         }
     }
 }

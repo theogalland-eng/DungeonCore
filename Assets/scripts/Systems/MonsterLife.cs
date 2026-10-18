@@ -174,6 +174,7 @@ public class MonsterLife : MonoBehaviour
                 ai.LifeGoTo(target);
                 FloatingText.Spawn(transform.position + Vector3.up * 0.8f, "J'en ai assez !", new Color(0.8f, 0.85f, 1f), 1f);
                 GameHUD.Toast($"{ai.gobelinName} déserte le donjon (malheureux)", GameHUD.WarningColor);
+                Chronicle.Add($"{ai.gobelinName}, trop malheureux, a déserté le donjon.");
                 return true;
             }
         }
@@ -379,10 +380,14 @@ public static class MonsterSociety
                     a.Partner = b; b.Partner = a;
                     var na = a.GetComponent<GobelinAI>().gobelinName; var nb = b.GetComponent<GobelinAI>().gobelinName;
                     GameHUD.Toast($"{na} et {nb} sont désormais inséparables", GameHUD.GoldColor);
+                    Chronicle.Add($"{na} et {nb} sont devenus inséparables.");
                     CoreVoice.Say("couple", "Même mes monstres savent aimer. Étrange.");
                 }
                 if (v > -50f && nv <= -50f)
+                {
                     GameHUD.Toast($"{a.GetComponent<GobelinAI>().gobelinName} et {b.GetComponent<GobelinAI>().gobelinName} ne se supportent plus", GameHUD.WarningColor);
+                    Chronicle.Add($"{a.GetComponent<GobelinAI>().gobelinName} et {b.GetComponent<GobelinAI>().gobelinName} sont devenus rivaux.");
+                }
             }
     }
 

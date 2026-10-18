@@ -83,6 +83,11 @@ public class AdventurerAI : MonoBehaviour
     [System.NonSerialized] public bool IsChampion;
     /// <summary>Aveuglé par les Ombres du Noyau jusqu'à cet instant.</summary>
     [System.NonSerialized] public float BlindUntil;
+    // pour la chronique : qui l'a frappé en dernier
+    private GobelinAI lastMonsterHit;
+    private float lastMonsterHitAt = -99f;
+    [System.NonSerialized] public AdventurerAI LastBrawler;
+    [System.NonSerialized] public float LastBrawlHitAt = -99f;
     [Tooltip("Ajouté à la probabilité de fuir (peureux +, courageux -)")]
     [System.NonSerialized] public float fleeBias;
     /// <summary>Direction de marche (pour placer la formation derrière le guerrier).</summary>
@@ -992,6 +997,11 @@ public class AdventurerAI : MonoBehaviour
     {
         AdventurerLife.OnDied(this);
         if (IsChampion) Domination.Instance?.OnChampionSlain();
+        string cause;
+        if (LastBrawler != null && Time.time - LastBrawlHitAt < 6f) cause = $"tué par son compagnon {Chronicle.Who(LastBrawler)} au cours d'une bagarre";
+        else if (lastMonsterHit != null && Time.time - lastMonsterHitAt < 6f) cause = $"tombé sous les coups de {lastMonsterHit.gobelinName}";
+        else cause = IsInsideDungeon ? "mort dans les profondeurs du donjon" : "mort sur l'île";
+        Chronicle.Add($"{Chronicle.Who(this)} est {cause}.");
         // mort dans le donjon : le corps reste... et nourrit vos monstres
         if (IsInsideDungeon) Corpse.Spawn(rb.position, 3);
         if (isDead || departed) return;
@@ -1198,6 +1208,8 @@ public class AdventurerAI : MonoBehaviour
 
     public void OnAttacked(Transform attacker)
     {
+        var mg = attacker != null ? attacker.GetComponent<GobelinAI>() : null;
+        if (mg != null) { lastMonsterHit = mg; lastMonsterHitAt = Time.time; }
         if (attacker == null || isDead || Spared) return;
         if (state == AdventurerState.Retreating || state == AdventurerState.Leaving) return;
 

@@ -351,7 +351,7 @@ public class MainMenu : MonoBehaviour
         if (!pausePushed) { GameManager.Instance?.PushPause(); pausePushed = true; }
         pause = UIKit.Stretch(UIKit.Rect("Pause", root));
         UIKit.Blocker(pause, 0.55f);
-        var box = UIKit.PanelBox("Box", pause, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(560, 660));
+        var box = UIKit.PanelBox("Box", pause, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(560, 752));
         box.pivot = new Vector2(0.5f, 0.5f);
         UIKit.LabelAt(box, "Pause", 48, UIKit.Gold, new Vector2(0, -26), new Vector2(560, 60), TextAlignmentOptions.Center, new Vector2(0.5f, 1)).rectTransform.pivot = new Vector2(0.5f, 1);
         var gm = GameManager.Instance;
@@ -362,6 +362,7 @@ public class MainMenu : MonoBehaviour
         if (GameDifficulty.ManualSaves) PauseButton(box, "Sauvegarder", () => ShowSlots(true), ref y);
         else PauseButton(box, "Sauvegarder (Impitoyable : auto)", () => { }, ref y, new Color(0.18f, 0.16f, 0.22f, 0.9f));
         PauseButton(box, "Charger", () => ShowSlots(false), ref y);
+        PauseButton(box, "Chroniques de l'île", ChronicleWindow.Show, ref y);
         PauseButton(box, "Options", ShowOptions, ref y);
         PauseButton(box, "Retour à l'accueil", () => Confirm("Retour à l'accueil",
             "La progression depuis la dernière sauvegarde sera perdue. Sauvegarder d'abord dans la sauvegarde automatique ?",

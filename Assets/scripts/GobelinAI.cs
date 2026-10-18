@@ -1450,6 +1450,9 @@ public class GobelinAI : MonoBehaviour, IDamageable
         isDead = true;
         Sfx.Play("death_monster", transform.position, 0.9f);
         GetComponent<MonsterMind>()?.OnDied();
+        var mm = GetComponent<MonsterMind>();
+        if (mm != null && mm.IsGuardian) Chronicle.Add($"<color=#FF8A7A>Le gardien {mm.GivenName} est tombé.</color>");
+        else if (unit != null && unit.stage >= 3) Chronicle.Add($"{gobelinName} est tombé en défendant le donjon.");
         if (life != null) { MonsterSociety.OnDied(life); life.Interrupt(); }
         if (CrawlerMode.Active) CrawlerMode.Instance.OnMonsterKilled(this);
         if (anchorPoint != null)

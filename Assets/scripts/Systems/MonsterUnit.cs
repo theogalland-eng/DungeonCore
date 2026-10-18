@@ -128,6 +128,7 @@ public class MonsterUnit : MonoBehaviour
         if (unit != null) unit.xp = 0;
         EvolutionFx.Play(transform.position);
         GameHUD.Toast($"Évolution : {ai?.gobelinName ?? go.name} !", GameHUD.GoldColor);
+        Chronicle.Add($"{GetComponent<GobelinAI>()?.gobelinName ?? name} évolue en {ai?.gobelinName ?? go.name}.");
         MonsterSelector.Instance?.DeselectAll();
         Destroy(gameObject);
         return unit;

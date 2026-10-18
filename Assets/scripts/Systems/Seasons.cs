@@ -96,6 +96,7 @@ public class Seasons : MonoBehaviour
         shown = s;
         blend = 0f;
         if (!CrawlerMode.Active) GameHUD.Toast($"Une nouvelle saison commence : {Names[(int)s]}", GameHUD.GoldColor);
+        Chronicle.Add($"Une nouvelle saison commence : {Names[(int)s]}.");
         if (s == Season.Winter)
             StoryManager.Instance?.PlayOnce("season_winter", new StoryManager.Line(StoryManager.SelfName,
                 "Le froid descend sur l'île. Les bêtes se terrent, les ventres crient famine... les miens aussi."));

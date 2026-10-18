@@ -121,6 +121,7 @@ public class IslandEvents : MonoBehaviour
     {
         Current = e;
         EndsDay = endsDay;
+        Chronicle.Add($"{Names[(int)e]} sur l'île.");
         nextThunder = Time.time + Random.Range(3f, 8f);
         nextQuake = Time.time + Random.Range(10f, 25f);
         switch (e)

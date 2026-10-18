@@ -588,6 +588,8 @@ public class AdventurerLife : MonoBehaviour
             else
             {
                 Sfx.Play("hit_flesh", opponent.transform.position, 0.6f);
+                opponent.ai.LastBrawler = ai;
+                opponent.ai.LastBrawlHitAt = Time.time;
                 oc.TakeDamage(dmg);
             }
         }
