@@ -267,7 +267,12 @@ MonoBehaviour:
   familyId: gnoll
   familyName: Gnoll
   stage: 1
+  role: 
+  pathDesc: 
+  portrait: {fileID: 0}
   nextStage: {fileID: 4073269904310475774, guid: a7b9df8c09023da49946fcbac8734184, type: 3}
+  branches:
+  - {fileID: 873967074866128083, guid: c48adef392421af448cd911bf8ca6217, type: 3}
   xpToEvolve: 60
   evolveCost: 90
   evolveLevelRequired: 11

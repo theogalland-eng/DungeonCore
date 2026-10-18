@@ -168,6 +168,21 @@ MonoBehaviour:
     unlockLevel: 4
     prestige: 0
     upkeep: 0
+  - id: wolf_1
+    displayName: Louveteau des glaces
+    description: "Chasse en meute : plus fort entour\xE9 d'autres loups, sa morsure
+      glace. Le loup de givre hurle pour ralentir les intrus, l'alpha galvanise la
+      meute. \xC9volue en Loup de givre puis Alpha blanc. Entretien : 5 mana/jour."
+    category: 1
+    kind: 1
+    tool: 0
+    icon: {fileID: 21300000, guid: e95a31d0c495c1347830ae1600b18193, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 838002405041085726, guid: dec33c5c0990cb04497e7d7b579d2216, type: 3}
+    cost: 50
+    unlockLevel: 5
+    prestige: 0
+    upkeep: 0
   - id: orc_1
     displayName: Orc
     description: "Guerrier robuste qui donne l'alerte. \xC9volue en Orc guerrier
@@ -243,7 +258,8 @@ MonoBehaviour:
   - id: gnoll_1
     displayName: Gnoll
     description: "Chasseur rapide qui ne l\xE2che pas sa proie. \xC9volue en Gnoll
-      traqueur puis Gnoll alpha. Entretien : 9 mana/jour."
+      traqueur puis Gnoll alpha \u2014 ou prend une autre voie : Gnoll chasseur.
+      Entretien : 9 mana/jour."
     category: 1
     kind: 1
     tool: 0
@@ -257,7 +273,8 @@ MonoBehaviour:
   - id: lizard_1
     displayName: "Homme-l\xE9zard"
     description: "Combattant aguerri, \xE0 l'aise dans les grottes inond\xE9es. \xC9volue
-      en Guerrier l\xE9zard puis Champion l\xE9zard. Entretien : 11 mana/jour."
+      en Guerrier l\xE9zard puis Champion l\xE9zard \u2014 ou prend une autre voie
+      : Homme-l\xE9zard sarbacane. Entretien : 11 mana/jour."
     category: 1
     kind: 1
     tool: 0

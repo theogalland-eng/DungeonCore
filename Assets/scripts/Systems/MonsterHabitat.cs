@@ -30,6 +30,7 @@ public static class MonsterHabitat
         { "vampire", new[] { "catacomb" } },
         { "spider", new[] { "fungal", "catacomb" } },
         { "bat", new[] { "volcanic", "catacomb" } },
+        { "wolf", new[] { "ice" } },
     };
 
     public static bool IsCommon(string family) => family != null && Commons.Contains(family);

@@ -79,6 +79,15 @@ ROLES = {
         body=[(340, 360, 0.6, 0.2, R('2a0408', '520a12', '8a1420', 'c42a32')), (0, 12, 0.6, 0.2, R('2a0408', '520a12', '8a1420', 'c42a32'))],
         head=[(200, 260, 0.1, 0.1, R('6a6e78', 'a8acb4', 'd8dce0', 'ffffff'), 0.4)],
         feathers=[(30, 20, 20), (200, 30, 40), (240, 236, 220), (200, 30, 40), (30, 20, 20)]),
+    'gnoll_hunter_2': dict(base='gnoll_2', weapon='javelin',
+        body=[(200, 250, 0.3, 0.15, R('1a2614', '2e4222', '4a6634', '6e8c4a'))], head=[]),
+    'gnoll_hunter_3': dict(base='gnoll_3', weapon='javelin', quiver=False,
+        body=[(340, 360, 0.5, 0.15, R('142014', '243a22', '3a5834', '58804c')), (0, 15, 0.5, 0.15, R('142014', '243a22', '3a5834', '58804c'))], head=[]),
+    'lizard_blowgun_2': dict(base='lizard_2', weapon='blowgun',
+        body=[(15, 45, 0.3, 0.2, R('2a0e30', '4e1a56', '7a2e84', 'a850b0'))], head=[]),
+    'lizard_blowgun_3': dict(base='lizard_3', weapon='blowgun',
+        body=[(190, 230, 0.3, 0.2, R('163010', '28541a', '429028', '7ccc44'))],
+        head=[(190, 230, 0.3, 0.2, R('163010', '28541a', '429028', '7ccc44'))]),
     'skeleton_mage_2': dict(base='skeleton_2', weapon='staff', orb=R('2a7a3a', '5fe07a', 'd8ffe0'),
         body=[(190, 260, 0.2, 0.1, R('1e1036', '3a2066', '5e3a9a', '8c66cc'))],
         head=[(190, 260, 0.2, 0.1, R('1e1036', '3a2066', '5e3a9a', '8c66cc'))],
@@ -255,6 +264,53 @@ def draw_quiver(ink, d, frame):
         ink.put(hi[0] - 1 + k, hi[1] - 1 - (k % 2), c)
 
 
+def draw_javelin(ink, d, frame, draw):
+    """Javelot : tenu debout au repos ; à l'attaque, ramené au-dessus de l'épaule puis lancé (main vide)."""
+    fx, fy = FACE[d]
+    nx, ny = -fy, fx
+    tx0, tx1, tcx, top, bot = torso(frame)
+    h = bot - top
+    shaft, tip = [(70, 46, 26), (120, 84, 46), (160, 120, 70)], [(110, 116, 126), (190, 196, 206), (240, 244, 250)]
+    if draw is None:
+        side = nx if abs(nx) > 0.3 else (1 if fx >= 0 else -1)
+        hx, hy = (tx1 if side > 0 else tx0), top + h * 0.62
+        a, b = (hx, hy + 5), (hx, hy - 13)
+        ink.line((a[0] + 1, a[1]), (b[0] + 1, b[1]), shaft[0]); ink.line(a, b, shaft[1])
+        ink.line((b[0], b[1]), (b[0], b[1] - 2), tip[1]); ink.put(b[0], b[1] - 3, tip[2])
+        return
+    if draw <= 0.05:
+        return                                              # lancé : la main est vide
+    hx, hy = tcx - fx * 2 * draw, top + h * (0.45 - 0.12 * draw)
+    t0 = (hx - fx * 7, hy - fy * 3 + 1)
+    t1 = (hx + fx * 8, hy + fy * 3 - 2 * draw)
+    ink.line(t0, t1, shaft[1])
+    ink.line(t1, (t1[0] + fx * 2, t1[1] + fy * 1), tip[1])
+    ink.put(t1[0] + fx * 3, t1[1] + fy * 1.5, tip[2])
+
+
+def draw_blowgun(ink, d, frame, draw):
+    """Sarbacane : roseau tenu en travers au repos ; à l'attaque, portée à la bouche et pointée vers la cible."""
+    fx, fy = FACE[d]
+    nx, ny = -fy, fx
+    tx0, tx1, tcx, top, bot = torso(frame)
+    h = bot - top
+    reed = [(70, 86, 30), (128, 150, 60), (186, 204, 110)]
+    if draw is None:
+        side = nx if abs(nx) > 0.3 else (1 if fx >= 0 else -1)
+        hx, hy = (tx1 if side > 0 else tx0), top + h * 0.62
+        ink.line((hx - side * 1, hy + 4), (hx + side * 3, hy - 9), reed[1])
+        ink.put(hx + side * 3, hy - 9, reed[2])
+        return
+    mx, my = tcx + fx * 2, top + h * 0.3 + fy * 1
+    end = (mx + fx * 10, my + fy * 5)
+    ink.line((mx, my), end, reed[1])
+    ink.put(end[0], end[1], reed[2])
+    if draw <= 0.05:                                         # le dard part : petite bouffée au bout du roseau
+        for k in range(4):
+            a = k * math.pi / 2 + 0.6
+            ink.put(end[0] + fx * 2 + math.cos(a) * 1.5, end[1] + fy * 2 + math.sin(a) * 1.5, (220, 236, 200))
+
+
 def draw_staff(ink, d, frame, raise_, orb, skull=False):
     """Bâton tenu à côté du corps ; raise_ ∈ [0, 1] : le bâton bascule vers la cible, l'orbe flamboie."""
     fx, fy = FACE[d]
@@ -413,6 +469,10 @@ def weapon_ink(role, d, body, phase):
         draw_bow(ink, d, body, phase, role.get('bow', 5), role.get('wood'))
     elif role['weapon'] == 'staff':
         draw_staff(ink, d, body, phase, role['orb'], role.get('skull', False))
+    elif role['weapon'] == 'javelin':
+        draw_javelin(ink, d, body, phase)
+    elif role['weapon'] == 'blowgun':
+        draw_blowgun(ink, d, body, phase)
     return ink.outlined()
 
 

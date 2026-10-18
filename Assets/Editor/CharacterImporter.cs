@@ -180,6 +180,15 @@ public static class CharacterImporter
                     if (s >= 2) t.lifesteal = s == 2 ? 0.2f : 0.3f;
                     if (s == 3) { t.summonPrefab = Prefab("bat_1"); t.summonCount = 2; t.summonCooldown = 14f; t.summonLifetime = 40f; t.summonName = "Chauve-souris"; }
                 } },
+            new Family { id = "wolf", folder = "Wolf", names = new[] { "Louveteau des glaces", "Loup de givre", "Alpha blanc" },
+                hp = 65, dmg = 10, range = 1.1f, chase = 2.2f, cd = 0.85f, cost = 50, level = 5, upkeep = 5,
+                desc = "Chasse en meute : plus fort entouré d'autres loups, sa morsure glace. Le loup de givre hurle pour ralentir les intrus, l'alpha galvanise la meute.",
+                traits = (go, s) =>
+                {
+                    var t = T(go); t.packBonus = 0.1f; t.slowMult = 0.8f; t.slowSeconds = 1f;
+                    if (s >= 2) t.howlSlow = s == 2 ? 0.4f : 0.55f;
+                    if (s == 3) t.howlBuff = 1.25f;
+                } },
             new Family { id = "mimic", folder = "Mimic", names = new[] { "Coffre mordeur", "Mimique", "Mimique royale" },
                 hp = 120, dmg = 18, range = 1.2f, chase = 1.5f, cd = 1.2f, cost = 80, level = 6, upkeep = 6,
                 desc = "Ne se cache que dans une salle du trésor : immobile, il passe pour un coffre et mord par surprise. La Mimique attire les curieux, la Mimique royale les engloutit.",
@@ -233,6 +242,18 @@ public static class CharacterImporter
             {
                 var t = T(go); t.projectileColor = new Color(0.85f, 0.1f, 0.15f); t.lifesteal = 0.25f;
                 t.totemFrames = TrapArt.Frames("war_totem"); t.totemMult = s == 3 ? 1.3f : 1.15f; t.totemHealPct = s == 3 ? 0.03f : 0f; t.totemSeconds = s == 3 ? 20f : 15f;
+            } },
+        new Branch { family = "gnoll", role = "hunter", names = new[] { "Gnoll chasseur", "Traqueur à la lance" },
+            hp = 0.9f, dmg = 0.95f, range = 3.6f, cd = 1.3f,
+            desc = "Lance des javelots et achève les blessés (dégâts doublés sous 40 % de PV). Le traqueur lance plus loin et plus fort.",
+            traits = (go, s) => { var t = T(go); t.projectileFx = "javelin"; t.executeMult = s == 3 ? 1.5f : 1f; if (s == 3) go.GetComponent<GobelinAI>().attackRange = 4.6f; } },
+        new Branch { family = "lizard", role = "blowgun", names = new[] { "Homme-lézard sarbacane", "Maître-venin" },
+            hp = 0.85f, dmg = 0.6f, range = 4.2f, cd = 1.2f,
+            desc = "Souffle des dards empoisonnés de loin. Le maître-venin a un poison bien plus violent, qui ralentit.",
+            traits = (go, s) =>
+            {
+                var t = T(go); t.projectileFx = "dart"; t.poisonDps = s == 3 ? 8f : 4f; t.poisonSeconds = 5f;
+                if (s == 3) { t.slowMult = 0.75f; t.slowSeconds = 2f; }
             } },
         new Branch { family = "skeleton", role = "archer", names = new[] { "Squelette archer", "Archer d'ossements" },
             hp = 0.85f, dmg = 0.95f, range = 4.5f, cd = 1.2f,

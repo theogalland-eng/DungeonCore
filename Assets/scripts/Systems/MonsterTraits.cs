@@ -70,6 +70,22 @@ public class MonsterTraits : MonoBehaviour
     public bool preferRanged;
     private float nextRetarget;
 
+    /// <summary>Compteurs de pouvoirs déclenchés (tests et chroniques).</summary>
+    public static int Executes, Howls, Pierces;
+
+    [Header("Achever les blessés (gnoll chasseur)")]
+    [Tooltip("Dégâts en plus contre un intrus sous 40 % de ses PV (fraction)")]
+    public float executeMult;
+
+    [Header("Meute et hurlement (loups)")]
+    [Tooltip("Dégâts en plus par loup de la meute à moins de 4 cases (3 au plus)")]
+    public float packBonus;
+    [Tooltip("Hurlement au combat : ralentit les intrus alentour (0 = aucun)")]
+    public float howlSlow;
+    [Tooltip("Le hurlement galvanise aussi la meute")]
+    public float howlBuff = 1f;
+    private float nextPack, nextHowl;
+
     [Header("Nécromancie")]
     [Tooltip("Intrus tués relevés en squelettes en même temps (0 = aucun)")]
     public int raiseDead;
@@ -108,6 +124,16 @@ public class MonsterTraits : MonoBehaviour
         if (burnDps > 0f && burnSeconds > 0f) DotEffect.Apply(tc.gameObject, burnDps, burnSeconds, new Color(1f, 0.55f, 0.2f));
         if (poisonDps > 0f && poisonSeconds > 0f) DotEffect.Apply(tc.gameObject, poisonDps, poisonSeconds, new Color(0.55f, 1f, 0.35f));
         if (pierceMult > 0f) Pierce(tc.transform.position, damage * pierceMult);
+        if (executeMult > 0f && target.IsAlive())
+        {
+            var ac = tc.GetComponent<AdventurerCombat>();
+            if (ac != null && ac.currentHealth < ac.maxHealth * 0.4f)
+            {
+                target.TakeDamage(damage * executeMult);   // il sent le sang : coup de grâce
+                Executes++;
+                FloatingText.Spawn(tc.transform.position + Vector3.up * 0.9f, "Achevé !", new Color(1f, 0.5f, 0.35f), 0.9f);
+            }
+        }
         if (swallowSeconds > 0f && ai != null && target.IsAlive() && Random.value < 0.33f)
         {
             ai.Hold(swallowSeconds);
@@ -130,6 +156,7 @@ public class MonsterTraits : MonoBehaviour
                 var d = h.GetComponent<IDamageable>();
                 if (d == null || !d.IsAlive() || Vector2.Distance(h.transform.position, hit) < 0.3f) continue;
                 d.TakeDamage(dmg);
+                Pierces++;
                 FloatingText.Spawn(h.transform.position + Vector3.up * 0.8f, "Transpercé !", new Color(0.9f, 0.9f, 0.8f), 0.8f);
                 return;
             }
@@ -203,6 +230,44 @@ public class MonsterTraits : MonoBehaviour
         if (best != null) owner.Retarget(best.transform);
     }
 
+    /// <summary>Loup : plus fort entouré de sa meute.</summary>
+    private void Pack()
+    {
+        if (packBonus <= 0f || Time.time < nextPack) return;
+        nextPack = Time.time + 1f;
+        var me = GetComponent<MonsterUnit>();
+        int n = 0;
+        foreach (var g in GobelinAI.All)
+        {
+            if (g == null || g == owner || !g.IsAlive() || Vector2.Distance(g.transform.position, transform.position) > 4f) continue;
+            var u = g.GetComponent<MonsterUnit>();
+            if (u != null && me != null && u.familyId == me.familyId && ++n >= 3) break;
+        }
+        if (n > 0) owner.Buff(1f + packBonus * n, 1.2f);
+    }
+
+    /// <summary>Loup de givre : au combat, un hurlement glacé ralentit les intrus (et l'alpha galvanise la meute).</summary>
+    private void Howl()
+    {
+        if (howlSlow <= 0f || !owner.IsOnMission || Time.time < nextHowl) return;
+        nextHowl = Time.time + 14f;
+        Howls++;
+        foreach (var a in AdventurerAI.All)
+            if (a != null && !a.IsDead && Vector2.Distance(a.transform.position, transform.position) < 4.5f) a.Slow(1f - howlSlow, 3f);
+        if (howlBuff > 1f)
+        {
+            var me = GetComponent<MonsterUnit>();
+            foreach (var g in GobelinAI.All)
+            {
+                var u = g != null ? g.GetComponent<MonsterUnit>() : null;
+                if (u != null && me != null && u.familyId == me.familyId && Vector2.Distance(g.transform.position, transform.position) < 5f) g.Buff(howlBuff, 5f);
+            }
+        }
+        Voices.Monster(owner, "aggro", 1f);
+        Fx.Play("ice", transform.position + Vector3.up * 0.2f, 1.6f, 14f, 8, new Color(0.7f, 0.9f, 1f, 0.8f));
+        FloatingText.Spawn(transform.position + Vector3.up * 1.0f, "Aouuuh !", new Color(0.7f, 0.9f, 1f), 1f);
+    }
+
     /// <summary>Mimique : un intrus qui passe voit un coffre... et s'en approche.</summary>
     private void LureAsChest()
     {
@@ -256,7 +321,7 @@ public class MonsterTraits : MonoBehaviour
 
     private void Update()
     {
-        if (owner != null && owner.IsAlive()) { SpinWebs(); Aura(); LureAsChest(); Rage(); PlantTotem(); HuntRanged(); }
+        if (owner != null && owner.IsAlive()) { SpinWebs(); Aura(); LureAsChest(); Rage(); PlantTotem(); HuntRanged(); Pack(); Howl(); }
         if (summonCount <= 0 || summonPrefab == null || owner == null || !owner.IsAlive()) return;
         minions.RemoveAll(m => m == null || !m.IsAlive());
         // La liche invoque quand un intrus est proche

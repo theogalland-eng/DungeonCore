@@ -1155,7 +1155,11 @@ public static class DevInspect3
                          "skeleton_archer_3", "skeleton_archer_2", "skeleton_mage_3", "skeleton_mage_2", "skeleton_3", "skeleton_2", "skeleton_1",
                          "spider_3", "spider_2", "spider_1", "mimic_3", "mimic_2", "mimic_1",
                          "orc_berserker_3", "orc_berserker_2", "orc_shaman_3", "orc_shaman_2", "orc_3", "orc_2", "orc_1",
-                         "bat_3", "bat_2", "bat_1" };
+                         "bat_3", "bat_2", "bat_1",
+                         "gnoll_hunter_3", "gnoll_hunter_2", "gnoll_3", "gnoll_2", "gnoll_1",
+                         "lizard_blowgun_3", "lizard_blowgun_2", "lizard_3", "lizard_2", "lizard_1",
+                         "wolf_3", "wolf_2", "wolf_1" };
+        ArtImporter.ImportAll();
         TrapArt.ImportAll();
         UnityEditor.AssetDatabase.Refresh();
         string r = CharacterImporter.ImportOnly(ids);
@@ -1237,8 +1241,18 @@ public static class DevInspect3
             var tgt = g.MissionTarget != null ? g.MissionTarget.GetComponent<AdventurerAI>() : null;
             sb.Append($"[{g.gobelinName} pv={g.currentHealth:0}/{g.maxHealth:0} cd={g.attackCooldown:0.00} cible={(tgt != null ? tgt.role.ToString() : "-")}] ");
         }
-        sb.Append($" totems={Object.FindObjectsByType<WarTotem>(FindObjectsSortMode.None).Length}");
+        sb.Append($" totems={Object.FindObjectsByType<WarTotem>(FindObjectsSortMode.None).Length} achevés={MonsterTraits.Executes} hurlements={MonsterTraits.Howls} transpercés={MonsterTraits.Pierces}");
         return sb.ToString();
+    }
+    public static string Salvo4Setup()
+    {
+        for (int i = 0; i < 8; i++) PlayerLevel.Instance.AddXP(PlayerLevel.Instance.xpForNextLevel);
+        SpawnMon("gnoll_hunter_3", new Vector2(-1.4f, 0.6f));
+        SpawnMon("lizard_blowgun_3", new Vector2(1.4f, 0.6f));
+        SpawnMon("wolf_3", new Vector2(-0.8f, -1.2f));
+        SpawnMon("wolf_2", new Vector2(0.8f, -1.2f));
+        SpawnMon("wolf_1", new Vector2(0f, -1.6f));
+        return "salve 4 en place";
     }
     public static string NewMonstersFight()
     {

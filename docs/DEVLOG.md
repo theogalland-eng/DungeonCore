@@ -250,3 +250,9 @@ Mise en ligne du projet sur GitHub (ce dépôt), avec cette documentation.
 - 🪓 **Orc berserker → Seigneur de guerre fou** : garde sa lame, crinière et barbe couleur sang ; **plus il est blessé, plus il frappe vite et fort** (jusqu'à +45 % de vitesse d'attaque, +40 % de dégâts, davantage pour le seigneur de guerre) — « Rage ! » sous la barre des 50 %.
 - 🩸 **Orc chaman → Chaman de sang** : vieil orc à barbe blanche et bâton à crâne ; ses traits de sang le soignent, et dès qu'il se bat il **plante un totem de guerre** (dessiné pour le projet) : les orcs autour frappent plus fort (+15 %, +30 %) et le chaman de sang les **régénère**.
 - 🦇 **Nouvelle famille : les chauves-souris** (natives de la roche volcanique et des Catacombes), dessinées en vol stationnaire avec ailes membraneuses : *Chauve-souris*, *Vampire volant* (vol de vie), *Seigneur de la nuée* (deux petites chauves-souris tournent autour de lui ; il en appelle au combat). Rapides, elles **fondent sur les archers, mages et soigneurs** plutôt que sur les guerriers.
+
+### Nouvelles voies et familles — salve 4
+
+- 🗡️ **Gnoll chasseur → Traqueur à la lance** : javelot tenu debout, ramené au-dessus de l'épaule puis lancé (projectile dessiné pour le projet) ; il **achève les blessés** (dégâts doublés, puis ×2,5, sous 40 % de PV).
+- 🎯 **Homme-lézard sarbacane → Maître-venin** : sarbacane de roseau portée à la bouche, **dards empoisonnés** de loin ; le maître-venin a un poison bien plus violent, qui ralentit.
+- 🐺 **Nouvelle famille : les loups de givre** (natifs de la Caverne gelée), quadrupèdes dessinés pour le projet (trot en diagonale, tête basse à l'attaque, éclats de givre) : *Louveteau des glaces*, *Loup de givre*, *Alpha blanc*. **Chasse en meute** (+10 % de dégâts par loup proche, 3 au plus), morsure glacée ; le loup de givre **hurle** au combat (intrus ralentis de 40 %, 55 % pour l'alpha) et l'alpha **galvanise la meute**.

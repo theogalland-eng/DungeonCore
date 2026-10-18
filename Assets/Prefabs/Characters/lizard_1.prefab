@@ -267,7 +267,12 @@ MonoBehaviour:
   familyId: lizard
   familyName: "Homme-l\xE9zard"
   stage: 1
+  role: 
+  pathDesc: 
+  portrait: {fileID: 0}
   nextStage: {fileID: 7478184895666150959, guid: f668a42c5e90a1844bb9535510862465, type: 3}
+  branches:
+  - {fileID: 265886492961079113, guid: 7608dc55f92283b42b272b7de8963f12, type: 3}
   xpToEvolve: 60
   evolveCost: 108
   evolveLevelRequired: 12

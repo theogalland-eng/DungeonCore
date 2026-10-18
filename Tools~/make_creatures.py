@@ -701,7 +701,147 @@ def build_war_totem(cid):
     print('ok', cid)
 
 
-BUILDERS = {**{k: build_spider for k in SPIDERS}, **{k: build_mimic for k in MIMICS}, **{k: build_bat for k in BATS}, 'war_totem': build_war_totem}
+# ─────────────────────────────────────────────
+# Loups de givre : quadrupèdes (allure en diagonale, tête basse à l'attaque, hurlement)
+# ─────────────────────────────────────────────
+
+WOLVES = {
+    'wolf_1': dict(scale=1.6, fur=R('5a6a82', '8a9cb6', 'bccbe0', 'eef4fc'), dark=R('2a3446', '46546c', '6a7a94', '96a6c0'),
+                   eye=(120, 220, 255), outline=(22, 26, 40)),
+    'wolf_2': dict(scale=1.95, fur=R('3e4a62', '62728e', '8c9cb8', 'c0cee2'), dark=R('1e2638', '343e56', '505c78', '7a88a6'),
+                   eye=(140, 240, 255), outline=(16, 20, 32), frost=True),
+    'wolf_3': dict(scale=2.3, fur=R('8090a8', 'b4c2d6', 'dce6f2', 'ffffff'), dark=R('4a5a74', '6e7e9a', '98a8c2', 'c8d4e6'),
+                   eye=(80, 200, 255), outline=(26, 30, 46), frost=True, mane=True),
+}
+
+
+def wolf_pattern(spec):
+    dark = spec['dark']
+
+    def pat(local, lam, cols):
+        # dos plus sombre (selle), ventre clair
+        z = local[:, 2]
+        m = z > np.percentile(z, 70)
+        cols[m] = shade_ramp(dark, lam[m])
+    return pat
+
+
+def wolf_frame(spec, d, state, t, n):
+    s = spec['scale']
+    gx, gy = GFACE[d]
+    ang = math.atan2(-gx, gy)
+    sc = Scene()
+    ph = 2 * math.pi * t / n
+    h = 3.6 * s                     # hauteur du dos
+    head_dz, head_dy, lunge, mouth, sink, tail_up, howl = 0.0, 0.0, 0.0, 0.0, 0.0, 0.4, 0.0
+    stride, lift = 0.0, 0.0
+    if state == 'Idle':
+        h += 0.15 * s * math.sin(ph)
+    elif state in ('Walk', 'Run'):
+        stride = (1.4 if state == 'Walk' else 2.4) * s
+        lift = (0.8 if state == 'Walk' else 1.3) * s
+        h += (0.15 if state == 'Walk' else 0.5) * s * abs(math.sin(ph))
+    elif state == 'Attack':
+        k = [0.2, 0.6, 1.0, 0.4, 0.1, 0.0][t]
+        lunge = [0, -0.6, -0.3, 2.4, 1.0, 0][t] * s
+        head_dz = -1.0 * s * k
+        mouth = [0, 0.3, 1.0, 0.2, 0, 0][t]
+    elif state == 'Hurt':
+        k = [1, 0.6, 0.3, 0][t]
+        lunge = -1.0 * s * k
+        head_dz = 0.6 * s * k
+        tail_up = -0.3
+    elif state == 'Death':
+        k = t / (n - 1)
+        sink = 2.4 * s * k
+        head_dz = -1.2 * s * k
+        tail_up = -0.5 * k
+    if state == 'Howl':
+        howl = 1.0
+    body_c = (0, lunge, h - sink)
+    ellipsoid(sc, ang, body_c, (2.5 * s, 3.4 * s, 1.8 * s), spec['fur'], wolf_pattern(spec))
+    chest = (0, lunge + 2.6 * s, h - sink + 0.3 * s)
+    ellipsoid(sc, ang, chest, (2.4 * s, 1.6 * s, 1.9 * s), spec['fur'])
+    if spec.get('mane'):
+        ellipsoid(sc, ang, (0, lunge + 2.2 * s, h - sink + 1.2 * s), (1.9 * s, 1.6 * s, 1.4 * s), spec['fur'])
+    # tête et museau
+    hc = (0, lunge + 4.4 * s + head_dy, h - sink + 1.1 * s + head_dz + howl * 1.0 * s)
+    ellipsoid(sc, ang, hc, (1.75 * s, 1.35 * s, 1.35 * s), spec['fur'])
+    sn_pitch = -0.6 * howl
+    snout = (0, hc[1] + 1.5 * s, hc[2] - 0.35 * s + howl * 0.9 * s)
+    ellipsoid(sc, ang, snout, (0.65 * s, 1.0 * s, 0.55 * s), spec['fur'], pitch=sn_pitch)
+    dot(sc, ang, (0, snout[1] + 0.95 * s, snout[2] + 0.15 * s), (20, 20, 30))      # truffe
+    if mouth > 0.3:
+        segment(sc, ang, (-0.3 * s, snout[1] + 0.4 * s, snout[2] - 0.6 * s), (0.3 * s, snout[1] + 0.4 * s, snout[2] - 0.6 * s),
+                [(120, 20, 30), (180, 40, 50), (220, 80, 90), (240, 120, 130)], 0.5)
+        for sx in (-0.35, 0.35):
+            dot(sc, ang, (sx * s, snout[1] + 0.7 * s, snout[2] - 0.45 * s), (250, 250, 245))
+    for side in (-1, 1):
+        dot(sc, ang, (side * 0.55 * s, hc[1] + 1.0 * s, hc[2] + 0.3 * s), spec['eye'])
+        segment(sc, ang, (side * 0.7 * s, hc[1] - 0.2 * s, hc[2] + 0.8 * s), (side * 0.95 * s, hc[1] - 0.4 * s, hc[2] + 2.2 * s), spec['dark'], 0.9)
+    # pattes : diagonales opposées (allure du trot)
+    legs = [(-1, 2.2), (1, 2.2), (-1, -2.4), (1, -2.4)]
+    for i, (side, ly) in enumerate(legs):
+        gph = ph + (0 if i in (0, 3) else math.pi)
+        hip = np.array([side * 1.25 * s, lunge + ly * s, h - sink - 0.6 * s])
+        fy = lunge + ly * s + stride * math.sin(gph)
+        fz = max(0.0, lift * math.cos(gph)) if stride else 0.0
+        if state == 'Death':
+            fz = 0.3 + 1.2 * s * (t / (n - 1))
+        foot = np.array([side * 1.4 * s, fy, fz])
+        knee = (hip + foot) / 2 + np.array([0, (0.5 if ly > 0 else -0.5) * s, 0])
+        segment(sc, ang, hip, knee, spec['dark'], 0.9)
+        segment(sc, ang, knee, foot, spec['dark'], 0.7)
+    # queue en panache
+    tb = np.array([0, lunge - 3.4 * s, h - sink + 0.4 * s])
+    tt = tb + np.array([0.3 * math.sin(ph) * s, -2.4 * s, (tail_up + 0.3) * 2.2 * s])
+    ellipsoid(sc, ang, tuple((tb + tt) / 2), (0.6 * s, 1.5 * s, 0.6 * s), spec['fur'], pitch=-0.5 + tail_up)
+    if spec.get('frost') and state in ('Idle', 'Walk', 'Run', 'Howl'):
+        # éclats de givre qui flottent autour du loup
+        for k in range(3):
+            a_ = ph + k * 2.1
+            dot(sc, ang, (math.cos(a_) * 3.5 * s, math.sin(a_) * 3.0 * s, h + 2 * s + math.sin(a_ * 2) * s), (220, 245, 255))
+    if howl:
+        for k in range(6):
+            a_ = k / 6 * 2 * math.pi + ph
+            r_ = (2.5 + t) * s
+            dot(sc, ang, (math.cos(a_) * r_, hc[1] + math.sin(a_) * r_ * 0.5, hc[2] + 2.5 * s), (180, 230, 255))
+    return finish(sc, spec['outline'], 3.8 * s + 1, ang)
+
+
+WOLF_ANIMS = {'Idle': 4, 'Walk': 6, 'Run': 6, 'Attack': 6, 'Hurt': 4, 'Death': 6}
+
+
+def build_wolf(cid):
+    spec = WOLVES[cid]
+    for state, n in WOLF_ANIMS.items():
+        rows = [[wolf_frame(spec, d, state, t, n) for t in range(n)] for d in DIRS]
+        save(rows, os.path.join(OUT, cid, f'{cid}_{state}.png'))
+    print('ok', cid)
+
+
+FX_DIR = os.path.join(ROOT, 'Assets', 'Resources', 'FX')
+
+
+def build_projectiles(cid):
+    """Projectiles des monstres (pointe en haut, comme la flèche) : javelot du gnoll, dard de sarbacane."""
+    def sheet(rows, pal, name):
+        h, w = len(rows), len(rows[0])
+        im = Image.new('RGBA', (w, h))
+        for y, row in enumerate(rows):
+            for x, ch in enumerate(row):
+                if ch != '.':
+                    im.putpixel((x, y), pal[ch] + (255,))
+        os.makedirs(FX_DIR, exist_ok=True)
+        im.save(os.path.join(FX_DIR, name + '.png'))
+    jav = ['..o..', '.oto.', '.ttt.', '.oto.', '..m..'] + ['.olo.' if i % 6 == 0 else '..l..' for i in range(17)] + ['.oro.', '.rrr.', '..o..']
+    sheet(jav, {'o': (30, 22, 18), 't': (226, 232, 240), 'm': (150, 156, 168), 'l': (132, 92, 52), 'r': (180, 40, 40)}, 'javelin')
+    dart = ['.g.', 'ggg', '.n.', '.n.', '.n.', '.n.', 'fff', 'f.f']
+    sheet(dart, {'g': (140, 230, 80), 'n': (200, 190, 150), 'f': (170, 60, 160)}, 'dart')
+    print('ok', cid)
+
+
+BUILDERS = {**{k: build_spider for k in SPIDERS}, **{k: build_mimic for k in MIMICS}, **{k: build_bat for k in BATS}, 'war_totem': build_war_totem, **{k: build_wolf for k in WOLVES}, 'projectiles': build_projectiles}
 
 if __name__ == '__main__':
     for cid in sys.argv[1:] or list(BUILDERS):
