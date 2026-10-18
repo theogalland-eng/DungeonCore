@@ -288,6 +288,37 @@ public class ExpeditionManager : MonoBehaviour
 
     private bool ExpeditionActiveBefore => members.Count > 1;
 
+    /// <summary>
+    /// Le CHAMPION DE LA GUILDE : un héros unique de rang SSS, envoyé quand votre donjon atteint le rang S.
+    /// Le vaincre est l'un des trois piliers de la domination de l'île.
+    /// </summary>
+    public bool LaunchChampion()
+    {
+        if (spawner == null || ExpeditionActive) return false;
+        int rank = GuildSystem.MaxRank;
+        var tier = RankedTier(rank, false);
+        tier.displayName = "Champion de la Guilde";
+        tier.healthMult *= 2.2f;
+        tier.damageMult *= 1.3f;
+        tier.manaReward *= 3;
+        tier.xpReward *= 3;
+        int ti = Mathf.Clamp(GuildSystem.TierForRank(rank), 0, tiers.Length - 1);
+        var ai = spawner.SpawnForExpedition(tier, ti, 0, 1, null, AdventurerAI.Role.Warrior);
+        if (ai == null) return false;
+        ai.ApplyRank(rank);
+        ai.IsChampion = true;
+        if (ai.combat != null) ai.combat.adventurerName = "Aldéric l'Invaincu, Champion de la Guilde";
+        ai.arrogance = 1f;
+        members.Add(ai);
+        SpawnBoat(ti, true);
+        killedThisExpedition = fledThisExpedition = 0;
+        expeditionStart = Time.time;
+        isVisit = true;
+        GameHUD.Toast("La Guilde envoie son Champion : Aldéric l'Invaincu accoste", GameHUD.DangerColor);
+        StoryManager.Instance?.Play(new StoryManager.Line("Aldéric l'Invaincu", "On dit qu'un cristal pense, sous cette montagne. Je suis venu le faire taire."));
+        return true;
+    }
+
     private void LaunchVisitor()
     {
         if (spawner == null) return;

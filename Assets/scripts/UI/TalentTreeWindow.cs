@@ -9,7 +9,7 @@ public class TalentTreeWindow : MonoBehaviour
     public static TalentTreeWindow Instance { get; private set; }
 
     private RectTransform window, blocker;
-    private TextMeshProUGUI pointsText;
+    private TextMeshProUGUI pointsText, trackerText;
     private readonly List<(Talents.Def def, Button btn, Image bg, Image trim, TextMeshProUGUI state)> cards =
         new List<(Talents.Def, Button, Image, Image, TextMeshProUGUI)>();
 
@@ -64,6 +64,7 @@ public class TalentTreeWindow : MonoBehaviour
         var title = UIKit.LabelAt(window, "Talents du Noyau", 40, UIKit.Gold, new Vector2(30, -20), new Vector2(800, 52));
         UIKit.StyleTitle(title);
         pointsText = UIKit.LabelAt(window, "", 22, UIKit.Sub, new Vector2(32, -74), new Vector2(900, 30));
+        trackerText = UIKit.LabelAt(window, "", 17, UIKit.Text, new Vector2(-100, -14), new Vector2(520, 100), TextAlignmentOptions.TopLeft, new Vector2(1, 1));
         var close = UIKit.BtnAt(window, "", Close, new Vector2(1, 1), new Vector2(-20, -20), new Vector2(60, 60));
         UIKit.Icon(close.transform, "close", Vector2.zero, 26, new Vector2(0.5f, 0.5f));
 
@@ -96,6 +97,7 @@ public class TalentTreeWindow : MonoBehaviour
     private void Refresh()
     {
         if (pointsText == null) return;
+        if (trackerText != null) trackerText.text = Domination.Tracker();
         int p = Talents.Points;
         pointsText.text = p > 0 ? $"<color=#E8C77F>{p} point{(p > 1 ? "s" : "")} à dépenser</color>  ·  un point par niveau du Noyau"
                                 : "Aucun point libre  ·  un point par niveau du Noyau";

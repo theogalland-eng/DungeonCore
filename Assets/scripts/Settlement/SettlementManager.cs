@@ -33,6 +33,9 @@ public class SettlementManager : MonoBehaviour
     public SettlementSite Site { get; private set; }
     public IReadOnlyList<SettlementBuilding> Buildings => buildings;
     public int Population => SettlerAI.All.Count;
+    private bool everPopulated;
+    /// <summary>La colonie a déjà eu des habitants (une colonie vide après ça a été vidée par vos monstres).</summary>
+    public bool EverPopulated { get { if (Population > 0) everPopulated = true; return everPopulated; } }
     public int Capacity { get { int c = campSettlers; foreach (var b in buildings) if (b.IsComplete) c += b.def.pop; return c; } }
     public string StageName => SettlementPlan.StageNames[Mathf.Clamp(stage, 0, SettlementPlan.StageNames.Length - 1)];
     public bool HasBuilding(string id) => buildings.Any(b => b.def.id == id && b.IsComplete);

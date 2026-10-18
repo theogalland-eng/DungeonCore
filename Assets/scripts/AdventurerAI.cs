@@ -79,6 +79,8 @@ public class AdventurerAI : MonoBehaviour
     [System.NonSerialized] public float moodSpeedMult = 1f;
     /// <summary>Torche éteinte par la pluie : dans le donjon, il voit moins loin.</summary>
     [System.NonSerialized] public bool TorchWet;
+    /// <summary>Le Champion de la Guilde (objectif de domination).</summary>
+    [System.NonSerialized] public bool IsChampion;
     [Tooltip("Ajouté à la probabilité de fuir (peureux +, courageux -)")]
     [System.NonSerialized] public float fleeBias;
     /// <summary>Direction de marche (pour placer la formation derrière le guerrier).</summary>
@@ -987,6 +989,7 @@ public class AdventurerAI : MonoBehaviour
     public void HandleDeath()
     {
         AdventurerLife.OnDied(this);
+        if (IsChampion) Domination.Instance?.OnChampionSlain();
         // mort dans le donjon : le corps reste... et nourrit vos monstres
         if (IsInsideDungeon) Corpse.Spawn(rb.position, 3);
         if (isDead || departed) return;

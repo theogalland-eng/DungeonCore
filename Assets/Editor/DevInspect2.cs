@@ -766,6 +766,19 @@ public static class DevInspect3
         TalentTreeWindow.Instance.Open();
         return $"points={Talents.Points} acquis={Talents.Spent} max monstres={PlayerLevel.Instance.GetMaxMonsters()}";
     }
+    public static string RankS() { GuildSystem.Instance.officialRank = 6; return "rang S"; }
+    public static string ChampionState()
+    {
+        foreach (var a in AdventurerAI.All) if (a != null && a.IsChampion) return $"champion présent : {a.combat.adventurerName} PV {a.combat.currentHealth:0}/{a.combat.maxHealth:0}";
+        return $"pas de champion · domination {Domination.Count}/3";
+    }
+    public static string SlayChampion()
+    {
+        StoryManager.Instance.SetFlag(Domination.ColonyFlag);
+        StoryManager.Instance.SetFlag(Domination.HeartFlag);
+        foreach (var a in AdventurerAI.All) if (a != null && a.IsChampion) { a.combat.TakeDamage(1e6f); return "champion abattu"; }
+        return "pas de champion";
+    }
     public static string CallExpedition() { ExpeditionManager.Instance.CallNextExpedition(); return "expédition appelée"; }
     public static string CampState()
     {
