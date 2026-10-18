@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -100,9 +100,21 @@ public class DungeonCore : MonoBehaviour, IDamageable
         IsRelocating = false;
     }
 
+    private float nextSealText;
+
     public void TakeDamage(float amount)
     {
         if (currentHealth <= 0) return;
+        // un boss nommé garde l'étage : tant qu'il vit, son sceau protège le cristal
+        if (BossSeal.CoreSealed(this))
+        {
+            if (Time.time >= nextSealText)
+            {
+                nextSealText = Time.time + 1.2f;
+                FloatingText.Spawn(transform.position + Vector3.up * 0.8f, "Scellé", new Color(0.8f, 0.6f, 1f), 1f);
+            }
+            return;
+        }
 
         currentHealth -= amount;
         lastDamageTime = Time.time;

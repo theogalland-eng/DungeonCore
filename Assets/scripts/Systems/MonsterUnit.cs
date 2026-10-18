@@ -134,6 +134,32 @@ public class MonsterUnit : MonoBehaviour
         return unit;
     }
 
+    /// <summary>Évolution sans condition ni coût (boss nommé : la promotion a tout payé).</summary>
+    public MonsterUnit EvolveFree()
+    {
+        if (nextStage == null) return null;
+        if (GameManager.Instance != null) GameManager.Instance.statEvolutions++;
+        var old = GetComponent<GobelinAI>();
+        var go = Instantiate(nextStage, transform.position, Quaternion.identity, transform.parent);
+        var ai = go.GetComponent<GobelinAI>();
+        if (ai != null && old != null)
+        {
+            ai.dungeonCore = old.dungeonCore;
+            ai.anchorPoint = old.anchorPoint;
+            var pa = old.anchorPoint != null ? old.anchorPoint.GetComponent<PatrolAnchor>() : null;
+            if (pa != null) { pa.UnregisterGoblin(old); pa.RegisterGoblin(ai); }
+            ai.gobelinName = go.GetComponent<MonsterUnit>()?.familyName ?? go.name;
+        }
+        go.name = ai != null ? ai.gobelinName : go.name;
+        var unit = go.GetComponent<MonsterUnit>();
+        if (unit != null) unit.xp = 0;
+        EvolutionFx.Play(transform.position);
+        MonsterSelector.Instance?.DeselectAll();
+        gameObject.SetActive(false);
+        Destroy(gameObject);
+        return unit;
+    }
+
     public static int TotalUpkeep()
     {
         int t = 0;

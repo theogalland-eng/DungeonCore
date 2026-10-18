@@ -20,6 +20,9 @@ public class CrawlerBoss : MonoBehaviour
 
     private int floor;
     private float nextQuake;
+    private float baseChase, baseDmg, baseCooldown;
+    private Vector3 baseScale;
+    private readonly List<GameObject> adds = new List<GameObject>();
     private const float QuakeRadius = 2.4f;
 
     private void OnEnable() => All.Add(this);
@@ -31,8 +34,12 @@ public class CrawlerBoss : MonoBehaviour
         var b = g.gameObject.GetComponent<CrawlerBoss>() ?? g.gameObject.AddComponent<CrawlerBoss>();
         b.Ai = g;
         b.floor = floor;
+        b.baseChase = g.chaseSpeed;
+        b.baseDmg = g.attackDamage;
+        b.baseCooldown = g.attackCooldown;
+        b.baseScale = g.transform.localScale;
         var mm = g.GetComponent<MonsterMind>();
-        string role = floor >= CrawlerDungeon.FloorCount ? "Seigneur de l'antre" : $"Gardien de l'étage {floor}";
+        string role = !CrawlerMode.Active ? (mm != null ? mm.Title : "Boss") : floor >= CrawlerDungeon.FloorCount ? "Seigneur de l'antre" : $"Gardien de l'étage {floor}";
         b.Title = mm != null && mm.IsGuardian ? $"{mm.GivenName} — {role}" : g.gobelinName;
         return b;
     }
@@ -51,10 +58,20 @@ public class CrawlerBoss : MonoBehaviour
         return best;
     }
 
+    /// <summary>Boss du mode Donjon engagé dans un combat (jauge du HUD).</summary>
+    public static CrawlerBoss Fighting()
+    {
+        foreach (var b in All)
+            if (b != null && b.Ai != null && b.Ai.IsAlive() && (b.Ai.InCombat || b.Phase > 1 || b.Health01 < 0.99f)) return b;
+        return null;
+    }
+
     private void Update()
     {
         if (Ai == null || !Ai.IsAlive()) { enabled = false; return; }
         float r = Health01;
+        // remis de ses blessures, hors combat : il reprend ses forces d'origine (et ses phases)
+        if (Phase > 1 && r >= 0.98f && !Ai.InCombat) ResetPhases();
         if (Phase == 1 && r < 0.66f) EnterPhase2();
         else if (Phase == 2 && r < 0.33f) EnterPhase3();
         if (Phase == 3 && Time.time >= nextQuake && HeroNear(6f)) StartCoroutine(Quake());
@@ -63,7 +80,21 @@ public class CrawlerBoss : MonoBehaviour
     private bool HeroNear(float d)
     {
         var cm = CrawlerMode.Instance;
-        return cm != null && cm.Player != null && Vector2.Distance(cm.Player.transform.position, transform.position) < d;
+        if (CrawlerMode.Active) return cm != null && cm.Player != null && Vector2.Distance(cm.Player.transform.position, transform.position) < d;
+        foreach (var a in AdventurerAI.All)
+            if (a != null && !a.IsDead && Vector2.Distance(a.transform.position, transform.position) < d) return true;
+        return false;
+    }
+
+    private void ResetPhases()
+    {
+        Phase = 1;
+        Ai.chaseSpeed = baseChase;
+        Ai.attackDamage = baseDmg;
+        Ai.attackCooldown = baseCooldown;
+        transform.localScale = baseScale;
+        foreach (var a in adds) if (a != null) { Fx.Play("smoke_puff", a.transform.position, 0.8f); Destroy(a); }
+        adds.Clear();
     }
 
     private void Shout(string text, Color c)
@@ -81,13 +112,25 @@ public class CrawlerBoss : MonoBehaviour
         Ai.attackCooldown *= 0.8f;
         Shout("À moi, mes enfants !", new Color(1f, 0.6f, 0.35f));
         GameHUD.Toast($"{Title} s'enrage et appelle des renforts", GameHUD.DangerColor);
-        var fams = CrawlerDungeon.FamiliesOn(floor);
-        var f = CrawlerMode.Instance != null ? CrawlerMode.Instance.FloorData(floor) : null;
         for (int i = 0; i < 2; i++)
         {
             Vector2 at = (Vector2)transform.position + Random.insideUnitCircle.normalized * 1.6f;
-            var add = CrawlerDungeon.SpawnMonster(fams[Random.Range(0, fams.Length)], 1 + floor / 4, at, f);
-            if (add != null) Fx.Play("smoke_puff", at, 1f);
+            GobelinAI add;
+            if (CrawlerMode.Active)
+            {
+                var fams = CrawlerDungeon.FamiliesOn(floor);
+                add = CrawlerDungeon.SpawnMonster(fams[Random.Range(0, fams.Length)], 1 + floor / 4, at, CrawlerMode.Instance != null ? CrawlerMode.Instance.FloorData(floor) : null);
+            }
+            else
+            {
+                // mode Donjon : des rejetons de sa famille, qui se dissipent quand le calme revient
+                var u = GetComponent<MonsterUnit>();
+                var prefab = CrawlerDungeon.MonsterPrefab(u != null ? u.familyId : "goblin", 1);
+                add = prefab != null ? MonsterSpawner.Instance?.SpawnFree(prefab, at, at, prefab.GetComponent<GobelinAI>()?.gobelinName ?? prefab.name) : null;
+                var au = add != null ? add.GetComponent<MonsterUnit>() : null;
+                if (au != null) au.summoned = true;
+            }
+            if (add != null) { Fx.Play("smoke_puff", at, 1f); adds.Add(add.gameObject); }
         }
     }
 
@@ -115,8 +158,14 @@ public class CrawlerBoss : MonoBehaviour
         CameraController.Instance?.Shake(0.18f, 0.4f);
         float dmg = Ai.attackDamage * 1.6f;
         var cm = CrawlerMode.Instance;
-        if (cm != null && cm.Player != null && Vector2.Distance(cm.Player.transform.position, at) <= QuakeRadius) cm.Player.Combat.TakeDamage(dmg);
-        foreach (var m in CrawlerCompanion.All)
-            if (m != null && !m.IsDead && Vector2.Distance(m.transform.position, at) <= QuakeRadius) m.Combat.TakeDamage(dmg * 0.8f);
+        if (CrawlerMode.Active)
+        {
+            if (cm != null && cm.Player != null && Vector2.Distance(cm.Player.transform.position, at) <= QuakeRadius) cm.Player.Combat.TakeDamage(dmg);
+            foreach (var m in CrawlerCompanion.All)
+                if (m != null && !m.IsDead && Vector2.Distance(m.transform.position, at) <= QuakeRadius) m.Combat.TakeDamage(dmg * 0.8f);
+        }
+        else
+            foreach (var a in AdventurerAI.All.ToArray())
+                if (a != null && !a.IsDead && a.combat != null && Vector2.Distance(a.transform.position, at) <= QuakeRadius) a.combat.TakeDamage(dmg);
     }
 }

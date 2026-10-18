@@ -978,6 +978,32 @@ public static class DevInspect3
     }
     public static string BrawlShot() { foreach (var x in AdventurerAI.All) if (x != null && x.Life != null && x.Life.Activity != null && x.Life.Activity.Contains("bagarre")) { var p = x.transform.position; return DevInspect.Shot(p.x, p.y + 0.6f, 3.2f, 1200, 800, "brawl"); } return "aucune"; }
     public static string IntroState() { var c = CinematicDirector.Instance; if (c == null) return "pas de directeur"; bool r = (bool)typeof(CinematicDirector).GetField("introRunning", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(c); return $"intro={r} t={Time.realtimeSinceStartup:0.0}"; }
+    public static string NameBoss()
+    {
+        var core = Object.FindFirstObjectByType<DungeonCore>();
+        var cat = DungeonCatalog.Get();
+        var item = cat.items.Find(i => i.prefab != null && i.prefab.GetComponent<MonsterUnit>() != null && i.prefab.GetComponent<MonsterUnit>().familyId == "goblin");
+        Vector2 p = (Vector2)core.transform.position + new Vector2(0f, -2.5f);
+        var g = MonsterSpawner.Instance.SpawnFree(item.prefab, p, p, "goblin");
+        ManaSystem.Instance.Add(5000);
+        PlayerLevel.Instance.AddXP(3000);
+        ManaSystem.Instance.Add(5000);
+        bool can = MonsterMind.CanPromote(g, out string why);
+        int cost = FloorBoss.Cost(g);
+        bool ok = MonsterMind.Promote(g, "Croc-Noir");
+        return $"can={can} ({why}) coût={cost} ok={ok} " + BossInfo();
+    }
+    public static string BossInfo()
+    {
+        var sb = new System.Text.StringBuilder();
+        foreach (var b in CrawlerBoss.All) if (b != null && b.Ai != null) { var u = b.GetComponent<MonsterUnit>(); sb.Append($"[{b.Title} {u?.familyName} stade={u?.stage} pv={b.Ai.currentHealth:0}/{b.Ai.maxHealth:0} phase={b.Phase} pos={b.transform.position}] "); }
+        sb.Append($"sceaux={BossSeal.All.Count} coeur={Object.FindFirstObjectByType<DungeonCore>().transform.position}");
+        return sb.ToString();
+    }
+    public static string HitCore() { var c = Object.FindFirstObjectByType<DungeonCore>(); float h = c.currentHealth; c.TakeDamage(50); return $"cœur {h:0} -> {c.currentHealth:0}"; }
+    public static string BossTo50() { foreach (var b in CrawlerBoss.All) if (b != null) b.Ai.currentHealth = b.Ai.maxHealth * 0.5f; return BossInfo(); }
+    public static string KillBoss() { foreach (var b in CrawlerBoss.All.ToArray()) if (b != null) b.Ai.TakeDamage(1e7f); return "boss tué"; }
+    public static string BossShot() { foreach (var b in CrawlerBoss.All) if (b != null) { var p = b.transform.position; return DevInspect.Shot(p.x, p.y + 1f, 4.5f, 1200, 800, "boss"); } return "aucun"; }
     public static string TacticsCount() =>$"tactiques lancées : {GobelinAI.TacticsUsed}";
 }
 #endif

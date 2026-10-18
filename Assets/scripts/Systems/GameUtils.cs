@@ -262,7 +262,9 @@ public static class PathPortal
         if (wp >= vp.Count - 1) return false;
         Vector2 a = vp[wp], b = vp[wp + 1];
         if ((b - a).sqrMagnitude < 16f) return false;
-        if (DungeonStairs.At(a, 1.2f) == null && DungeonStairs.At(b, 1.2f) == null) return false;
+        var st = DungeonStairs.At(a, 1.2f) ?? DungeonStairs.At(b, 1.2f);
+        if (st == null) return false;
+        if (BossSeal.IsSealed(st)) return false;   // scellé par un boss : l'escalier ne mène nulle part
         rb.position = b;
         rb.transform.position = b;
         return true;

@@ -64,22 +64,30 @@ public class MonsterMind : MonoBehaviour
         reason = null;
         var u = g != null ? g.GetComponent<MonsterUnit>() : null;
         if (u == null || u.summoned) { reason = "Seule une créature du donjon peut garder un étage"; return false; }
-        if (!u.IsFinalForm) { reason = "Il doit avoir atteint sa forme finale"; return false; }
         var m = g.GetComponent<MonsterMind>();
-        if (m != null && m.IsGuardian) { reason = "C'est déjà le gardien de cet étage"; return false; }
-        if (GuardianOfLayer(LayerOf(g)) != null) { reason = "Cet étage a déjà son gardien"; return false; }
-        if (ManaSystem.Instance != null && ManaSystem.Instance.Current < GuardianCost) { reason = $"{GuardianCost} mana nécessaires"; return false; }
+        if (m != null && m.IsGuardian) { reason = "C'est déjà le boss de cet étage"; return false; }
+        if (GuardianOfLayer(LayerOf(g)) != null) { reason = "Cet étage a déjà son boss nommé"; return false; }
+        if (!CrawlerMode.Active && !FloorBoss.Target(LayerOf(g), out _, out _, out _))
+        { reason = "Rien à garder ici : creusez l'escalier vers l'étage suivant (ou installez-y le cristal)"; return false; }
+        int cost = FloorBoss.Cost(g);
+        if (ManaSystem.Instance != null && ManaSystem.Instance.Current < cost) { reason = $"{cost} mana nécessaires"; return false; }
         return true;
     }
 
-    public static bool Promote(GobelinAI g)
+    public static bool Promote(GobelinAI g) => Promote(g, GuardianNames[Random.Range(0, GuardianNames.Length)]);
+
+    /// <summary>Nomme le monstre : il évolue jusqu'à sa forme ultime et devient le boss de l'étage.</summary>
+    public static bool Promote(GobelinAI g, string name)
     {
         if (!CanPromote(g, out string why)) { GameHUD.Toast(why, GameHUD.WarningColor); return false; }
-        ManaSystem.Instance?.TrySpend(GuardianCost);
-        var m = For(g);
-        m.MakeGuardian(GuardianNames[Random.Range(0, GuardianNames.Length)], true);
-        EvolutionFx.Play(g.transform.position, new Color(1f, 0.8f, 0.35f), 2.2f);
+        ManaSystem.Instance?.TrySpend(FloorBoss.Cost(g));
+        var boss = CrawlerMode.Active ? g : FloorBoss.EvolveToFinal(g);
+        var m = For(boss);
+        m.MakeGuardian(name, true);
+        FloorBoss.Setup(m, true);
+        EvolutionFx.Play(boss.transform.position, new Color(1f, 0.8f, 0.35f), 2.2f);
         GameHUD.Toast($"{m.GivenName} devient {m.Title}", GameHUD.GoldColor);
+        Chronicle.Add($"<color=#E8C77F>{m.GivenName} est nommé {m.Title}.</color>");
         StoryManager.Instance?.OnGuardianNamed(m);
         return true;
     }
@@ -104,7 +112,7 @@ public class MonsterMind : MonoBehaviour
         int li = LayerOf(this);
         string where = layers != null && li < layers.layers.Count ? layers.layers[li].name : "";
         int cf = CrawlerMode.Active ? CrawlerMode.Instance.FloorAt(transform.position) : 0;
-        Title = cf > 0 ? (cf >= CrawlerDungeon.FloorCount ? "Seigneur de l'antre" : $"Gardien de l'étage {cf}") : $"Gardien {Of(where)}";
+        Title = cf > 0 ? (cf >= CrawlerDungeon.FloorCount ? "Seigneur de l'antre" : $"Gardien de l'étage {cf}") : $"Boss {Of(where)}";
         ai.maxHealth *= 2.2f;
         if (fresh) ai.currentHealth = ai.maxHealth;
         ai.attackDamage *= 1.5f;
@@ -112,7 +120,11 @@ public class MonsterMind : MonoBehaviour
         transform.localScale *= 1.25f;
         ai.gobelinName = $"{name}, {Title}";
         RefreshTag();
+        // chargement d'une partie : le boss reprend son rôle une fois les escaliers recréés
+        if (!fresh && !CrawlerMode.Active) Invoke(nameof(RestoreBoss), 1f);
     }
+
+    private void RestoreBoss() => FloorBoss.Setup(this, false);
 
     private void RefreshTag()
     {

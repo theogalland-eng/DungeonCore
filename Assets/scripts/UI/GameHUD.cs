@@ -425,7 +425,7 @@ public class GameHUD : MonoBehaviour
 
     private void BuildSelectionPanel()
     {
-        selectionPanel = Panel("SelectionPanel", root, new Vector2(0, 0), new Vector2(0, 0), new Vector2(16, 96), new Vector2(360, 250));
+        selectionPanel = Panel("SelectionPanel", root, new Vector2(0, 0), new Vector2(0, 0), new Vector2(16, 96), new Vector2(360, 306));
         selectionPanel.Find("Liseré").GetComponent<Image>().color = UIKit.TrimSoft;
         selectionText = Label(selectionPanel, "", 23, TextColor, new Vector2(16, -10), new Vector2(330, 60), TextAlignmentOptions.Left);
         selectionText.textWrappingMode = TextWrappingModes.Normal;
@@ -444,8 +444,8 @@ public class GameHUD : MonoBehaviour
         eb.GetComponent<Image>().color = new Color(0.55f, 0.42f, 0.12f, 1f);
         evolveButton = eb.gameObject;
         evolveLabel = eb.GetComponentInChildren<TextMeshProUGUI>();
-        var gb = MakeButton(selectionPanel, "Guardian", "Gardien", new Vector2(0, 1), new Vector2(0, 1), new Vector2(14, -188), new Vector2(160, 50),
-            () => { var s = MonsterSelector.Instance; if (s != null && s.SelectedGoblins.Count == 1) MonsterMind.Promote(s.SelectedGoblins[0]); }, 21);
+        var gb = MakeButton(selectionPanel, "Guardian", "Nommer boss", new Vector2(0, 1), new Vector2(0, 1), new Vector2(14, -244), new Vector2(332, 50),
+            () => { var s = MonsterSelector.Instance; if (s != null && s.SelectedGoblins.Count == 1) NameBossDialog.Open(s.SelectedGoblins[0]); }, 21);
         gb.GetComponent<Image>().color = new Color(0.6f, 0.45f, 0.12f, 1f);
         guardianButton = gb.gameObject;
         var tb = MakeButton(selectionPanel, "Talk", "Parler", new Vector2(0, 1), new Vector2(0, 1), new Vector2(186, -188), new Vector2(160, 50),
@@ -571,8 +571,42 @@ public class GameHUD : MonoBehaviour
 
     public static bool debugInput;
 
+    private RectTransform bossBar, bossBarFill;
+    private TextMeshProUGUI bossBarName;
+
+    /// <summary>Jauge du boss d'étage nommé engagé dans un combat (mode Donjon).</summary>
+    private void UpdateBossBar()
+    {
+        if (bossBar == null)
+        {
+            bossBar = Panel("BossBar", root, new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -136), new Vector2(680, 70));
+            bossBarName = Label(bossBar, "", 21, new Color(1f, 0.78f, 0.6f), new Vector2(0, -6), new Vector2(660, 28), TextAlignmentOptions.Center);
+            var bg = NewRect("Jauge", bossBar);
+            Place(bg, new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -38), new Vector2(640, 20));
+            var bgi = bg.gameObject.AddComponent<Image>();
+            bgi.color = new Color(0.15f, 0.05f, 0.06f, 1f);
+            bossBarFill = NewRect("Fill", bg);
+            bossBarFill.anchorMin = Vector2.zero; bossBarFill.anchorMax = Vector2.one;
+            bossBarFill.offsetMin = new Vector2(3, 3); bossBarFill.offsetMax = new Vector2(-3, -3);
+            bossBarFill.gameObject.AddComponent<Image>().color = new Color(0.85f, 0.22f, 0.2f);
+            foreach (float mark in new[] { 0.66f, 0.33f })
+            {
+                var m = NewRect("Phase", bg);
+                m.anchorMin = new Vector2(mark, 0); m.anchorMax = new Vector2(mark, 1); m.sizeDelta = new Vector2(3, 0);
+                m.gameObject.AddComponent<Image>().color = new Color(1f, 0.9f, 0.7f, 0.7f);
+            }
+        }
+        var b = CrawlerMode.Active ? null : CrawlerBoss.Fighting();
+        bool show = b != null && (MainMenu.Instance == null || !MainMenu.Instance.InHome);
+        if (bossBar.gameObject.activeSelf != show) bossBar.gameObject.SetActive(show);
+        if (!show) return;
+        bossBarName.text = $"{b.Title}  <size=75%><color=#C8BFA8>phase {b.Phase}/3</color></size>";
+        bossBarFill.anchorMax = new Vector2(b.Health01, 1f);
+    }
+
     private void Update()
     {
+        UpdateBossBar();
         if (pendingToasts.Count > 0 && feed != null && feed.gameObject.activeInHierarchy)
         {
             var pend = new List<KeyValuePair<string, Color>>(pendingToasts);
@@ -810,13 +844,13 @@ public class GameHUD : MonoBehaviour
         bool canShowEvolve = unit != null && !unit.IsFinalForm && !unit.summoned;
         evolveButton.SetActive(canShowEvolve);
         var mind = n == 1 ? sel.SelectedGoblins[0].GetComponent<MonsterMind>() : null;
-        bool finalForm = unit != null && unit.IsFinalForm && !unit.summoned;
-        guardianButton.SetActive(finalForm && (mind == null || !mind.IsGuardian));
+        bool nameable = n == 1 && unit != null && !unit.summoned && !CrawlerMode.Active;
+        guardianButton.SetActive(nameable && (mind == null || !mind.IsGuardian));
         if (guardianButton.activeSelf)
         {
-            bool ok = MonsterMind.CanPromote(sel.SelectedGoblins[0], out _);
+            bool ok = MonsterMind.CanPromote(sel.SelectedGoblins[0], out string why);
             guardianButton.GetComponent<Image>().color = ok ? new Color(0.6f, 0.45f, 0.12f, 1f) : new Color(0.25f, 0.22f, 0.18f, 1f);
-            guardianButton.GetComponentInChildren<TextMeshProUGUI>().text = $"Gardien ({MonsterMind.GuardianCost})";
+            guardianButton.GetComponentInChildren<TextMeshProUGUI>().text = ok ? $"Nommer boss d'étage ({FloorBoss.Cost(sel.SelectedGoblins[0])} mana)" : $"<size=80%>Boss : {why}</size>";
         }
         talkButton.SetActive(n == 1 && MonsterMind.IsIntelligent(unit));
         if (canShowEvolve)
