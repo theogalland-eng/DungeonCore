@@ -766,6 +766,15 @@ public static class DevInspect3
         TalentTreeWindow.Instance.Open();
         return $"points={Talents.Points} acquis={Talents.Spent} max monstres={PlayerLevel.Instance.GetMaxMonsters()}";
     }
+    public static string PossessTest()
+    {
+        GobelinAI g = null;
+        foreach (var m in GobelinAI.All) if (m != null && m.IsAlive()) { g = m; break; }
+        if (g == null) return "aucun monstre";
+        PossessionController.Instance.Possess(g);
+        bool ok = g.ManualSkill();
+        return $"possédé {g.gobelinName} compétence={g.SkillName} lancée={ok}";
+    }
     public static string SpellTest()
     {
         while (PlayerLevel.Instance.currentLevel < 10) PlayerLevel.Instance.AddXP(PlayerLevel.Instance.xpForNextLevel);

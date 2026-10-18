@@ -43,6 +43,8 @@ public class GameHUD : MonoBehaviour
     private TextMeshProUGUI hpText, manaText, xpText, dayText, countsText, threatText, expeditionText;
     private readonly List<KeyValuePair<float, Image>> speedButtons = new List<KeyValuePair<float, Image>>();
     private Image pauseButtonImage;
+    private TextMeshProUGUI skillLabel;
+    private RectTransform skillCd;
     private Button talentButton;
     private TextMeshProUGUI talentBadge;
     private GameObject callBoatButton;
@@ -477,6 +479,21 @@ public class GameHUD : MonoBehaviour
         atkImg.sprite = SpriteUtil.Circle;
         atkImg.type = Image.Type.Simple;
         atkImg.color = new Color(0.85f, 0.3f, 0.3f, 0.75f);
+        atk.transform.Find("Liseré")?.gameObject.SetActive(false);   // bouton rond : pas de cadre carré
+
+        // compétence de la famille du monstre possédé (charge, bond, salve, rugissement)
+        var sk = MakeButton(possessionPanel, "Skill", "Compétence", new Vector2(1, 0), new Vector2(1, 0), new Vector2(-320, 80), new Vector2(170, 170),
+            () => PossessionController.Instance?.RequestSkill(), 22);
+        var skImg = sk.GetComponent<Image>();
+        skImg.sprite = SpriteUtil.Circle;
+        skImg.type = Image.Type.Simple;
+        skImg.color = new Color(0.35f, 0.25f, 0.6f, 0.75f);
+        sk.transform.Find("Liseré")?.gameObject.SetActive(false);
+        skillLabel = sk.GetComponentInChildren<TextMeshProUGUI>();
+        skillCd = NewRect("Recharge", (RectTransform)sk.transform);
+        skillCd.anchorMin = Vector2.zero; skillCd.anchorMax = new Vector2(1, 0); skillCd.pivot = new Vector2(0.5f, 0);
+        skillCd.offsetMin = skillCd.offsetMax = Vector2.zero;
+        var cdImg = skillCd.gameObject.AddComponent<Image>(); cdImg.color = new Color(0f, 0f, 0f, 0.45f); cdImg.raycastTarget = false;
 
         var exitPanel = Panel("PossessInfo", possessionPanel, new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -140), new Vector2(560, 110));
         possessionText = Label(exitPanel, "", 22, TextColor, new Vector2(0, -6), new Vector2(560, 36), TextAlignmentOptions.Center, true);
@@ -753,6 +770,12 @@ public class GameHUD : MonoBehaviour
     {
         bool possessing = PossessionController.Instance != null && PossessionController.Instance.IsPossessing;
         UpdateSpellBar(possessing);
+        var pg = possessing ? PossessionController.Instance.Possessed : null;
+        if (pg != null && skillLabel != null)
+        {
+            skillLabel.text = pg.SkillName;
+            skillCd.anchorMax = new Vector2(1f, pg.SkillCooldown01);
+        }
         bool selectMode = DungeonBuilder.Instance == null || DungeonBuilder.Instance.GetCurrentMode() == DungeonBuilder.BuildMode.None;
         selectionPanel.gameObject.SetActive(selectMode && !possessing);
         if (!selectionPanel.gameObject.activeSelf) return;

@@ -693,8 +693,106 @@ public class GobelinAI : MonoBehaviour, IDamageable
     }
 
     /// <summary>Déplacement direct (joueur). dir normalisé ou nul.</summary>
+    // ── Compétence de famille en possession (bouton Compétence) ──
+    private float manualSkillReady, dashUntil, dashStart;
+    private Vector2 dashDir;
+    private Vector3 dashScale;
+    private bool dashLeap, dashHit;
+    public const float SkillCooldown = 6f;
+
+    public string SkillName
+    {
+        get
+        {
+            string f = Family;
+            if (f == "goblin" || f == "orc" || f == "boar" || f == "rat") return "Charge";
+            if (f == "gnoll" || f == "lizard" || f == "vampire") return "Bond";
+            if (attackRange >= 2.5f) return "Salve";
+            return "Rugissement";
+        }
+    }
+
+    public float SkillCooldown01 => Time.time >= manualSkillReady ? 0f : Mathf.Clamp01((manualSkillReady - Time.time) / SkillCooldown);
+
+    public bool ManualSkill()
+    {
+        if (Time.time < manualSkillReady) return false;
+        manualSkillReady = Time.time + SkillCooldown;
+        string skill = SkillName;
+        Vector2 dir = lastMoveDirection.sqrMagnitude > 0.01f ? lastMoveDirection.normalized : Vector2.down;
+        switch (skill)
+        {
+            case "Charge":
+            case "Bond":
+                dashDir = dir; dashLeap = skill == "Bond"; dashHit = false; dashScale = transform.localScale;
+                dashStart = Time.time; dashUntil = Time.time + (dashLeap ? 0.4f : 0.3f);
+                Sfx.Play("swing", transform.position, 0.7f);
+                if (spriteRenderer != null) HitFlashFx.Flash(spriteRenderer, 0.1f);
+                break;
+            case "Salve":
+            {
+                Transform best = null; float bd = 7f;
+                foreach (var h in Physics2D.OverlapCircleAll(rb.position, 7f, adventurerLayer))
+                {
+                    var d = h.GetComponent<IDamageable>();
+                    if (d == null || !d.IsAlive() || !HasLineOfSight(h.transform)) continue;
+                    float dist = Vector2.Distance(h.transform.position, rb.position);
+                    if (dist < bd) { bd = dist; best = h.transform; }
+                }
+                if (best == null) { manualSkillReady = Time.time + 0.5f; return false; }
+                var target = best.GetComponent<IDamageable>();
+                float dmg = attackDamage * possessedDamageMult * 1.6f;
+                Projectile.FireFx("fireball", transform.position + Vector3.up * 0.3f, best.position + Vector3.up * 0.2f, 0.5f, false,
+                    () => { if (target.IsAlive()) { target.TakeDamage(dmg); OnDealtDamage(target, dmg); } }, 10f, 0.2f, 10, new Color(1f, 0.55f, 0.2f));
+                attackAnimTimer = 0.4f;
+                break;
+            }
+            default:
+            {
+                // rugissement : les intrus proches se figent, les plus faibles s'enfuient
+                CameraController.Instance?.Shake(0.1f, 0.4f);
+                Sfx.Play("growl", transform.position, 1f);
+                FloatingText.Spawn(transform.position + Vector3.up * 0.8f, "GRAAAH !", new Color(1f, 0.5f, 0.4f), 1.1f);
+                foreach (var a in AdventurerAI.All)
+                {
+                    if (a == null || a.IsDead || Vector2.Distance(a.transform.position, rb.position) > 3.5f) continue;
+                    if (Random.value < 0.35f) a.LifePanic(); else a.Hold(1.8f);
+                }
+                attackAnimTimer = 0.4f;
+                break;
+            }
+        }
+        return true;
+    }
+
     public void ManualMove(Vector2 dir)
     {
+        // charge / bond en cours : l'élan l'emporte sur le joystick
+        if (Time.time < dashUntil)
+        {
+            float k = (Time.time - dashStart) / (dashUntil - dashStart);
+            Vector2 dv = dashDir * chaseSpeed * possessedSpeedMult * (dashLeap ? 2.6f : 3f);
+            if (DungeonTerritory.Instance != null && !DungeonTerritory.Instance.IsInside(rb.position + dashDir * 0.4f)) dv = Vector2.zero;
+            movement = dv;
+            rb.linearVelocity = dv;
+            lastMoveDirection = dashDir;
+            if (dashLeap) transform.localScale = dashScale * (1f + 0.25f * Mathf.Sin(k * Mathf.PI));
+            if (!dashHit)
+                foreach (var h in Physics2D.OverlapCircleAll(rb.position, 0.7f, adventurerLayer))
+                {
+                    var d = h.GetComponent<IDamageable>();
+                    if (d == null || !d.IsAlive()) continue;
+                    dashHit = true;
+                    float dmg = attackDamage * possessedDamageMult * 1.7f;
+                    d.TakeDamage(dmg);
+                    OnDealtDamage(d, dmg);
+                    h.GetComponent<AdventurerAI>()?.Hold(0.8f);
+                    HitFlashFx.Hitstop(0.06f);
+                    break;
+                }
+            return;
+        }
+        if (dashLeap) { transform.localScale = dashScale; dashLeap = false; }
         Vector2 v = Vector2.ClampMagnitude(dir, 1f) * chaseSpeed * possessedSpeedMult;
         // Ne peut pas sortir du donjon
         if (DungeonTerritory.Instance != null && v.sqrMagnitude > 0.0001f)

@@ -173,3 +173,4 @@ Mise en ligne du projet sur GitHub (ce dépôt), avec cette documentation.
 - 💎 **Le cristal grandit** avec le niveau du Noyau : plus grand, plus lumineux, du bleu au violet puis à l'or, entouré d'éclats qui gravitent.
 - ✨ **Sorts du Noyau** (barre au bas de l'écran, mana et recharge) : **Terreur** (niv. 2), **Soin des créatures** (niv. 3), **Éboulement** sur le plus grand groupe d'intrus (niv. 5), **Ombres aveuglantes** (niv. 7).
 - 🗣️ **La voix du Noyau** commente, à mi-voix, ce qu'il voit : bagarres, couples de monstres, appâts, cadavres dévorés, énigmes résolues...
+- 👁️ **Possession** : bouton **Compétence** selon la famille du monstre — **Charge** (gobelins, orcs, rats), **Bond** (gnolls, hommes-lézards, vampires), **Salve** à distance (diablotins, liches), **Rugissement** qui fige ou fait fuir (les autres) ; touche Q, clic droit ou bouton. Le monde s'assombrit au-delà de ce que voit la créature.
