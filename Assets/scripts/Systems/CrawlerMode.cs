@@ -15,6 +15,8 @@ using UnityEngine.UI;
 ///     Escaliers entre les étages ; la Guilde ouvre des passages directs vers les étages 4 et 7 une fois atteints.
 ///   - Le donjon est vivant : les étages se repeuplent quand on y revient.
 ///   - Mort : on se réveille à la taverne, délesté de la moitié de son or. Briser le cristal = victoire.
+///   - ÉQUIPEMENT (CrawlerGear) : arme, armure, bijou, de commun à légendaire ; sac de dix objets (touche I).
+///   - CONTRATS de la Guilde (CrawlerContracts) : chasse, exploration, pillage, prime sur un gardien.
 /// </summary>
 public class CrawlerMode : MonoBehaviour
 {
@@ -46,7 +48,7 @@ public class CrawlerMode : MonoBehaviour
 
     /// <summary>Tout est figé (dialogue, boutique, menu, transition).</summary>
     public bool Frozen =>
-        victory || shop != null || transitioning || (StoryManager.Instance != null && StoryManager.Instance.IsShowing) ||
+        victory || GearWindow.IsOpen || shop != null || transitioning || (StoryManager.Instance != null && StoryManager.Instance.IsShowing) ||
         (MainMenu.Instance != null && MainMenu.Instance.InPause) || (InteriorSystem.Instance != null && InteriorSystem.Instance.Moving);
     public bool InputBlocked => Frozen;
 
@@ -67,6 +69,57 @@ public class CrawlerMode : MonoBehaviour
     private Image staminaImg;
     private Image fade;
     private float startTime;
+
+    // ── Équipement
+    public const int BagSize = 10;
+    public readonly List<CrawlerGear.Item> bag = new List<CrawlerGear.Item>();
+    public readonly CrawlerGear.Item[] equipped = new CrawlerGear.Item[3];
+    private int trip, contractsTrip = -1;
+
+    public float GearSum(CrawlerGear.Stat st)
+    {
+        float v = 0f;
+        foreach (var it in equipped) if (it != null) v += it.Get(st);
+        return v;
+    }
+
+    public void Equip(CrawlerGear.Item it)
+    {
+        if (it == null) return;
+        int i = (int)it.slot;
+        var old = equipped[i];
+        bag.Remove(it);
+        equipped[i] = it;
+        if (old != null) bag.Add(old);
+        RefreshStats(false);
+        Sfx.Play("hit_sword", null, 0.5f);
+    }
+
+    public bool CanSell => floor == 0;
+
+    public void Sell(CrawlerGear.Item it)
+    {
+        if (it == null || !CanSell) return;
+        if (!bag.Remove(it)) return;
+        gold += it.Value;
+        Sfx.Play("coin");
+    }
+
+    /// <summary>Un objet trouvé : dans le sac (ou vendu sur-le-champ s'il est plein).</summary>
+    public void GiveItem(CrawlerGear.Item it, Vector3 at)
+    {
+        string col = ColorUtility.ToHtmlStringRGB(CrawlerGear.RarityColor(it.rarity));
+        FloatingText.Spawn(at + Vector3.up * 1.4f, it.name, CrawlerGear.RarityColor(it.rarity), 1.8f);
+        if (bag.Count >= BagSize)
+        {
+            gold += it.Value / 2;
+            GameHUD.Toast($"Sac plein : <color=#{col}>{it.name}</color> laissé pour {it.Value / 2} or", GameHUD.WarningColor);
+            return;
+        }
+        bag.Add(it);
+        GameHUD.Toast($"Trouvé : <color=#{col}>{it.name}</color> ({CrawlerGear.RarityNames[(int)it.rarity].ToLower()}) — sac : touche I", GameHUD.InfoColor);
+        if (it.rarity >= CrawlerGear.Rarity.Epic) { Sfx.Play("shine"); Haptics.Pulse(); }
+    }
 
     private class Recruit { public string name; public AdventurerAI.Role role; public int rank, cost; public bool female; }
 
@@ -107,6 +160,9 @@ public class CrawlerMode : MonoBehaviour
             foreach (var f in new[] { "intro", "colony_1", "colony_2", "colony_3", "colony_4", "colony_5", "colony_cine_1", "colony_cine_2", "colony_cine_4", "colony_cine_5",
                                       "first_dig", "first_summon", "first_decor", "first_room", "first_guardian", "tavern_first", "guild_first" }) story.SetFlag(f);
 
+        CrawlerContracts.Reset();
+        bag.Clear();
+        for (int i = 0; i < equipped.Length; i++) equipped[i] = null;
         BuildTown();
         BuildDungeon();
         SpawnPlayer(role);
@@ -246,6 +302,7 @@ public class CrawlerMode : MonoBehaviour
         var kb = Keyboard.current;
         if (shop != null && kb != null && (kb.escapeKey.wasPressedThisFrame || kb.eKey.wasPressedThisFrame)) { CloseShop(); return; }
         if (!Frozen && kb != null && kb.tKey.wasPressedThisFrame) UseRecall();
+        if (kb != null && kb.iKey.wasPressedThisFrame && shop == null) GearWindow.Toggle();
         TickHunger();
         // entrer dans un bâtiment en marchant vers sa porte
         if (!Frozen && Player.MoveInput.y > 0.5f && InteriorSystem.Instance != null && !InteriorSystem.Instance.Inside)
@@ -286,9 +343,10 @@ public class CrawlerMode : MonoBehaviour
 
         if (!indoors && fl != floor)
         {
-            if (fl == 1 && floor == 0) OnEnterDungeon();
+            if (fl == 1 && floor == 0) { OnEnterDungeon(); trip++; }
             if (fl == 0 && floor == 1) GameHUD.Toast("Vous ressortez à l'air libre", GameHUD.InfoColor);
             floor = fl;
+            CrawlerContracts.OnFloor(floor);
             if (floor > deepest)
             {
                 deepest = floor;
@@ -583,6 +641,8 @@ public class CrawlerMode : MonoBehaviour
         FloatingText.Spawn(chest.transform.position + Vector3.up * 0.8f, $"+{g} or", GameHUD.GoldColor, 1.4f);
         if (rng.Next(3) == 0) { potions++; FloatingText.Spawn(chest.transform.position + Vector3.up * 1.3f, "+1 potion", new Color(0.5f, 1f, 0.6f), 1.2f); }
         else if (rng.Next(2) == 0) { rations++; FloatingText.Spawn(chest.transform.position + Vector3.up * 1.3f, "+1 ration", new Color(0.95f, 0.75f, 0.45f), 1.2f); }
+        CrawlerContracts.OnChest(floor);
+        if (rng.Next(100) < 35) GiveItem(CrawlerGear.Roll(depth, Player.role, rng), chest.transform.position);
         else if (depth >= 3 && rng.Next(4) == 0) { recallStones++; FloatingText.Spawn(chest.transform.position + Vector3.up * 1.3f, "+1 pierre de rappel", new Color(0.6f, 0.8f, 1f), 1.2f); }
     }
 
@@ -590,7 +650,11 @@ public class CrawlerMode : MonoBehaviour
     {
         var u = g.GetComponent<MonsterUnit>();
         int stage = u != null ? u.stage : 1;
-        int reward = 3 + 4 * stage + Mathf.Max(0, floor) * 2 + rng.Next(0, 5) + (g.GetComponent<MonsterMind>()?.IsGuardian == true ? 150 : 0);
+        bool guardian = g.GetComponent<MonsterMind>()?.IsGuardian == true;
+        int reward = 3 + 4 * stage + Mathf.Max(0, floor) * 2 + rng.Next(0, 5) + (guardian ? 150 : 0);
+        CrawlerContracts.OnKill(u != null ? u.familyId : null, floor, guardian);
+        if (guardian) GiveItem(CrawlerGear.Roll(Mathf.Max(1, floor), Player.role, rng, CrawlerGear.Rarity.Rare), g.transform.position);
+        else if (rng.Next(1000) < 60 + 6 * floor) GiveItem(CrawlerGear.Roll(Mathf.Max(1, floor), Player.role, rng), g.transform.position);
         gold += reward;
         kills++;
         killedSinceTown++;
@@ -649,13 +713,17 @@ public class CrawlerMode : MonoBehaviour
 
     private int WeaponCost => 60 + 55 * weaponLvl;
     private int ArmorCost => 50 + 50 * armorLvl;
-    private float HpMult => (1f + 0.25f * armorLvl) * (1f + 0.08f * rank);
-    private float DmgMult => (1f + 0.22f * weaponLvl) * (1f + 0.08f * rank);
+    private float HpMult => (1f + 0.25f * armorLvl) * (1f + 0.08f * rank) * (1f + GearSum(CrawlerGear.Stat.Health));
+    private float DmgMult => (1f + 0.22f * weaponLvl) * (1f + 0.08f * rank) * (1f + GearSum(CrawlerGear.Stat.Damage));
     public int PartyCount { get { int n = 0; foreach (var c in CrawlerCompanion.All) if (c != null && !c.IsDead) n++; return n; } }
 
     private void RefreshStats(bool heal)
     {
         Player.ApplyStats(HpMult, DmgMult, heal);
+        Player.SpeedMult = 1f + GearSum(CrawlerGear.Stat.Speed);
+        Player.GearStaminaMult = 1f + GearSum(CrawlerGear.Stat.Stamina);
+        Player.Combat.critChance = GearSum(CrawlerGear.Stat.Crit);
+        Player.Combat.dodgeChance = Mathf.Min(0.5f, GearSum(CrawlerGear.Stat.Dodge));
         Player.SetTier(1 + armorLvl);   // chaque renfort d'armure se voit
     }
 
@@ -805,6 +873,28 @@ public class CrawlerMode : MonoBehaviour
                     int bounty = 0;
                     for (int f = reportedDeepest + 1; f <= deepest; f++) bounty += 25 * f;
                     Button($"Rapporter votre exploration (prime : {bounty} or)", () => { reportedDeepest = deepest; gold += bounty; Sfx.Play("coin"); }, true);
+                }
+                // contrats
+                if (contractsTrip != trip) { contractsTrip = trip; CrawlerContracts.Roll(deepest, rng); }
+                Line("<color=#E8C77F>Contrats de la Guilde</color> <size=85%><color=#B9B3CC>(deux à la fois, renouvelés à chaque retour du donjon)</color></size>", 34f);
+                foreach (var c in new List<CrawlerContracts.Contract>(CrawlerContracts.Active))
+                {
+                    var cc = c;
+                    if (cc.Done)
+                        Button($"Toucher la prime : {cc.Title} ({cc.gold} or + objet)", () =>
+                        {
+                            CrawlerContracts.Active.Remove(cc);
+                            gold += cc.gold;
+                            GiveItem(CrawlerGear.Roll(Mathf.Max(1, Mathf.Max(deepest, cc.minFloor)), Player.role, rng, cc.reward), Player.transform.position);
+                            Sfx.Play("levelup");
+                        }, true);
+                    else Line($"• {cc.Title} — <color=#FFD966>{cc.Progress}</color>   <size=85%><color=#B9B3CC>prime : {cc.Reward}</color></size>", 34f);
+                }
+                foreach (var c in new List<CrawlerContracts.Contract>(CrawlerContracts.Offered))
+                {
+                    var cc = c;
+                    Button($"Accepter : {cc.Title}  ({cc.gold} or + objet {CrawlerGear.RarityNames[(int)cc.reward].ToLower()})", () => CrawlerContracts.Accept(cc),
+                        CrawlerContracts.Active.Count < CrawlerContracts.MaxActive);
                 }
                 int cp = Checkpoint();
                 Line(cp > 1 ? $"Passage ouvert : le cercle de la première salle du donjon mène à l'étage {cp}." :
@@ -996,6 +1086,7 @@ public class CrawlerMode : MonoBehaviour
         Act("Interagir", new Vector2(-40, 280), new Vector2(200, 80), new Color(0.45f, 0.38f, 0.15f, 0.9f), () => { if (Player) Player.touchInteract = true; });
         Act("Rappel", new Vector2(-450, 150), new Vector2(160, 80), new Color(0.2f, 0.3f, 0.5f, 0.9f), UseRecall);
         Act("Manger", new Vector2(-450, 240), new Vector2(160, 80), new Color(0.45f, 0.3f, 0.16f, 0.9f), () => { if (Player) Player.touchEat = true; });
+        UIKit.BtnAt(hud, "Sac", GearWindow.Toggle, new Vector2(1, 1), new Vector2(-170, -16), new Vector2(140, 60), 24);
 
         fade = UIKit.Image(UIKit.Stretch(UIKit.Rect("Fondu", go.transform)), new Color(0f, 0f, 0f, 0f), false, false);
         fade.raycastTarget = false;
@@ -1055,6 +1146,8 @@ public class CrawlerMode : MonoBehaviour
             string col = r > 0.6f ? "#7BE08A" : r > 0.3f ? "#FFD966" : "#FF6B6B";
             sb.Append($"<color=#A9C8FF>{m.displayName}</color> <size=80%>({m.classLabel})</size>  <color={col}>{Mathf.CeilToInt(m.Combat.currentHealth)} PV</color>\n");
         }
+        foreach (var ct in CrawlerContracts.Active)
+            sb.Append($"<size=85%><color=#E8C77F>Contrat</color> {ct.Title} <color={(ct.Done ? "#9CF0A8" : "#FFD966")}>{(ct.Done ? "rempli : prime au hall" : ct.Progress)}</color></size>\n");
         partyText.text = sb.ToString();
         skillFill.anchorMax = new Vector2(1f, Player.SkillReady);
         string label = Frozen ? null : InteractionLabel(out _);

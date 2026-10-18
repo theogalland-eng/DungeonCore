@@ -231,6 +231,9 @@ public static class CrawlerDungeon
         return 3;
     }
 
+    /// <summary>Familles de monstres d'un étage (contrats de chasse).</summary>
+    public static string[] FamiliesOn(int floor) => Families[Mathf.Clamp(floor, 1, FloorCount)];
+
     public static GobelinAI SpawnMonster(string family, int stage, Vector2 pos, Floor f)
     {
         var prefab = MonsterPrefab(family, stage);

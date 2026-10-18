@@ -31,6 +31,8 @@ public class CrawlerPlayer : MonoBehaviour
     public float Stamina01 => Mathf.Clamp01(Stamina / maxStamina);
     /// <summary>La faim ralentit la récupération (CrawlerMode).</summary>
     [System.NonSerialized] public float StaminaRegenMult = 1f;
+    /// <summary>Bonus d'équipement : vitesse et récupération d'endurance.</summary>
+    [System.NonSerialized] public float SpeedMult = 1f, GearStaminaMult = 1f;
     [System.NonSerialized] public bool touchEat;
     /// <summary>À bout de souffle : plus de course tant que la jauge n'est pas remontée à 35 %.</summary>
     public bool Exhausted { get; private set; }
@@ -222,7 +224,7 @@ public class CrawlerPlayer : MonoBehaviour
             rb.linearVelocity = rollDir * RollSpeed * (0.45f + 0.55f * k);
             return;
         }
-        rb.linearVelocity = move * speed * (Running ? RunMult : 1f);
+        rb.linearVelocity = move * speed * SpeedMult * (Running ? RunMult : 1f);
     }
 
     // ─────────────────────────────────────────────
@@ -239,7 +241,7 @@ public class CrawlerPlayer : MonoBehaviour
             if (Stamina <= 0f) Exhausted = true;
         }
         else if (Time.time - lastEffort > RegenDelay)
-            Stamina = Mathf.Min(maxStamina, Stamina + StaminaRegen * StaminaRegenMult * Time.deltaTime);
+            Stamina = Mathf.Min(maxStamina, Stamina + StaminaRegen * StaminaRegenMult * GearStaminaMult * Time.deltaTime);
         if (Exhausted && Stamina >= maxStamina * 0.35f) Exhausted = false;
     }
 

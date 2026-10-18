@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using UnityEngine;
 
 /// <summary>
@@ -53,6 +53,7 @@ public class AdventurerCombat : MonoBehaviour, IDamageable
     [System.NonSerialized] public float damageMult = 1f;
     [System.NonSerialized] public float missChance;
     [System.NonSerialized] public float dodgeChance;
+    [System.NonSerialized] public float critChance;
 
     public void TakeDamage(float amount)
     {
@@ -161,6 +162,12 @@ public class AdventurerCombat : MonoBehaviour, IDamageable
             return;
         }
         float dmg = attackDamage * damageMult;
+        if (critChance > 0f && Random.value < critChance)
+        {
+            dmg *= 2f;
+            var tt = (target as Component)?.transform;
+            FloatingText.Spawn((tt != null ? tt.position : transform.position) + Vector3.up * 0.7f, "Critique !", new Color(1f, 0.8f, 0.3f), 0.9f);
+        }
         if (target is WildAnimal beast) beast.TakeDamage(dmg, transform);
         else target.TakeDamage(dmg);
         if (target is GobelinAI goblin) goblin.OnAttackedBy(transform);

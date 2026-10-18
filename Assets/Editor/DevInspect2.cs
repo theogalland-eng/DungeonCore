@@ -916,6 +916,39 @@ public static class DevInspect3
         var gfb = TMPro.TMP_Settings.fallbackFontAssets; string g = ""; if (gfb != null) foreach (var x in gfb) g += (x == null ? "null" : x.name + (x.material == null ? "(mat null)" : "")) + ",";
         return $"def={f?.name} mat={(f != null && f.material != null)} atlas={f?.atlasTextures?.Length} fb=[{fb}] global=[{g}]";
     }
+    public static string CrawlerLoot()
+    {
+        var cm = CrawlerMode.Instance; var rng = new System.Random();
+        for (int i = 0; i < 7; i++) cm.GiveItem(CrawlerGear.Roll(1 + i, cm.Player.role, rng, (CrawlerGear.Rarity)(i % 5)), cm.Player.transform.position);
+        return $"sac={cm.bag.Count}";
+    }
+    public static string CrawlerEquipAll() { var cm = CrawlerMode.Instance; foreach (var it in cm.bag.ToArray()) if (cm.equipped[(int)it.slot] == null) cm.Equip(it); return $"PV={cm.Player.Combat.maxHealth:0} dmg={cm.Player.Combat.attackDamage:0} crit={cm.Player.Combat.critChance:0.00} vit={cm.Player.SpeedMult:0.00}"; }
+    public static string CrawlerBag() { GearWindow.Toggle(); return "sac " + GearWindow.IsOpen; }
+    public static string CrawlerGuild() { typeof(CrawlerMode).GetMethod("OpenShop", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(CrawlerMode.Instance, new object[] { "guild_master" }); return "guilde"; }
+    public static string CrawlerContractsState() { var sb = new System.Text.StringBuilder(); foreach (var c in CrawlerContracts.Offered) sb.Append($"[offre {c.Title} {c.Reward}] "); foreach (var c in CrawlerContracts.Active) sb.Append($"[actif {c.Title} {c.Progress}] "); return sb.ToString(); }
+    public static string CrawlerAcceptAll() { foreach (var c in CrawlerContracts.Offered.ToArray()) CrawlerContracts.Accept(c); return CrawlerContractsState(); }
+    public static string CrawlerFloor2() { CrawlerMode.Instance.GoToFloor(2, true); return "étage 2"; }
+    public static string CrawlerCloseShop() { typeof(CrawlerMode).GetMethod("CloseShop", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(CrawlerMode.Instance, null); return "fermé"; }
+    public static string CrawlerSlay()
+    {
+        var cm = CrawlerMode.Instance; int n = 0;
+        foreach (var g in GobelinAI.All.ToArray())
+            if (g != null && g.IsAlive() && Vector2.Distance(g.transform.position, cm.Player.transform.position) < 40f) { g.TakeDamage(999999f); n++; if (n >= 8) break; }
+        return $"{n} abattus, kills={cm.kills} sac={cm.bag.Count} " + CrawlerContractsState();
+    }
+    public static string CrawlerFloor3() { CrawlerMode.Instance.GoToFloor(3, true); return "étage 3"; }
+    public static string Families() { var sb = new System.Text.StringBuilder(); foreach (var g in GobelinAI.All) if (g != null) { var u = g.GetComponent<MonsterUnit>(); sb.Append((u != null ? u.familyId : "?") + ","); } return sb.ToString(); }
+    public static string SlaySlimes()
+    {
+        var cm = CrawlerMode.Instance; int n = 0; string fams = "";
+        foreach (var g in GobelinAI.All.ToArray())
+        {
+            var u = g != null ? g.GetComponent<MonsterUnit>() : null;
+            if (u == null || u.familyId != "slime" || !g.IsAlive()) continue;
+            g.TakeDamage(999999f); n++; fams += u.familyId + ","; if (n >= 3) break;
+        }
+        return $"{n} slimes ({fams}) kills={cm.kills} " + CrawlerContractsState();
+    }
     public static string TacticsCount() =>$"tactiques lancées : {GobelinAI.TacticsUsed}";
 }
 #endif
