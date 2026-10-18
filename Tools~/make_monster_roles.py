@@ -32,6 +32,7 @@ FACE = {'S': (0, 1), 'SE': (0.7071, 0.7071), 'E': (1, 0), 'NE': (0.7071, -0.7071
 OUTLINE = (24, 14, 22)
 
 WOOD = [(58, 34, 20), (112, 72, 38), (164, 116, 64)]
+WOOD_DEFAULT = WOOD
 STRING = (222, 214, 190)
 SHAFT = (150, 112, 70)
 TIP = (200, 206, 214)
@@ -51,6 +52,21 @@ ROLES = {
         body=[(330, 360, 0.3, 0.2, R('142418', '22402a', '36603c', '5a8a52')),
               (0, 12, 0.3, 0.2, R('142418', '22402a', '36603c', '5a8a52'))],
         head=[]),
+    'goblin_shaman_2': dict(base='goblin_2', weapon='staff', orb=R('a83010', 'f07a20', 'ffe0a0'),
+        body=[(190, 300, 0.05, 0.08, R('2a120c', '4e2414', '7a3c1e', 'a8642e'))],
+        head=[], feathers=[(200, 50, 40), (240, 236, 220), (40, 150, 140)]),
+    'goblin_shaman_3': dict(base='goblin_3', weapon='staff', orb=R('a83010', 'f07a20', 'ffe0a0'), skull=True,
+        body=[(330, 360, 0.3, 0.2, R('1a1030', '302050', '4c3478', '7058a8')),
+              (0, 12, 0.3, 0.2, R('1a1030', '302050', '4c3478', '7058a8'))],
+        head=[], feathers=[(220, 60, 40), (250, 200, 60), (240, 236, 220), (40, 150, 140), (220, 60, 40)]),
+    'skeleton_archer_2': dict(base='skeleton_2', weapon='bow', bow=5, wood=R('8a8270', 'd2cebc', 'f4f0e2'),
+        body=[(190, 260, 0.2, 0.1, R('16201a', '263a2c', '3e5a44', '628266'))],
+        head=[(190, 260, 0.2, 0.1, R('16201a', '263a2c', '3e5a44', '628266'))]),
+    'skeleton_archer_3': dict(base='skeleton_3', weapon='bow', bow=6, quiver=True, wood=R('8a8270', 'd2cebc', 'f4f0e2'),
+        body=[(330, 360, 0.3, 0.1, R('0e0e12', '1e1e26', '32323e', '50505e')),
+              (0, 30, 0.45, 0.1, R('0e0e12', '1e1e26', '32323e', '50505e'))],
+        head=[(330, 360, 0.3, 0.1, R('0e0e12', '1e1e26', '32323e', '50505e')),
+              (0, 30, 0.45, 0.1, R('0e0e12', '1e1e26', '32323e', '50505e'))]),
     'skeleton_mage_2': dict(base='skeleton_2', weapon='staff', orb=R('2a7a3a', '5fe07a', 'd8ffe0'),
         body=[(190, 260, 0.2, 0.1, R('1e1036', '3a2066', '5e3a9a', '8c66cc'))],
         head=[(190, 260, 0.2, 0.1, R('1e1036', '3a2066', '5e3a9a', '8c66cc'))],
@@ -168,8 +184,9 @@ def torso(frame):
     return xs[0], xs[-1], (xs[0] + xs[-1]) / 2, top, bot
 
 
-def draw_bow(ink, d, frame, draw, size, quiver=False):
+def draw_bow(ink, d, frame, draw, size, wood=None):
     """Arc perpendiculaire au regard ; draw ∈ [0, 1] = tension de la corde (flèche encochée si > 0)."""
+    WOOD = wood or WOOD_DEFAULT
     fx, fy = FACE[d]
     nx, ny = -fy, fx
     tx0, tx1, tcx, top, bot = torso(frame)
@@ -230,10 +247,11 @@ def draw_staff(ink, d, frame, raise_, orb, skull=False):
     """Bâton tenu à côté du corps ; raise_ ∈ [0, 1] : le bâton bascule vers la cible, l'orbe flamboie."""
     fx, fy = FACE[d]
     nx, ny = -fy, fx
-    cx, top, bot, w = body_frame(frame)
-    ty = top + (bot - top) * 0.6
+    tx0, tx1, cx, top, bot = torso(frame)
+    ty = top + (bot - top) * 0.62
     raise_ = raise_ or 0.0
-    hx, hy = cx + nx * (w * 0.42 + 1), ty
+    side = nx if abs(nx) > 0.3 else (1 if fx >= 0 else -1)
+    hx, hy = (tx1 if side > 0 else tx0), ty
     L = 15
     ux, uy = 0.0, -1.0
     ux, uy = ux + fx * 0.8 * raise_, uy + fy * 0.8 * raise_ - 0.0
@@ -380,13 +398,38 @@ def quiver_layer(role, d, body):
 def weapon_ink(role, d, body, phase):
     ink = Ink(body.size)
     if role['weapon'] == 'bow':
-        draw_bow(ink, d, body, phase, role.get('bow', 5))
+        draw_bow(ink, d, body, phase, role.get('bow', 5), role.get('wood'))
     elif role['weapon'] == 'staff':
         draw_staff(ink, d, body, phase, role['orb'], role.get('skull', False))
     return ink.outlined()
 
 
+def feathers_for(role, body):
+    """Coiffe de plumes en éventail plantée au sommet du crâne."""
+    cols = role.get('feathers')
+    fb = body.getbbox()
+    if not cols or fb is None:
+        return None
+    ink = Ink(body.size)
+    a = np.array(body)[:, :, 3] > 0
+    top = fb[1]
+    xs = np.nonzero(a[top + 2])[0]
+    cx = (xs[0] + xs[-1]) / 2 if len(xs) else (fb[0] + fb[2]) / 2
+    n = len(cols)
+    for i, c in enumerate(cols):
+        t = (i - (n - 1) / 2) / max(1, (n - 1) / 2)
+        ang = math.radians(90 + 38 * t)
+        L = 6 - abs(t) * 1.5
+        base = (cx + t * 2, top + 2)
+        tip = (base[0] + math.cos(ang) * L, base[1] - math.sin(ang) * L)
+        ink.line(base, tip, c)
+        ink.put(tip[0], tip[1], tuple(min(255, int(v * 1.2)) for v in c))
+    return ink.outlined()
+
+
 def hat_for(role, layers, d, col, body):
+    if role.get('feathers'):
+        return feathers_for(role, body)
     stops = role.get('hat') or role.get('hood')
     if not stops:
         return None

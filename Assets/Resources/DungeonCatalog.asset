@@ -97,8 +97,8 @@ MonoBehaviour:
   - id: goblin_1
     displayName: Gobelin
     description: "Vif et sournois, mais fragile : frappe vite. \xC9volue en Gobelin
-      pillard puis Chef gobelin \u2014 ou prend une autre voie : Gobelin archer.
-      Entretien : 4 mana/jour."
+      pillard puis Chef gobelin \u2014 ou prend une autre voie : Gobelin archer,
+      Gobelin chaman. Entretien : 4 mana/jour."
     category: 1
     kind: 1
     tool: 0
@@ -112,8 +112,8 @@ MonoBehaviour:
   - id: skeleton_1
     displayName: Squelette
     description: "Soldat mort-vivant infatigable. \xC9volue en Squelette guerrier
-      puis Chevalier squelette \u2014 ou prend une autre voie : Squelette mage. Entretien
-      : 6 mana/jour."
+      puis Chevalier squelette \u2014 ou prend une autre voie : Squelette archer,
+      Squelette mage. Entretien : 6 mana/jour."
     category: 1
     kind: 1
     tool: 0
@@ -178,6 +178,22 @@ MonoBehaviour:
     iconTint: {r: 1, g: 1, b: 1, a: 1}
     prefab: {fileID: 8663225175037588277, guid: 0d52b1849afc6b64896ecf46b0642635, type: 3}
     cost: 60
+    unlockLevel: 6
+    prestige: 0
+    upkeep: 0
+  - id: mimic_1
+    displayName: Coffre mordeur
+    description: "Ne se cache que dans une salle du tr\xE9sor : immobile, il passe
+      pour un coffre et mord par surprise. La Mimique attire les curieux, la Mimique
+      royale les engloutit. \xC9volue en Mimique puis Mimique royale. Entretien :
+      6 mana/jour."
+    category: 1
+    kind: 1
+    tool: 0
+    icon: {fileID: 21300000, guid: 433697c996f99944cb86d7fc7b003f90, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 2366652738690386148, guid: dd8de680e7eb57d4b8faa3f3299f1c9a, type: 3}
+    cost: 80
     unlockLevel: 6
     prestige: 0
     upkeep: 0

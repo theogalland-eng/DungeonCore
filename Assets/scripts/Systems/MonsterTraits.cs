@@ -35,6 +35,24 @@ public class MonsterTraits : MonoBehaviour
     private readonly List<SpiderWeb> webs = new List<SpiderWeb>();
     private float nextWeb;
 
+    [Header("Aura (chaman)")]
+    [Tooltip("PV max rendus toutes les 4 s aux alliés de la même famille, en %")]
+    public float healAuraPct;
+    [Tooltip("Dégâts des alliés de la même famille autour de lui (1 = aucun bonus)")]
+    public float buffAuraMult = 1f;
+    private float nextAura;
+
+    [Header("Flèches perçantes")]
+    [Tooltip("La flèche traverse : dégâts infligés à l'intrus suivant (fraction)")]
+    public float pierceMult;
+
+    [Header("Mimique")]
+    [Tooltip("Attire les intrus qui passent (« Un coffre ! »)")]
+    public bool lureAsChest;
+    [Tooltip("Engloutit : immobilise l'intrus mordu (secondes, une fois sur trois)")]
+    public float swallowSeconds;
+    private float nextLure;
+
     [Header("Nécromancie")]
     [Tooltip("Intrus tués relevés en squelettes en même temps (0 = aucun)")]
     public int raiseDead;
@@ -72,11 +90,71 @@ public class MonsterTraits : MonoBehaviour
         if (ai != null && slowSeconds > 0f) ai.Slow(slowMult, slowSeconds);
         if (burnDps > 0f && burnSeconds > 0f) DotEffect.Apply(tc.gameObject, burnDps, burnSeconds, new Color(1f, 0.55f, 0.2f));
         if (poisonDps > 0f && poisonSeconds > 0f) DotEffect.Apply(tc.gameObject, poisonDps, poisonSeconds, new Color(0.55f, 1f, 0.35f));
+        if (pierceMult > 0f) Pierce(tc.transform.position, damage * pierceMult);
+        if (swallowSeconds > 0f && ai != null && target.IsAlive() && Random.value < 0.33f)
+        {
+            ai.Hold(swallowSeconds);
+            ai.Speak("Il m'avale !", new Color(1f, 0.6f, 0.5f), true);
+        }
         if (critChance > 0f && target.IsAlive() && Random.value < critChance)
         {
             target.TakeDamage(damage);   // le trait trouve le défaut de l'armure : dégâts doublés
             FloatingText.Spawn(tc.transform.position + Vector3.up * 0.9f, "Critique !", new Color(1f, 0.85f, 0.35f), 0.9f);
         }
+    }
+
+    /// <summary>La flèche traverse sa cible et touche l'intrus suivant sur sa trajectoire.</summary>
+    private void Pierce(Vector2 hit, float dmg)
+    {
+        Vector2 dir = (hit - (Vector2)transform.position).normalized;
+        for (float k = 0.6f; k <= 2.6f; k += 0.5f)
+            foreach (var h in Physics2D.OverlapCircleAll(hit + dir * k, 0.4f, 1 << 7))
+            {
+                var d = h.GetComponent<IDamageable>();
+                if (d == null || !d.IsAlive() || Vector2.Distance(h.transform.position, hit) < 0.3f) continue;
+                d.TakeDamage(dmg);
+                FloatingText.Spawn(h.transform.position + Vector3.up * 0.8f, "Transpercé !", new Color(0.9f, 0.9f, 0.8f), 0.8f);
+                return;
+            }
+    }
+
+    /// <summary>Chaman : soigne et galvanise les monstres de sa famille autour de lui.</summary>
+    private void Aura()
+    {
+        if ((healAuraPct <= 0f && buffAuraMult <= 1f) || Time.time < nextAura) return;
+        nextAura = Time.time + 4f;
+        var me = GetComponent<MonsterUnit>();
+        string fam = me != null ? me.familyId : null;
+        bool any = false;
+        foreach (var g in GobelinAI.All)
+        {
+            if (g == null || !g.IsAlive() || Vector2.Distance(g.transform.position, transform.position) > 3.5f) continue;
+            var u = g.GetComponent<MonsterUnit>();
+            if (u == null || u.familyId != fam) continue;
+            if (buffAuraMult > 1f && g != owner) g.Buff(buffAuraMult, 4.5f);
+            if (healAuraPct > 0f && g.currentHealth < g.maxHealth)
+            {
+                float h = g.maxHealth * healAuraPct;
+                g.Heal(h);
+                FloatingText.Spawn(g.transform.position + Vector3.up * 0.8f, $"+{h:0}", new Color(0.5f, 1f, 0.55f), 0.7f);
+                any = true;
+            }
+        }
+        if (any) Fx.Play("smoke_skull", transform.position + Vector3.up * 0.4f, 0.8f, 18f, 16, new Color(1f, 0.6f, 0.3f, 0.6f));
+    }
+
+    /// <summary>Mimique : un intrus qui passe voit un coffre... et s'en approche.</summary>
+    private void LureAsChest()
+    {
+        if (!lureAsChest || Time.time < nextLure || owner.IsOnMission) return;
+        nextLure = Time.time + 6f;
+        foreach (var a in AdventurerAI.All)
+            if (a != null && !a.IsDead && a.IsInsideDungeon && !a.IsFighting && Vector2.Distance(a.transform.position, transform.position) < 5f)
+            {
+                a.LifeGoTo(transform.position);
+                a.Speak("Un coffre !", new Color(1f, 0.85f, 0.4f));
+                break;
+            }
     }
 
     /// <summary>Nécromancien : un intrus tombé tout près se relève en squelette à son service.</summary>
@@ -118,7 +196,7 @@ public class MonsterTraits : MonoBehaviour
 
     private void Update()
     {
-        if (owner != null && owner.IsAlive()) SpinWebs();
+        if (owner != null && owner.IsAlive()) { SpinWebs(); Aura(); LureAsChest(); }
         if (summonCount <= 0 || summonPrefab == null || owner == null || !owner.IsAlive()) return;
         minions.RemoveAll(m => m == null || !m.IsAlive());
         // La liche invoque quand un intrus est proche

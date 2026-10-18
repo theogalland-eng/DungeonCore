@@ -588,6 +588,9 @@ public class DungeonBuilder : MonoBehaviour
             string fam = MonsterHabitat.FamilyOf(item), theme = MonsterHabitat.ThemeAt(center);
             if (!CrawlerMode.Active && !MonsterHabitat.Allowed(fam, theme))
             { reason = $"Ne vit qu'ici : {MonsterHabitat.HomesText(fam)}"; return false; }
+            // la mimique se cache parmi les coffres : seulement dans une salle du trésor
+            if (!CrawlerMode.Active && fam == "mimic" && !ThemedRooms.InRoom(center, ThemedRooms.Kind.Treasury))
+            { reason = "Ne se cache que dans une salle du trésor"; return false; }
             return MonsterSpawner.Instance.CanSummonAt(center, Mathf.RoundToInt(item.cost * Talents.SummonCostMult), out reason);
         }
 

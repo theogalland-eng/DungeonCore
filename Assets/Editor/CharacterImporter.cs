@@ -171,6 +171,16 @@ public static class CharacterImporter
                     if (s >= 2) { t.webCount = s == 2 ? 2 : 4; t.webSprite = TrapArt.Frames("web").FirstOrDefault(); }
                     if (s == 3) { t.summonPrefab = Prefab("spider_1"); t.summonCount = 2; t.summonCooldown = 15f; t.summonLifetime = 45f; t.summonName = "Araignée"; }
                 } },
+            new Family { id = "mimic", folder = "Mimic", names = new[] { "Coffre mordeur", "Mimique", "Mimique royale" },
+                hp = 120, dmg = 18, range = 1.2f, chase = 1.5f, cd = 1.2f, cost = 80, level = 6, upkeep = 6,
+                desc = "Ne se cache que dans une salle du trésor : immobile, il passe pour un coffre et mord par surprise. La Mimique attire les curieux, la Mimique royale les engloutit.",
+                traits = (go, s) =>
+                {
+                    go.GetComponent<GobelinAI>().patrolSpeed = 0f;    // un coffre ne se promène pas
+                    var t = T(go);
+                    if (s >= 2) t.lureAsChest = true;
+                    if (s == 3) t.swallowSeconds = 1.8f;
+                } },
         };
         return f;
     }
@@ -194,6 +204,23 @@ public static class CharacterImporter
             hp = 0.85f, dmg = 0.9f, range = 4.5f, cd = 1.1f,
             desc = "Tire des flèches de loin et recule quand on l'approche. Le tireur d'élite vise plus loin et porte des coups critiques.",
             traits = (go, s) => { var t = T(go); t.projectileFx = "arrow"; if (s == 3) { t.critChance = 0.25f; go.GetComponent<GobelinAI>().attackRange = 5.5f; } } },
+        new Branch { family = "goblin", role = "shaman", names = new[] { "Gobelin chaman", "Grand chaman" },
+            hp = 0.9f, dmg = 0.8f, range = 3.5f, cd = 1.4f,
+            desc = "Lance des boules de feu et soigne les gobelins autour de lui. Le grand chaman galvanise aussi leurs coups (+25 % de dégâts).",
+            traits = (go, s) =>
+            {
+                var t = T(go); t.projectileColor = new Color(1f, 0.55f, 0.2f); t.burnDps = 2f; t.burnSeconds = 2f;
+                t.healAuraPct = s == 3 ? 0.1f : 0.07f;
+                if (s == 3) t.buffAuraMult = 1.25f;
+            } },
+        new Branch { family = "skeleton", role = "archer", names = new[] { "Squelette archer", "Archer d'ossements" },
+            hp = 0.85f, dmg = 0.95f, range = 4.5f, cd = 1.2f,
+            desc = "Tire des flèches d'os qui transpercent : l'intrus suivant sur la trajectoire est touché aussi. L'archer d'ossements tire plus loin et plus fort.",
+            traits = (go, s) =>
+            {
+                var t = T(go); t.projectileFx = "arrow"; t.pierceMult = s == 3 ? 0.8f : 0.5f;
+                if (s == 3) go.GetComponent<GobelinAI>().attackRange = 5.2f;
+            } },
         new Branch { family = "skeleton", role = "mage", names = new[] { "Squelette mage", "Nécromancien" },
             hp = 0.8f, dmg = 0.95f, range = 4f, cd = 1.35f,
             desc = "Lance des traits de magie glacée qui ralentissent. Le nécromancien relève en squelettes les intrus tombés près de lui.",

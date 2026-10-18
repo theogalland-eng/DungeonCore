@@ -1255,15 +1255,21 @@ public class GobelinAI : MonoBehaviour, IDamageable
     private static readonly System.Collections.Generic.HashSet<string> Ambushers =
         new System.Collections.Generic.HashSet<string> { "goblin", "gnoll", "lizard", "vampire", "imp", "rat", "orc" };
 
+    /// <summary>Déguisés en objets (mimiques) : toujours à l'affût dès qu'ils sont immobiles, sans se rendre transparents.</summary>
+    private static readonly System.Collections.Generic.HashSet<string> Disguised =
+        new System.Collections.Generic.HashSet<string> { "mimic" };
+
     private void UpdateAmbush()
     {
-        bool calm = currentBehavior == GoblinBehavior.Stay && !isOnMission && !IsPossessed && movement.sqrMagnitude < 0.01f && Ambushers.Contains(Family);
+        bool disguised = Disguised.Contains(Family);
+        bool calm = (currentBehavior == GoblinBehavior.Stay || disguised) && !isOnMission && !IsPossessed && movement.sqrMagnitude < 0.01f
+                    && (Ambushers.Contains(Family) || disguised);
         if (!calm) { stillSince = -1f; if (ambushing) { ambushing = false; RevealAmbush(); } return; }
         if (stillSince < 0f) stillSince = Time.time;
         if (!ambushing && Time.time - stillSince > Talents.AmbushDelay)
         {
             ambushing = true;
-            if (spriteRenderer != null) { var c = spriteRenderer.color; c.a = 0.55f; spriteRenderer.color = c; }   // repère pour le joueur
+            if (spriteRenderer != null && !disguised) { var c = spriteRenderer.color; c.a = 0.55f; spriteRenderer.color = c; }   // repère pour le joueur
         }
     }
 
@@ -1304,6 +1310,11 @@ public class GobelinAI : MonoBehaviour, IDamageable
 
     public bool CanAttack() => Time.time - lastAttackTime >= attackCooldown;
 
+    // galvanisé par un chaman de sa famille
+    private float buffMult = 1f, buffUntil;
+    public void Buff(float mult, float seconds) { buffMult = Mathf.Max(Time.time < buffUntil ? buffMult : 1f, mult); buffUntil = Time.time + seconds; }
+    private float BuffMult => Time.time < buffUntil ? buffMult : 1f;
+
     public void Attack()
     {
         if (missionTarget == null) return;
@@ -1313,9 +1324,9 @@ public class GobelinAI : MonoBehaviour, IDamageable
         {
             attackAnimTimer = 0.4f;
             float ambushMult = (ambushing ? Talents.AmbushMult : 1f) * (life != null ? life.DamageMult : 1f) * IslandEvents.FireMult(Family);
-            if (ambushing) { ambushing = false; RevealAmbush(); FloatingText.Spawn(transform.position + Vector3.up * 0.7f, "Embuscade !", new Color(1f, 0.55f, 0.35f), 1f); }
+            if (ambushing) { ambushing = false; RevealAmbush(); FloatingText.Spawn(transform.position + Vector3.up * 0.7f, Disguised.Contains(Family) ? "Surprise !" : "Embuscade !", new Color(1f, 0.55f, 0.35f), 1f); }
             float dmg = ambushMult * attackDamage * ThemeDamageMult() * (IslandEvents.Instance != null ? IslandEvents.Instance.MonsterDamageMult : 1f)
-                        * ThemedRooms.DamageMult(rb.position, Family);
+                        * ThemedRooms.DamageMult(rb.position, Family) * BuffMult;
             damageable.TakeDamage(dmg);
             Sfx.Play("hit_claw", transform.position, 0.8f);
             OnDealtDamage(damageable, dmg);

@@ -315,7 +315,212 @@ def build_spider(cid):
     print('ok', cid)
 
 
-BUILDERS = {**{k: build_spider for k in SPIDERS}}
+# ─────────────────────────────────────────────
+# Mimiques : coffres qui mordent
+# ─────────────────────────────────────────────
+
+def pitch_about(P, ang, pivot_y, pivot_z):
+    """Rotation autour d'un axe parallèle à x passant par (y, z) = pivot (charnière du couvercle)."""
+    c, s_ = math.cos(ang), math.sin(ang)
+    out = P.copy()
+    y, z = P[:, 1] - pivot_y, P[:, 2] - pivot_z
+    out[:, 1] = pivot_y + y * c - z * s_
+    out[:, 2] = pivot_z + y * s_ + z * c
+    return out
+
+
+def box_points(size, step=0.3):
+    """Points et normales des 6 faces d'une boîte centrée (sx côté, sy profondeur, sz hauteur)."""
+    sx, sy, sz = size
+    pts, nrm = [], []
+    def grid(a, b):
+        return np.arange(-a / 2, a / 2 + 1e-6, step), np.arange(-b / 2, b / 2 + 1e-6, step)
+    for axis, half, n_sign in ((0, sx / 2, 1), (0, sx / 2, -1), (1, sy / 2, 1), (1, sy / 2, -1), (2, sz / 2, 1), (2, sz / 2, -1)):
+        others = [i for i in range(3) if i != axis]
+        u, v = grid(size[others[0]], size[others[1]])
+        U, V = np.meshgrid(u, v)
+        P = np.zeros((U.size, 3))
+        P[:, axis] = half * n_sign
+        P[:, others[0]] = U.ravel()
+        P[:, others[1]] = V.ravel()
+        N = np.zeros_like(P)
+        N[:, axis] = n_sign
+        pts.append(P); nrm.append(N)
+    return np.concatenate(pts), np.concatenate(nrm)
+
+
+def lid_points(w, d, h, step=0.3):
+    """Couvercle bombé de coffre : demi-cylindre aplati (axe x), deux joues en demi-disque et le dessous plat."""
+    r = d / 2
+    th = np.linspace(0, math.pi, int(max(14, math.pi * r / step * 1.5)))
+    xs = np.arange(-w / 2, w / 2 + 1e-6, step)
+    TH, X = np.meshgrid(th, xs)
+    TH, X = TH.ravel(), X.ravel()
+    P = np.stack([X, r * np.cos(TH), h * np.sin(TH)], 1)
+    N = np.stack([np.zeros_like(X), np.cos(TH) / r, np.sin(TH) / h], 1)
+    pts, nrm = [P], [N]
+    for sgn in (-1, 1):
+        for k in np.arange(0, 1.0001, step / max(r, 0.1)):
+            pts.append(np.stack([np.full_like(th, sgn * w / 2), k * r * np.cos(th), k * h * np.sin(th)], 1))
+            nrm.append(np.tile([sgn, 0.0, 0.0], (len(th), 1)))
+    gx_, gy_ = np.meshgrid(xs, np.arange(-r, r + 1e-6, step))
+    pts.append(np.stack([gx_.ravel(), gy_.ravel(), np.zeros(gx_.size)], 1))
+    nrm.append(np.tile([0.0, 0.0, -1.0], (gx_.size, 1)))
+    N = np.concatenate(nrm)
+    N = N / (np.linalg.norm(N, axis=1, keepdims=True) + 1e-9)
+    return np.concatenate(pts), N
+
+
+def solid(scene, ang, P, N, base_cols, pid=None):
+    Pw, Nw = rot(P, ang), rot(N, ang)
+    lam = np.clip(Nw @ LIGHT, 0, 1)
+    cols = base_cols(P, N, lam)
+    scene.splat(Pw, cols, pid if pid is not None else scene.new_id())
+
+
+MIMICS = {
+    'mimic_1': dict(scale=1.25, wood=R('3a2212', '5e3a1e', '8a5a30', 'b07a44'), band=R('2a2a30', '4a4a54', '7a7a86', 'b0b0bc'),
+                    lock=R('6a4a10', 'a8801e', 'e0b840', 'fff0a0'), mouth=(46, 8, 14), tongue=R('5a0e1a', '9a1e2e', 'd04050', 'f08090'),
+                    eye=(255, 220, 90), outline=(22, 12, 8)),
+    'mimic_2': dict(scale=1.5, wood=R('2a160e', '4a2616', '723c22', '9a5832'), band=R('22222a', '3e3e4a', '6a6a78', 'a0a0b0'),
+                    lock=R('6a4a10', 'a8801e', 'e0b840', 'fff0a0'), mouth=(30, 4, 14), tongue=R('3e0a3a', '74185e', 'b03a8a', 'e080c0'),
+                    eye=(160, 255, 120), outline=(16, 8, 6), teeth_big=True),
+    'mimic_3': dict(scale=1.8, wood=R('3a0a10', '6a1420', '9a2430', 'c84448'), band=R('6a4a10', 'a8801e', 'e0b840', 'fff0a0'),
+                    lock=R('1a3a6a', '2a6ab0', '58a8f0', 'c0e8ff'), mouth=(20, 2, 10), tongue=R('3e0a3a', '74185e', 'b03a8a', 'e080c0'),
+                    eye=(255, 80, 60), outline=(18, 6, 6), teeth_big=True, crown=True, gems=True),
+}
+
+
+def mimic_frame(spec, d, state, t, n):
+    s = spec['scale']
+    gx, gy = GFACE[d]
+    ang = math.atan2(-gx, gy)
+    sc = Scene()
+    W, D, H, LH = 8.0 * s, 5.0 * s, 3.6 * s, 2.0 * s
+    lid, hop, lunge, tilt, roll = 0.0, 0.0, 0.0, 0.0, 0.0
+    coins = 0
+    if state == 'Idle':
+        lid = [0.0, 0.0, 0.24, 0.0][t]                      # entrouvert un instant : un œil luit
+    elif state in ('Walk', 'Run'):
+        ph = t / n
+        amp = 2.2 if state == 'Walk' else 3.2
+        hop = amp * s * math.sin(math.pi * ph)
+        lid = 0.25 * math.sin(math.pi * ph) + (0.15 if ph < 0.2 else 0)
+    elif state == 'Attack':
+        lid = [0.3, 0.95, 1.25, 0.15, 0.35, 0.05][t]
+        lunge = [0, -0.5, -0.3, 2.4, 1.2, 0][t] * s
+        hop = [0, 0.4, 1.2, 0.2, 0, 0][t] * s
+    elif state == 'Hurt':
+        lid = [0.5, 0.3, 0.15, 0.0][t]
+        tilt = [-0.3, -0.2, -0.08, 0][t]
+    elif state == 'Death':
+        k = t / (n - 1)
+        lid = 0.3 + 1.4 * k
+        roll = 0.9 * k
+        coins = int(k * 7)
+    z0 = hop
+    y0 = lunge
+
+    def wood_cols(P, N, lam, part):
+        cols = shade_ramp(spec['wood'], lam)
+        x, y, z = P[:, 0], P[:, 1], P[:, 2]
+        # ferrures : coins et bande centrale verticale
+        side = np.abs(N[:, 0]) > 0.5
+        band = ~side & ((np.abs(np.abs(x) - W / 2) < 0.75 * s) | (np.abs(x) < 0.5 * s))
+        band |= side & (np.abs(np.abs(y) - D / 2) < 0.75 * s)
+        if part == 'base':
+            band |= (z < 0.7 * s)
+        cols[band] = shade_ramp(spec['band'], lam[band])
+        # planches : une ligne sombre toutes les 1,4 unité de hauteur sur les flancs
+        plank = (np.abs(N[:, 2]) < 0.5) & ~band & (np.abs(((z if part == 'base' else z + 7) / (1.4 * s)) % 1) < 0.14)
+        cols[plank] = (cols[plank].astype(int) * 0.7).astype(np.uint8)
+        if spec.get('gems'):
+            gem = band & (np.abs(x) < 0.5 * s) & (N[:, 2] > 0.5)
+            cols[gem] = shade_ramp(spec['lock'], lam[gem])
+        return cols
+
+    # caisse
+    P, N = box_points((W, D, H))
+    P[:, 2] += H / 2
+    mouth_top = (N[:, 2] > 0.5)
+    def base_cols(P_, N_, lam):
+        c = wood_cols(P_, N_, lam, 'base')
+        c[mouth_top] = spec['mouth']                          # intérieur sombre : la gueule
+        return c
+    P = pitch_about(P, tilt, -D / 2, 0)
+    if roll:
+        c, s_ = math.cos(roll), math.sin(roll)
+        x, z = P[:, 0].copy(), P[:, 2].copy()
+        P[:, 0], P[:, 2] = x * c - z * s_ + W / 2 * s_ * 0.3, x * s_ + z * c
+    Pb = P + np.array([0, y0, z0])
+    solid(sc, ang, Pb, N, base_cols)
+    # langue (gueule ouverte)
+    if lid > 0.35:
+        ellipsoid(sc, ang, (0, y0 + 0.4 * s, z0 + H - 0.3 * s), (2.0 * s, 2.0 * s, 0.6 * s), spec['tongue'])
+    # dents : sur le bord avant de la caisse
+    if lid > 0.1:
+        nt = 6
+        for i in range(nt):
+            x = -W / 2 + 0.9 * s + i * (W - 1.8 * s) / (nt - 1)
+            ln = (0.9 if spec.get('teeth_big') else 0.6) * s
+            segment(sc, ang, (x, y0 + D / 2 - 0.3, z0 + H), (x, y0 + D / 2 - 0.3, z0 + H + ln),
+                    [(170, 160, 140), (214, 206, 186), (240, 236, 224), (255, 252, 244)], 0.5)
+    # couvercle articulé à l'arrière
+    Pl, Nl = lid_points(W + 0.4 * s, D + 0.4 * s, LH)
+    Pl[:, 2] += H
+    Pl = pitch_about(Pl, -lid, -D / 2 - 0.2 * s, H)
+    Nl = pitch_about(Nl, -lid, 0, 0)
+    Pl = pitch_about(Pl, tilt, -D / 2, 0)
+    if roll:
+        c, s_ = math.cos(roll), math.sin(roll)
+        x, z = Pl[:, 0].copy(), Pl[:, 2].copy()
+        Pl[:, 0], Pl[:, 2] = x * c - z * s_ + W / 2 * s_ * 0.3, x * s_ + z * c
+    Pl = Pl + np.array([0, y0, z0])
+    lid_under = Nl[:, 2] < -0.5
+    def lid_cols(P_, N_, lam):
+        c = wood_cols(P_ - np.array([0, y0, z0 + H]), N_, lam, 'lid')
+        if lid > 0.1:
+            c[lid_under] = spec['mouth']
+        return c
+    solid(sc, ang, Pl, Nl, lid_cols)
+    # serrure (plaque dorée sur l'avant du couvercle)
+    lock_p = np.array([[0, D / 2 + 0.25 * s, H + 0.3 * s]])
+    lock_p = pitch_about(lock_p, -lid, -D / 2 - 0.2 * s, H) + np.array([0, y0, z0])
+    for dx in (-0.5, 0, 0.5):
+        for dz in (-0.5, 0):
+            dot(sc, ang, (lock_p[0, 0] + dx * s, lock_p[0, 1] + 0.05, lock_p[0, 2] + dz * s), spec['lock'][2 if dz == 0 else 1])
+    # yeux : deux lueurs sous le couvercle quand il s'entrouvre
+    if lid > 0.08:
+        for sx_ in (-1, 1):
+            e = np.array([[sx_ * 1.6 * s, D / 2 + 0.1, H + 0.1 * s]])
+            e = pitch_about(e, -lid * 0.6, -D / 2, H) + np.array([0, y0, z0])
+            dot(sc, ang, tuple(e[0]), spec['eye'])
+            dot(sc, ang, (e[0, 0] + 0.5 * sx_, e[0, 1], e[0, 2]), spec['eye'])
+    if spec.get('crown'):
+        for k, cx_ in enumerate((-2.2, 0, 2.2)):
+            b = np.array([[cx_ * s, 0, H + LH - 0.2 * s]])
+            tip = np.array([[cx_ * s, -0.3 * s, H + LH + (1.6 if k == 1 else 1.1) * s]])
+            b = pitch_about(b, -lid, -D / 2 - 0.2 * s, H) + np.array([0, y0, z0])
+            tip = pitch_about(tip, -lid, -D / 2 - 0.2 * s, H) + np.array([0, y0, z0])
+            segment(sc, ang, tuple(b[0]), tuple(tip[0]), spec['band'], 0.7)
+    for k in range(coins):
+        a_ = k * 2.1
+        dot(sc, ang, (math.cos(a_) * (3 + k % 3) * s, D / 2 + 2 + (k % 2) * 1.5, 0.1), (240, 200, 70) if k % 2 else (200, 160, 40))
+    return finish(sc, spec['outline'], 5.0 * s + 1, ang, lift=min(1.0, hop / 4))
+
+
+MIMIC_ANIMS = {'Idle': 4, 'Walk': 6, 'Run': 6, 'Attack': 6, 'Hurt': 4, 'Death': 6}
+
+
+def build_mimic(cid):
+    spec = MIMICS[cid]
+    for state, n in MIMIC_ANIMS.items():
+        rows = [[mimic_frame(spec, d, state, t, n) for t in range(n)] for d in DIRS]
+        save(rows, os.path.join(OUT, cid, f'{cid}_{state}.png'))
+    print('ok', cid)
+
+
+BUILDERS = {**{k: build_spider for k in SPIDERS}, **{k: build_mimic for k in MIMICS}}
 
 if __name__ == '__main__':
     for cid in sys.argv[1:] or list(BUILDERS):

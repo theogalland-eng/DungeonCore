@@ -180,6 +180,16 @@ public class ThemedRooms : MonoBehaviour
         return false;
     }
 
+    /// <summary>Ce point est-il dans une salle formée de ce type ?</summary>
+    public static bool InRoom(Vector2 p, Kind k)
+    {
+        var t = Instance;
+        if (t == null) return false;
+        foreach (var r in t.rooms)
+            if (r.kind == k && Vector2.Distance(p, r.center) <= r.radius + 0.75f) return true;
+        return false;
+    }
+
     /// <summary>Salle d'un type donné la plus proche (centre), dans un rayon.</summary>
     public static bool NearestRoom(Vector2 p, Kind k, float maxDist, out Vector2 center)
     {

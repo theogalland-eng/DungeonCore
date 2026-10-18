@@ -238,3 +238,9 @@ Mise en ligne du projet sur GitHub (ce dépôt), avec cette documentation.
 - 🕷️ **Nouvelle famille : les araignées** (natives du Jardin fongique et des Catacombes), dessinées pour le projet (`Tools~/make_creatures.py` : petites formes 3D projetées en vue plongeante, 8 directions, pattes animées) : *Araignée des cavernes* (venin), *Tisseuse* (tend jusqu'à 2 **toiles** qui engluent les intrus), *Reine-araignée* (4 toiles, **pond des araignées** au combat).
 - 🐛 Faire évoluer un monstre seul sur son ancre de patrouille détruisait l'ancre (erreurs en fin de combat) : la nouvelle forme s'inscrit avant que l'ancienne se retire.
 - 🇬🇧 Noms et descriptions de toutes les familles de monstres enfin traduits.
+
+### Nouvelles voies et familles — salve 2
+
+- 🔥 **Gobelin chaman → Grand chaman** (voie de rôle du gobelin) : boules de feu, et toutes les 4 s il **soigne les gobelins** autour de lui (7 %, puis 10 % de leurs PV) ; le grand chaman les **galvanise** aussi (+25 % de dégâts). Bâton à orbe de braise, coiffe de plumes. Le gobelin a désormais trois voies au stade 2 : pillard, archer, chaman.
+- 🦴 **Squelette archer → Archer d'ossements** : arc d'os, **flèches perçantes** (l'intrus suivant sur la trajectoire prend 50 %, puis 80 % des dégâts).
+- 🧰 **Nouvelle famille : les mimiques** (`Tools~/make_creatures.py`, coffres à couvercle bombé qui s'ouvrent sur une gueule dentée) : *Coffre mordeur*, *Mimique*, *Mimique royale* (laquée de rouge, ferrures d'or, gemmes). Elles ne s'invoquent **que dans une salle du trésor**, ne se promènent pas, restent tapies en coffre et frappent par **surprise** (bonus d'embuscade, sans devenir transparentes) ; la Mimique **attire** les intrus curieux (« Un coffre ! »), la Mimique royale les **engloutit** un instant.

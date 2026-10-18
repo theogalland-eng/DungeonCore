@@ -58,6 +58,7 @@ public static class MonsterHabitat
     /// <summary>« Fournaise » ou « Crypte hantée, Catacombes » (vide pour les communs).</summary>
     public static string HomesText(string family)
     {
+        if (family == "mimic") return "salle du trésor";
         if (family == null || !Natives.TryGetValue(family, out var homes)) return "";
         var names = new List<string>();
         foreach (var h in homes) names.Add(ThemeName(h));

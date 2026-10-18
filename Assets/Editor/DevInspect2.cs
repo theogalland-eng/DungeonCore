@@ -1151,9 +1151,9 @@ public static class DevInspect3
     /// <summary>Nouvelles familles / voies de rôle : importe les prefabs (deux passes : la reine référence l'araignée du stade 1).</summary>
     public static string ImportNewMonsters()
     {
-        string[] ids = { "goblin_archer_3", "goblin_archer_2", "goblin_3", "goblin_2", "goblin_1",
-                         "skeleton_mage_3", "skeleton_mage_2", "skeleton_3", "skeleton_2", "skeleton_1",
-                         "spider_3", "spider_2", "spider_1" };
+        string[] ids = { "goblin_archer_3", "goblin_archer_2", "goblin_shaman_3", "goblin_shaman_2", "goblin_3", "goblin_2", "goblin_1",
+                         "skeleton_archer_3", "skeleton_archer_2", "skeleton_mage_3", "skeleton_mage_2", "skeleton_3", "skeleton_2", "skeleton_1",
+                         "spider_3", "spider_2", "spider_1", "mimic_3", "mimic_2", "mimic_1" };
         UnityEditor.AssetDatabase.Refresh();
         string r = CharacterImporter.ImportOnly(ids);
         CharacterImporter.ImportOnly("spider_3");
@@ -1193,6 +1193,28 @@ public static class DevInspect3
         SpawnMon("spider_2", new Vector2(-1.5f, 1.5f));
         return sb.ToString();
     }
+    public static string Salvo2Setup()
+    {
+        var sb = new System.Text.StringBuilder();
+        Object.FindFirstObjectByType<EvolveChoiceDialog>()?.gameObject.SetActive(false);
+        foreach (var g in GobelinAI.All.ToArray())
+        {
+            var u = g != null ? g.GetComponent<MonsterUnit>() : null;
+            if (u == null || !u.HasChoice) continue;
+            var nu = u.Evolve(u.branches[u.branches.Length - 1]);
+            sb.Append($"[{u.familyId} → {nu?.familyName}] ");
+        }
+        // gobelins blessés autour du chaman, une mimique royale, des arcs d'os
+        for (int i = 0; i < 3; i++) { var g = SpawnMon("goblin_2", new Vector2(-1.5f + i * 1.5f, 0.8f)); if (g != null) g.currentHealth = g.maxHealth * 0.4f; }
+        SpawnMon("skeleton_archer_3", new Vector2(1.6f, 0.4f));
+        SpawnMon("mimic_3", new Vector2(0f, -2.2f));
+        var cat = DungeonCatalog.Get(); var b = DungeonBuilder.Instance;
+        var core = Object.FindFirstObjectByType<DungeonCore>().transform.position;
+        bool ok = b.CanPlaceItemAt(cat.Find("mimic_1"), b.floorTilemap.WorldToCell(core + Vector3.down * 2f), out string why);
+        sb.Append($" pose mimique hors trésor : {ok} ({why})");
+        return sb.ToString();
+    }
+    public static string GoblinHealth() { var sb = new System.Text.StringBuilder(); foreach (var g in GobelinAI.All) if (g != null && g.GetComponent<MonsterUnit>()?.familyId == "goblin") sb.Append($"{g.gobelinName}:{g.currentHealth:0}/{g.maxHealth:0} "); return sb.ToString(); }
     public static string NewMonstersFight()
     {
         var core = Object.FindFirstObjectByType<DungeonCore>().transform.position;
