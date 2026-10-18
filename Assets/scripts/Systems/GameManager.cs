@@ -121,6 +121,7 @@ public class GameManager : MonoBehaviour
         Ensure<Seasons>();
         Ensure<Domination>();
         Ensure<CoreSpells>();
+        Ensure<ZoneAmbience>();
         Ensure<CinematicDirector>();
         Ensure<UpkeepSystem>();
         Ensure<SettlementManager>();

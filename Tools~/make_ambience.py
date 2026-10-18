@@ -3,6 +3,8 @@ Nappes d'ambiance procédurales (en attendant de vraies musiques) :
   amb_dungeon.wav : bourdon grave de la roche, souffle de caverne, gouttes d'eau qui résonnent
   amb_island.wav  : ressac de la mer, vent sur l'île
   amb_danger.wav  : battements de cœur et nappe dissonante (intrus dans le donjon)
+  amb_jungle / amb_night / amb_lake / amb_volcano / amb_village : couches par zone de l'île
+  (ZoneAmbience les mêle selon ce que montre la caméra)
 Boucles parfaites (tout est périodique sur la durée de la boucle, réverbération circulaire).
 Sortie : Assets/Resources/Audio/Ambience/*.wav  (mono 22 kHz, 16 bits)
 
@@ -147,3 +149,111 @@ body = lowpass(looped_noise("pink"), 900) * (0.6 + 0.4 * lfo(3, 1.1))
 drops_hi = place(np.sort(rng.uniform(0, LOOP, 400)), 0.02,
                  lambda: np.sin(2 * np.pi * rng.uniform(2500, 5000) * np.arange(int(SR * 0.02)) / SR) * np.exp(-np.arange(int(SR * 0.02)) / SR * 250) * rng.uniform(0.1, 0.4))
 save("amb_rain", reverb(0.6 * patter / np.max(np.abs(patter)) + 0.5 * body / np.max(np.abs(body)) + 0.4 * drops_hi, 1.2, 0.2, 6000), 0.6)
+
+
+# ═════════════════════════════════════════════
+# COUCHES PAR ZONE (ZoneAmbience)
+# ═════════════════════════════════════════════
+
+def chirp_bird():
+    """Petit chant : 2 à 5 notes glissées entre 2 et 5 kHz."""
+    notes = int(rng.integers(2, 6))
+    out = []
+    base = rng.uniform(2200, 4200)
+    for _ in range(notes):
+        n = int(SR * rng.uniform(0.05, 0.11))
+        k = np.arange(n) / SR
+        f0 = base * rng.uniform(0.85, 1.2)
+        sweep = rng.uniform(-6000, 9000)
+        sig = np.sin(2 * np.pi * (f0 * k + 0.5 * sweep * k * k)) * np.sin(np.pi * np.arange(n) / n) ** 2
+        out.append(sig)
+        out.append(np.zeros(int(SR * rng.uniform(0.02, 0.07))))
+    return np.concatenate(out) * rng.uniform(0.25, 0.6)
+
+
+leaves = band(looped_noise("pink"), 400, 2500) * (0.25 + 0.2 * lfo(4, 0.2) + 0.15 * lfo(9, 1.7))
+insects = band(looped_noise("pink"), 4500, 7000) * (0.5 + 0.5 * np.sin(2 * np.pi * 37 * t)) * (0.2 + 0.15 * lfo(6))
+birds = place(np.sort(rng.uniform(0, LOOP, 34)), 0.5, chirp_bird)
+jungle = 0.55 * leaves / np.max(np.abs(leaves)) + 0.18 * insects / np.max(np.abs(insects)) + 0.7 * birds / np.max(np.abs(birds))
+save("amb_jungle", reverb(jungle, 1.4, 0.22, 7000), 0.55)
+
+
+def cricket():
+    """Grillon : trois stridulations rapides vers 4,5 kHz."""
+    out = []
+    f = rng.uniform(4200, 4900)
+    for _ in range(3):
+        n = int(SR * 0.035)
+        k = np.arange(n) / SR
+        out.append(np.sin(2 * np.pi * f * k) * np.sin(np.pi * np.arange(n) / n))
+        out.append(np.zeros(int(SR * 0.025)))
+    return np.concatenate(out) * rng.uniform(0.15, 0.4)
+
+
+def owl():
+    out = []
+    for f, d in ((410, 0.35), (380, 0.5)):
+        n = int(SR * d)
+        k = np.arange(n) / SR
+        out.append(np.sin(2 * np.pi * f * k) * np.sin(np.pi * np.arange(n) / n) ** 1.5 * 0.8)
+        out.append(np.zeros(int(SR * 0.25)))
+    return np.concatenate(out)
+
+
+crickets = place(np.sort(rng.uniform(0, LOOP, 220)), 0.2, cricket)
+owls = place([LOOP * 0.21, LOOP * 0.68], 1.4, owl)
+night_air = band(looped_noise("pink"), 150, 700) * (0.3 + 0.2 * lfo(2, 0.4))
+night = 0.6 * crickets / np.max(np.abs(crickets)) + 0.45 * owls + 0.3 * night_air / np.max(np.abs(night_air))
+save("amb_night", reverb(night, 2.2, 0.3, 5000), 0.5)
+
+
+def frog():
+    """Coassement : impulsions graves à harmoniques, deux ou trois fois."""
+    out = []
+    f = rng.uniform(110, 190)
+    for _ in range(int(rng.integers(2, 4))):
+        n = int(SR * 0.09)
+        k = np.arange(n) / SR
+        sig = sum(np.sin(2 * np.pi * f * h * k) / h for h in (1, 2, 3, 5)) * (np.sin(2 * np.pi * 30 * k) > 0)
+        out.append(sig * np.sin(np.pi * np.arange(n) / n))
+        out.append(np.zeros(int(SR * 0.07)))
+    return np.concatenate(out) * rng.uniform(0.3, 0.6)
+
+
+lap = lowpass(looped_noise("pink"), 700) * (0.3 + 0.7 * np.clip(lfo(11, 0.3), 0, None) ** 2)
+frogs = place(np.sort(rng.uniform(0, LOOP, 18)), 0.6, frog)
+lake = 0.5 * lap / np.max(np.abs(lap)) + 0.6 * frogs / np.max(np.abs(frogs))
+save("amb_lake", reverb(lake, 1.6, 0.25, 4000), 0.55)
+
+
+def bubble():
+    n = int(SR * rng.uniform(0.08, 0.2))
+    k = np.arange(n) / SR
+    f = rng.uniform(70, 180)
+    return np.sin(2 * np.pi * f * (1 + 2 * k) * k) * np.exp(-k * 25) * rng.uniform(0.4, 0.9)
+
+
+deep = lowpass(looped_noise("brown"), 55) * (0.6 + 0.4 * lfo(2, 0.9))
+bubbles = place(np.sort(rng.uniform(0, LOOP, 70)), 0.2, bubble)
+hiss = band(looped_noise("pink"), 3000, 7000) * np.clip(lfo(7, 2.1), 0, None) ** 6 * 0.5
+volcano = 0.7 * deep / np.max(np.abs(deep)) + 0.55 * bubbles / np.max(np.abs(bubbles)) + 0.25 * hiss
+save("amb_volcano", reverb(volcano, 2.0, 0.25, 3000), 0.6)
+
+
+def clink():
+    n = int(SR * 0.5)
+    k = np.arange(n) / SR
+    f = rng.uniform(780, 900)
+    return (np.sin(2 * np.pi * f * k) + 0.5 * np.sin(2 * np.pi * f * 2.76 * k) + 0.3 * np.sin(2 * np.pi * f * 5.4 * k)) * np.exp(-k * 9) * 0.6
+
+
+def crackle():
+    n = int(SR * 0.01)
+    return rng.standard_normal(n) * np.exp(-np.arange(n) / SR * 600) * rng.uniform(0.2, 0.8)
+
+
+murmur = band(looped_noise("pink"), 250, 900) * (0.4 + 0.6 * np.clip(np.sin(2 * np.pi * 3.5 * t + 3 * lfo(5)), 0, None)) * (0.4 + 0.3 * lfo(3, 2))
+hammer = place([i * 2.0 + rng.uniform(0, 0.3) for i in range(int(LOOP / 2.0)) if i % 7 < 4], 0.5, clink)
+fire = band(place(np.sort(rng.uniform(0, LOOP, 600)), 0.01, crackle), 800, 6000)
+village = 0.35 * murmur / np.max(np.abs(murmur)) + 0.35 * hammer / np.max(np.abs(hammer)) + 0.3 * fire / np.max(np.abs(fire))
+save("amb_village", reverb(village, 1.2, 0.25, 6000), 0.5)

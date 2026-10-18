@@ -766,6 +766,28 @@ public static class DevInspect3
         TalentTreeWindow.Instance.Open();
         return $"points={Talents.Points} acquis={Talents.Spent} max monstres={PlayerLevel.Instance.GetMaxMonsters()}";
     }
+    public static float camX, camY;
+    public static string AmbienceAt()
+    {
+        var relief = MountainRelief.Instance;
+        if (relief != null && relief.DungeonView) relief.Toggle();
+        var cam = Camera.main;
+        if (CameraController.Instance != null) CameraController.Instance.cinematic = true;
+        cam.transform.position = new Vector3(camX, camY, -10f);
+        var za = Object.FindFirstObjectByType<ZoneAmbience>();
+        var sb = new System.Text.StringBuilder($"caméra ({camX},{camY}) ");
+        foreach (var s in za.GetComponents<AudioSource>()) if (s.clip != null && s.clip.name.StartsWith("amb_")) sb.Append($"{s.clip.name}={s.volume:0.00} ");
+        return sb.ToString();
+    }
+    static Vector2 FirstTile(string map)
+    {
+        foreach (var tm in Object.FindObjectsByType<UnityEngine.Tilemaps.Tilemap>(FindObjectsSortMode.None))
+            if (tm.name == map) foreach (var c in tm.cellBounds.allPositionsWithin) if (tm.HasTile(c)) return tm.GetCellCenterWorld(c);
+        return Vector2.zero;
+    }
+    public static string AmbLake() { var l = FreshWater.Lakes[0].center; camX = l.x; camY = l.y + 2f; return AmbienceAt(); }
+    public static string AmbJungle() { var p = FirstTile("T_Jungle"); camX = p.x + 4f; camY = p.y + 4f; return AmbienceAt(); }
+    public static string AmbVolcano() { var p = FirstTile("T_Lave"); camX = p.x; camY = p.y; return AmbienceAt(); }
     public static string ChronicleOpen() { ChronicleWindow.Show(); return $"entrées={Chronicle.Entries.Count}"; }
     public static string PossessTest()
     {
