@@ -109,6 +109,7 @@ public class MonsterSave
     // vie du monstre (traits = -1 : ancienne sauvegarde, tirés au hasard)
     public int traits = -1;
     public float hunger = 20f, energy = 90f, mood = 60f;
+    public string variant;   // thème de la variante d'étage (vide : aucune)
 }
 
 [Serializable]

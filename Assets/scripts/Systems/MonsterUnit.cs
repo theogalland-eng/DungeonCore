@@ -114,6 +114,8 @@ public class MonsterUnit : MonoBehaviour
 
         var old = GetComponent<GobelinAI>();
         var go = Instantiate(nextStage, transform.position, Quaternion.identity, transform.parent);
+        var oldVariant = GetComponent<MonsterVariant>();
+        if (oldVariant != null) MonsterVariant.Inherit(go, oldVariant.theme);   // la variante survit à l'évolution
         var ai = go.GetComponent<GobelinAI>();
         if (ai != null && old != null)
         {
@@ -141,6 +143,8 @@ public class MonsterUnit : MonoBehaviour
         if (GameManager.Instance != null) GameManager.Instance.statEvolutions++;
         var old = GetComponent<GobelinAI>();
         var go = Instantiate(nextStage, transform.position, Quaternion.identity, transform.parent);
+        var oldVariant = GetComponent<MonsterVariant>();
+        if (oldVariant != null) MonsterVariant.Inherit(go, oldVariant.theme);   // la variante survit à l'évolution
         var ai = go.GetComponent<GobelinAI>();
         if (ai != null && old != null)
         {

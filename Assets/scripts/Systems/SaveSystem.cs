@@ -204,6 +204,7 @@ public class SaveSystem : MonoBehaviour
                 hunger = g.Life != null ? g.Life.hunger : 20f,
                 energy = g.Life != null ? g.Life.energy : 90f,
                 mood = g.Life != null ? g.Life.mood : 60f,
+                variant = g.GetComponent<MonsterVariant>() != null ? g.GetComponent<MonsterVariant>().theme : null,
             });
         }
 
@@ -340,6 +341,7 @@ public class SaveSystem : MonoBehaviour
             if (!prefabs.TryGetValue(m.family + "_" + m.stage, out var prefab)) continue;
             var ai = MonsterSpawner.Instance != null ? MonsterSpawner.Instance.SpawnFree(prefab, new Vector2(m.x, m.y), new Vector2(m.ax, m.ay), m.name) : null;
             if (ai == null) continue;
+            MonsterVariant.Inherit(ai.gameObject, string.IsNullOrEmpty(m.variant) ? null : m.variant);
             if (m.guardian) MonsterMind.For(ai).MakeGuardian(string.IsNullOrEmpty(m.guardianName) ? "Gardien" : m.guardianName, false);
             if (m.hp > 0f) ai.currentHealth = Mathf.Min(ai.maxHealth, m.hp);
             var u = ai.GetComponent<MonsterUnit>();

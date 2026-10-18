@@ -1029,6 +1029,32 @@ public static class DevInspect3
     }
     public static string RoomsState() { var t = ThemedRooms.Instance; return $"salles={t.rooms.Count} partielles={t.partials.Count} v={t.Version}"; }
     public static string DecorTab() { typeof(SidePanel).GetMethod("SetTab", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(GameHUD.Instance.Side, new object[] { CatalogCategory.Decor }); return "décor"; }
+    private static string VariantFloor(int layer, string themeId)
+    {
+        var L = DungeonLayers.Instance; var cat = DungeonCatalog.Get(); var b = DungeonBuilder.Instance;
+        int ti = cat.themes.FindIndex(t => t.id == themeId);
+        L.ApplyUnlock(layer, ti);
+        var lc = L.layers[layer].landingCell;
+        for (int dx = -4; dx <= 4; dx++) for (int dy = -2; dy <= 3; dy++) L.CarveCell(lc + new Vector3Int(dx, dy, 0));
+        DungeonTerritory.Instance?.Recompute();
+        var sb = new System.Text.StringBuilder();
+        int k = 0;
+        foreach (var fam in new[] { "rat", "slime", "goblin", "skeleton" })
+        {
+            var it = cat.items.Find(i => i.prefab != null && i.prefab.GetComponent<MonsterUnit>() != null && i.prefab.GetComponent<MonsterUnit>().familyId == fam);
+            Vector2 p = (Vector2)b.floorTilemap.GetCellCenterWorld(lc + new Vector3Int(-3 + k * 2, 0, 0));
+            var g = MonsterSpawner.Instance.SpawnFree(it.prefab, p, p, fam);
+            if (g != null) g.SetBehavior(GobelinAI.GoblinBehavior.Stay);
+            k++;
+        }
+        return $"étage {layer} = {themeId}";
+    }
+    public static string VariantsSetup() => VariantFloor(1, "lava") + " | " + VariantFloor(2, "ice") + " | " + VariantFloor(3, "fungal");
+    public static string VariantNames() { var sb = new System.Text.StringBuilder(); foreach (var g in GobelinAI.All) if (g != null) { var v = g.GetComponent<MonsterVariant>(); sb.Append($"[{g.gobelinName} v={v?.theme}] "); } return sb.ToString(); }
+    public static string VariantShot1() => ShotLanding(1, "var_lava");
+    public static string VariantShot2() => ShotLanding(2, "var_ice");
+    public static string VariantShot3() => ShotLanding(3, "var_fungal");
+    private static string ShotLanding(int layer, string name) { var L = DungeonLayers.Instance; L.SetView(layer); var p = DungeonBuilder.Instance.floorTilemap.GetCellCenterWorld(L.layers[layer].landingCell); return DevInspect.Shot(p.x, p.y + 0.4f, 3.2f, 1200, 700, name); }
     public static string TacticsCount() =>$"tactiques lancées : {GobelinAI.TacticsUsed}";
 }
 #endif

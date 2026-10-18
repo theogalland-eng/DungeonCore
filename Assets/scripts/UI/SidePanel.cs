@@ -242,6 +242,7 @@ public class SidePanel : MonoBehaviour
             foreach (var d in LootSystem.Instance.Owned()) s += $"|{d.id}{LootSystem.Instance.CountOf(d.id)}";
             s += $"|{PlacedObject.Count(ItemKind.Decor)}";
         }
+        if (currentTab == CatalogCategory.Monster) s += $"|t{ViewTheme()}";
         if (currentTab == CatalogCategory.Rooms && ThemedRooms.Instance != null) s += $"|r{ThemedRooms.Instance.Version}";
         if (currentTab == CatalogCategory.Layer && DungeonLayers.Instance != null)
         {
@@ -302,6 +303,9 @@ public class SidePanel : MonoBehaviour
         if (currentTab == CatalogCategory.Build)
             items.Add(new CatalogItem { id = "select", displayName = "Sélection", description = "Commander les monstres", kind = ItemKind.Tool, tool = DungeonBuilder.BuildMode.None });
         items.AddRange(DungeonCatalog.Get().InCategory(currentTab));
+        string viewTheme = ViewTheme();
+        if (currentTab == CatalogCategory.Monster)
+            items.RemoveAll(it => !MonsterHabitat.Allowed(MonsterHabitat.FamilyOf(it), viewTheme));
 
         const float bw = 202f, bh = 118f, gap = 8f;
         for (int i = 0; i < items.Count; i++)
@@ -346,6 +350,17 @@ public class SidePanel : MonoBehaviour
                 Place(cost.rectTransform, new Vector2(tx, -bh + 34), new Vector2(bw - tx - 6, 28));
             }
 
+            if (item.kind == ItemKind.Monster)
+            {
+                string fam = MonsterHabitat.FamilyOf(item);
+                string vname = MonsterHabitat.IsCommon(fam) ? MonsterVariant.VariantName(viewTheme, fam) : null;
+                string tag = vname != null ? $"• ici : {vname}" : MonsterHabitat.IsHome(fam, viewTheme) ? "• chez lui (+15 %)" : null;
+                if (tag != null)
+                {
+                    var tg = Txt(rt, tag, 13, vname != null ? new Color(1f, 0.7f, 0.4f) : new Color(0.6f, 0.95f, 0.65f), TextAlignmentOptions.TopLeft);
+                    Place(tg.rectTransform, new Vector2(tx, -66), new Vector2(bw - tx - 6, 18));
+                }
+            }
             if (ThemedRooms.TryKindOf(item.id, out var roomKind))
             {
                 var rc = ThemedRooms.ColorOf(roomKind);
@@ -420,6 +435,14 @@ public class SidePanel : MonoBehaviour
     // ─────────────────────────────────────────────
     // SALLES
     // ─────────────────────────────────────────────
+
+    /// <summary>Thème de l'étage regardé (onglet Monstres).</summary>
+    private static string ViewTheme()
+    {
+        var l = DungeonLayers.Instance;
+        var t = l != null ? l.ThemeOf(l.CurrentView) : null;
+        return t != null && !string.IsNullOrEmpty(t.id) ? t.id : "volcanic";
+    }
 
     private void BuildRooms()
     {

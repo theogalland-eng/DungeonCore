@@ -585,6 +585,9 @@ public class DungeonBuilder : MonoBehaviour
         if (item.kind == ItemKind.Monster)
         {
             if (MonsterSpawner.Instance == null) { reason = "Pas de spawner"; return false; }
+            string fam = MonsterHabitat.FamilyOf(item), theme = MonsterHabitat.ThemeAt(center);
+            if (!CrawlerMode.Active && !MonsterHabitat.Allowed(fam, theme))
+            { reason = $"Ne vit qu'ici : {MonsterHabitat.HomesText(fam)}"; return false; }
             return MonsterSpawner.Instance.CanSummonAt(center, Mathf.RoundToInt(item.cost * Talents.SummonCostMult), out reason);
         }
 

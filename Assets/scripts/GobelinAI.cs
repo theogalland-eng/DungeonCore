@@ -119,7 +119,11 @@ public class GobelinAI : MonoBehaviour, IDamageable
         if (spriteRenderer != null) baseColor = spriteRenderer.color;
         if (animator == null) animator = GetComponent<Animator>();
         currentHealth = maxHealth;
+        if (GetComponent<MonsterVariant>() == null) gameObject.AddComponent<MonsterVariant>();
     }
+
+    /// <summary>L'ennemi poursuivi en ce moment (pouvoirs à distance des variantes), ou null.</summary>
+    public Transform CombatTarget => isOnMission && currentMission == MissionType.ChaseEnemy ? missionTarget : null;
 
     private void OnEnable() => All.Add(this);
     private void OnDisable() => All.Remove(this);
@@ -654,6 +658,7 @@ public class GobelinAI : MonoBehaviour, IDamageable
     public void OnAttackedBy(Transform attacker)
     {
         outOfCombatTimer = 0f;
+        GetComponent<MonsterVariant>()?.OnAttackedBy(attacker);
         if (IsPossessed || isDead || attacker == null) return;
         if (ambushing) { ambushing = false; RevealAmbush(); }
         if (currentMission == MissionType.ChaseEnemy && missionTarget != null)
@@ -1325,6 +1330,7 @@ public class GobelinAI : MonoBehaviour, IDamageable
         if (traits == null) traits = GetComponent<MonsterTraits>();
         if (unit == null) unit = GetComponent<MonsterUnit>();
         if (traits != null) traits.OnHit(target, dmg);
+        GetComponent<MonsterVariant>()?.OnHit(target, dmg);
         if (!target.IsAlive()) life?.OnKill();
         if (unit != null && !target.IsAlive())
         {
@@ -1425,6 +1431,8 @@ public class GobelinAI : MonoBehaviour, IDamageable
         // mur de boucliers : un orc ou un golem campé sur ses appuis encaisse mieux
         if (IsShield && movement.sqrMagnitude < 0.05f) amount *= 0.65f;
         amount *= ThemedRooms.DamageTakenMult(rb != null ? rb.position : (Vector2)transform.position);
+        var variant = GetComponent<MonsterVariant>();
+        if (variant != null) { amount = variant.Incoming(amount); if (amount <= 0f) return; }
         if (ambushing) { ambushing = false; RevealAmbush(); }
         currentHealth -= amount;
         outOfCombatTimer = 0f;
@@ -1451,6 +1459,7 @@ public class GobelinAI : MonoBehaviour, IDamageable
     {
         isDead = true;
         if (!Voices.Monster(this, "death")) Sfx.Play("death_monster", transform.position, 0.9f);
+        GetComponent<MonsterVariant>()?.OnDeath();
         GetComponent<MonsterMind>()?.OnDied();
         var mm = GetComponent<MonsterMind>();
         if (mm != null && mm.IsGuardian) Chronicle.Add($"<color=#FF8A7A>Le gardien {mm.GivenName} est tombé.</color>");

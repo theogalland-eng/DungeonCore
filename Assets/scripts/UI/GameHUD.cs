@@ -832,6 +832,10 @@ public class GameHUD : MonoBehaviour
             string xp = unit != null && !unit.IsFinalForm && !unit.summoned ? $"\n<size=78%><color=#B9B3CC>PV {Mathf.CeilToInt(g.currentHealth)}/{Mathf.RoundToInt(g.maxHealth)} · XP {unit.xp}/{unit.xpToEvolve} · entretien {Mathf.RoundToInt(unit.upkeepPerDay * UpkeepSystem.DayScale * GameDifficulty.Upkeep)}/j</color></size>"
                       : $"\n<size=78%><color=#B9B3CC>PV {Mathf.CeilToInt(g.currentHealth)}/{Mathf.RoundToInt(g.maxHealth)}</color></size>";
             string lifeText = g.Life != null ? $"\n<size=74%>{g.Life.Describe()}</size>" : "";
+            var mv = g.GetComponent<MonsterVariant>();
+            var mu = g.GetComponent<MonsterUnit>();
+            string vdesc = mv != null && mu != null ? MonsterVariant.Describe(mv.theme, mu.familyId) : null;
+            if (vdesc != null) lifeText = $"\n<size=74%><color=#FFB070>{vdesc}</color></size>" + lifeText;
             selectionText.text = g.gobelinName + stage + xp + lifeText;
         }
         else if (n > 0) selectionText.text = $"{n} monstres sélectionnés";
