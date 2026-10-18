@@ -964,6 +964,9 @@ public static class DevInspect3
     public static string LearnFirst() { var cm = CrawlerMode.Instance; foreach (var n in CrawlerSkills.For(cm.Player.role).nodes) if (CrawlerSkills.CanLearn(n, out _)) { CrawlerSkills.Learn(n); return n.name + $" pts={CrawlerSkills.Points}"; } return "rien"; }
     public static string SkillTree() { SkillTreeWindow.Toggle(); return "arbre " + SkillTreeWindow.IsOpen; }
     public static string VoiceClips() { int n = 0; foreach (var c in Resources.LoadAll<AudioClip>("Audio/Sfx")) if (c.name.StartsWith("vx_")) n++; return $"{n} voix"; }
+    public static string English() { GameSettings.Language = "en"; Loc.Apply(true); return "english " + Loc.T("Monstres {0}"); }
+    public static string French() { GameSettings.Language = "fr"; Loc.Apply(false); return "français"; }
+    public static string LocTest() => Loc.T("Jour 3  ·  Printemps  ·  Aube") + " | " + Loc.T("Talent acquis : Maçon des abîmes") + " | " + Loc.T("Accompli : Creuser un vrai repaire  (+60 mana)") + " | " + Loc.T("<color=#B79CFF>Pensées du Noyau</color>\nCreuser un vrai repaire  <color=#9A96B0>(13/20)</color>");
     public static string TacticsCount() =>$"tactiques lancées : {GobelinAI.TacticsUsed}";
 }
 #endif

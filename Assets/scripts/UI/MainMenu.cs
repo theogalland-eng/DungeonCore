@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -630,7 +630,7 @@ public class MainMenu : MonoBehaviour
     // ── Options
     private void ShowOptions()
     {
-        var box = OpenModal("Options", new Vector2(1760, 700));
+        var box = OpenModal("Options", new Vector2(1760, 800));
         float y = 100f;
         colX = -440f;
         VolumeRow(box, "Volume général", "Tous les sons du jeu", () => GameSettings.Volume, v => GameSettings.Volume = v, ref y);
@@ -648,6 +648,7 @@ public class MainMenu : MonoBehaviour
         ToggleRow(box, "Tremblements de l'écran", "Secousses lors des impacts", () => GameSettings.ScreenShake, v => GameSettings.ScreenShake = v, ref y);
         ToggleRow(box, "Sauvegarde automatique", "À chaque aube et en quittant l'application", () => GameSettings.AutoSave, v => GameSettings.AutoSave = v, ref y);
         ToggleRow(box, "Vibrations", "Quand le cristal est frappé ou que votre héros est blessé", () => GameSettings.Vibration, v => GameSettings.Vibration = v, ref y);
+        ToggleRow(box, "English", "Interface en anglais / English interface", () => GameSettings.Language == "en", v => { GameSettings.Language = v ? "en" : "fr"; Loc.Apply(v); }, ref y);
         colX = 0f;
     }
 

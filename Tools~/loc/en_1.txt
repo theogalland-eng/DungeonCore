@@ -1,0 +1,330 @@
+# AdventurerAI.cs
+· rank {0}
+I know this trap!
+Watch out, a trap!
+My torch is going out...
+We've seen enough.
+Report!
+Survey complete.
+Attack!
+killed by companion {0} in a brawl
+struck down by {0}
+dead in the depths of the dungeon
+dead on the island
+{0} is {1}.
++{0} mana
+Run!
+I won't back down!
+A treasure!
+Mine!
+Retreats {2}/{3}
+# AdventurerCombat.cs
+Dodge!
+Critical!
+# DungeonBuilder.cs
+Core not found
+The core is already moving
+The core must stay inside the dungeon
+The core is already here
+Tile occupied
+Impossible during an intrusion
+The core is too weak to move
+The core reforms in {0}
+The dungeon is under attack: you can't build or summon while intruders remain!
+You can only fill tiles inside the dungeon
+Impossible: it would cut the path to the core
+Item unavailable
+Level {0} required
+No spawner
+Must be placed on the dungeon floor
+Not on the core!
+Tile already occupied
+Bulky: it would block the way (place it against a wall or in a corner)
+Trap limit reached ({0}) — level up
+No more copies of this item in the treasury
+Not enough mana ({0} required)
+There is already a wall here
+Decorations go inside the dungeon
+Decorations must stand against the rock
+{0}: not available yet
+Stored in the treasury
+Nothing to erase here
+Move the core
+Tap a goblin to select it, then the ground to move it. Drag to move the view.
+Click: select / move a goblin. Drag: box selection. Right click / middle drag: move the view.
+{0} or drag over the rock to mark it. The Core digs tiles next to the dungeon ({1} mana/tile).
+{0} a dungeon tile to fill it in ({1} mana). The path to the core must stay open.
+{0} the dungeon floor to place a blade wheel ({1} mana).
+{0} the dungeon floor to summon a goblin ({1} mana).
+{0} a tile against the rock to decorate your dungeon ({1} mana).
+{0} a trap or an item (refunded at {1} %), a wall decoration or a dig mark.
+({1} mana): {2}
+[{3} to place · Esc: cancel]
+{0} a dungeon tile to dig the stairs to the floor below ({1} mana).
+{0} a dungeon tile (on any connected floor) to move the core there.
+First move free
+; later moves cost 90 % of your max reserve. Impossible during an intrusion.
+{0} a dungeon tile (on any connected floor) to move the core there. Cost:
+{1} mana
+(90 % of your max reserve). Impossible during an intrusion.
+# DungeonBuilderUI.cs
+Mana: {0}
+Mode: {0}
+[1] Dig [2] Fill [3] Trap [4] Goblin [5] Decor [6] Eraser
+[ESC] Select
+# DungeonCore.cs
+Dungeon Core
+The core dissolves…
+The core is under attack!
+HP: {1}/{2}
+# GobelinAI.cs
+Raid!
+GRAAAH!
+Help!
+Ambush!
+The guardian {0} has fallen.
+{0} fell defending the dungeon.
+{0} fell in battle
+MISSION: {0}
+# MonsterSelector.cs
+The anchor must stay inside the dungeon
+Monsters cannot leave the dungeon
+Order: hold position
+Order: patrol
+{0} goblin(s) bound to the anchor
+# MonsterSpawner.cs
+Monsters are born inside the dungeon
+Monster limit reached ({0}) — level up
+Monster unavailable
+# PlayerLevel.cs
+A talent point to spend (Talents button)
+# ColonyTrade.cs
+Smuggled provisions
+Salted meat and dried fish left at the entrance: your monsters eat their fill.
+{0} monster(s) fed
+Harbour rumours
+What they say at the tavern: when the next expedition comes, and who.
+Harbour rumour: {0}
+Picks and lanterns
+Miner's tools, conveniently "lost": digging costs half as much until dawn.
+Digging costs half as much today
+No colony on the island
+No one left to trade with
+The colony must tolerate you (relation {0})
+Already done today
+The colony is short of food
+{0} mana required
+A settler
+... nobody saw me.
+At nightfall, {0} slips up to the cave, drops a bundle and leaves with a handful of crystals.
+Humans are so predictable. A little light, and they forget which side they're on.
+Nothing new at the harbour.
+"Not everyone who goes down there will come back up."
+today
+on day {0}
+adventurers of rank {0}
+adventurers
+There is talk of a punitive expedition.
+An expedition is expected {0}: {1}.{2}
+# SettlementManager.cs
+Colony: {0} arrives
+{0} arrives at the colony.
+Settlers are setting up camp on the island!
+The human colony becomes: {0}
+The human colony becomes: {0}.
+Colony: {0} completed
+The colony is hungry
+Afraid of the dungeon, {0} leaves the island
+Afraid of the dungeon, {0} leaves the island.
+in a tent
+Settler
+Did you hear that last night?
+The mountain rumbled...
+Another one who didn't come back.
+Nice catch today!
+They say a crystal thinks down there.
+To the living!
+My back...
+Tomorrow we finish the roof.
+Hush... listen.
+{0} perishes in a night raid.
+Already an outpost
+No colony to take
+Still {0} inhabitant(s) there
+The colony becomes an outpost of the Core (+{0} mana every morning)
+The Core annexes the deserted colony: it becomes its outpost.
+Their houses are empty. Their fires, out. I'll light mine there.
+OUTPOST: mana every morning depending on the buildings, no more militia or expedition reinforcements, and intruders landing here are shaken.
+Outpost: +{0} mana
+# SettlementPlan.cs
+Guild camp
+Dungeon town
+Campfire
+Expeditions rest and heal there.
+Bigger pier: larger ships can dock.
+Fisherman's hut
+Fish drying rack
+People drink there and tell tales of the dungeon: rumours spread.
+Fruit stall
+The blacksmith mends armour: adventurers leave better equipped.
+Adventurers gear up: +15 % HP.
+Mages' tower
+Potions: intruders heal faster.
+Training ground
+Adventurers train: +15 % damage.
+Guild hall
+The Guild has set up shop: contracts, bounties and dungeon rankings.
+# SettlerAI.cs
+sleeps at home
+fells a tree
+breaks stones
+brings back the harvest
+sits by the fire
+flees!
+leaves the island
+rests
+takes a stroll
+Help!
+Monsters!
+the Younger
+# Achievements.cs
+First blood
+Absorb the essence of a first intruder.
+Butcher of the depths
+Absorb 50 intruders in one game.
+Survive 10 days.
+Survive 30 days.
+Evolve a creature.
+Be ranked by the Adventurers' Guild.
+Dungeon veteran
+Reach rank C.
+Elite of the depths
+Reach rank A.
+Reach rank SSS.
+Hero slayer
+Defeat a hero.
+Grudge settled
+Slay a Nemesis.
+Open three floors.
+Dragon's hoard
+Reach 100 prestige.
+See the colony become a town.
+Eye of the storm
+Weather a storm.
+Merciless
+Survive 10 days on Merciless.
+Achievement unlocked: {0}
+# AdventurerLife.cs
+drinks: reckless but clumsy
+dawdles, may give up or charge a monster
+flees at the first blow
+often dodges
+picks fights
+is always hungry
+almost never backs down
+won't share the loot
+eats a ration
+has a drink
+grills some game
+fights to the death!
+brawls
+gorges at the pantry
+broods
+looks for the door mechanism
+sleeps at camp
+We camp here for the night.
+Just one more ration...
+A break to eat.
+Food!
+A {0}! Dinner.
+I'm starving... I'm going back.
+I'm hungry...
+*glug glug*
+What's the point...
+Let's get it over with!
+Looking for trouble?!
+They're taking the bait. Full bellies never look behind them.
+Hit!
+Nothing beats grilled meat.
+These runes... they must be awakened.
+A mechanism! I'll find the lever.
+Let them kill each other. Less work for me.
+They're fighting each other... Delicious.
+Come here!
+You'll regret this!
+Fine, fine! I'll stop!
+I'm leaving, you brutes!
+That one is shaking like a leaf.
+This treasure is mine!
+What about my share?!
+We're all going to die!
+Revenge!
+It's over for us...
+Unknown trait (observe them)
+Nothing remarkable
+starving
+hungry
+Hunger: {0} · rations: {1}
+drunk
+# BearTrap.cs
+Snap!
+# Chronicle.cs
+an intruder
+# CinematicDirector.cs
+Skip >>
+A sail, on the horizon.
+A fishing boat, blown off course by bad weather, runs aground at the pier.
+They don't know yet what sleeps beneath the mountain.
+a cave at the heart of a lost island
+Their mission: gauge the danger. And come back to tell of it.
+The fishermen told everything at the Guild counter: {0}.
+On the mainland, people are worried: {0}.
+The Guild dispatches a rank {0} assessment team.
+The Adventurers' Guild
+On the mainland, a few days earlier
+Master! Guildmaster! The island... the volcano island!
+Guildmaster
+Calm down, friend. Catch your breath, and tell me.
+A cave, under the mountain... We saw {0} there!
+And deep inside, a glow. Like a heart beating in the rock.
+My husband and his brothers went fishing near the volcano island...
+They never came back. No one comes back from there.
+It's not the first boat... People speak of {0}.
+A dungeon. On an island no one claims...
+Prepare an assessment team. Rank {0}. They leave tomorrow.
+Mission order: assessment — rank {0} team
+May the gods protect them...
+Bring them back to me... I beg you.
+Assessment report
+Adventurers' Guild — dungeon registry
+After deliberation, the Guild enters the island's dungeon in the registry:
+Rank {0} dungeon — {1}
+At dawn, a ship flying the Guild's colours drops anchor off the island.
+Crates are unloaded, tents pitched. A fire is lit on the beach.
+Day {0} — humans settle on the island
+Carpenters land with planks, stakes and ropes.
+The pier stretches out to sea: soon, large ships will be able to dock.
+The Harbour
+Day {0} — the island is linked to the mainland
+Whole families arrive from the mainland, with their tools and their livestock.
+Land is cleared, ploughed, stalls are raised. The hamlet spills over its palisades.
+The Village
+Day {0} — a village lives at the foot of the mountain
+Armourers, mages, weapon masters: people now come here to become adventurers.
+At the foot of the volcano, a whole town lives off the dungeon... and dreams of its fall.
+The Dungeon Town
+Day {0} — the city is born
+# CinematicIntro.cs
+...I'm floating.
+It's pleasant. A slow rocking, like in a boat... I don't want to wake up.
+A boat? No. I went to bed last night. I remember it clearly.
+I take a deep breath to wake up for good...
+...My chest isn't moving. I'm not breathing.
+I'm not breathing!
+Water everywhere. An island, right there. Fish below me... I can see them. I see in every direction at once.
+It's a dream. I'll blink and wake up.
+...I can't blink. I can't feel my arms. I can't feel anything at all.
+There's only this. A ball of blue crystal, half in the water.
+That's me. I am this thing.
+The tide pushes the sphere towards a black sand beach, at the foot of the volcano.
+I fell asleep at home, and I wake up as a pebble. Did I die in my sleep? Is that it?

@@ -1,0 +1,280 @@
+Break the truce
+Propose a truce ({0} mana)
+Truce: {0}
+Punitive expedition expected on day {0} (higher tier, more numerous)
+{0} intruders on the island. Let them go: your monsters step aside, the colony is grateful (+relation).
+No intruders right now. Sparing intruders improves your relation with the colony.
+no monsters available
+your selection ({0} monster(s))
+your {0} strongest monster(s) (select some to choose)
+A militia defends the colony ({0} damage per assault).
+Raid underway...
+Participants: {0}.{1}
+Terror
+: morale collapses, food plundered, a little mana, no one dies.
+Bloody
+: settlers killed (lots of mana and XP) but a
+punitive expedition
+of high level.
+Camp: {0}
+No one yet.
+The outpost now shelters only the Core's shadows.
+... and {0} other(s)
+arrived today
+for {0} d
+· your contact
+The colony is empty.
+Your contact:
+. The goods are left at the cave entrance; each offer once per day.
++relation, +prosperity
+Improve the relation (bribes, sparing intruders) so a settler dares to trade with you.
+{0} mana · {1} food
+Buy ({0})
+No colony.
+The colony is your
+outpost
+every morning. No more militia, no more reinforcements for expeditions.
+A colony emptied of its inhabitants (bloody raids, terror) can be annexed: its houses become an outpost of the Core that yields mana every morning, and it no longer reinforces expeditions.
+Annex the colony ({0} mana)
+Annex the colony
+# GameHUD.cs
+Island view
+Back to the crystal
+Back to the crystal (E)
+Your crystal has shattered
+esOver={0} sel={1} module={2} clickEnabled={3} pointEnabled={4} focus={5}
++{1}/s
+Upkeep -{0}/day
+Level {0}
+XP {1}/{2}{3}
+Prestige {0}
+Monsters {0}   ·   Traps {1}{2}
+{0} point{1}
+Day {0}  ·  {1}  ·  {2}{3}{4}
+(unknown to the world)
+Threat: {0}{1}
+Expedition: {0} intruders ({1} in the dungeon)
+The sea is calm... for now
+·   Renown {0}
+Colony: {0} · {1}/{2} pop. · {3} · wood {4} · stone {5} · food {6}
+No human colony on the island
+Dungeon view
+revenge!
+truce
+raid possible
+{0} tile(s) pending
+{0}  —  HP {1}/{2}
+HP {0}/{1} · XP {2}/{3} · upkeep {4}/d
+HP {0}/{1}
+{0} monsters selected
+Anchor selected:
+tap the ground to move it
+No monster selected
+Guardian ({0})
+Evolve into {0} ({1} mana)
+Evolution: {0}
+Click / Space
+{0} to continue
+unranked
+Achievements unlocked:
+A crack. Then a thousand. Your mind scatters for the second time...
+Days survived:
+Core level:
+Difficulty:
+Intruders absorbed:
+Fled:
+Expeditions:
+Dungeon rank:
+Heroes defeated:
+Nemeses slain:
+Evolutions:
+Colony:
+# GearWindow.cs
+Sell: here, in town.
+You can only sell in town.
+{0} gold
+·   bag {1}/{2}   ·
+— nothing —
+{0} · floor {1}
+Empty. Chests, guardians and contract bounties are full of items.
+Equipment bonuses
+# IntruderCard.cs
+rank {0} ·
+wanders the shore
+explores the dungeon
+walks towards the cave
+tends their wounds
+waits for companions
+loots a chest
+Right now:
+A colony resident.
+# MainMenu.cs
+New game
+Load a game
+Game modes
+{0}  ·  Profiles saved on this device
+The Core's awakening
+No profile
+Day {0} · Level {1}{2} · {3}
+No saved game
+Choose your difficulty. It can't be changed during the game.
+(recommended)
+A game is in progress (day {0}). Its saves remain available, but the autosave will be replaced.
+Day {0} · {1} · {2} · profile {3}
+Save (Merciless: auto)
+Progress since the last save will be lost. Save to the autosave first?
+Save and quit
+Quit without saving
+Save the game
+Profile:
+Day {0} · Level {1}{2}
+Overwrite the save?
+{0} (day {1}) will be replaced.
+Load this game?
+Unsaved progress will be lost.
+Delete the save?
+{0} (day {1}) will be permanently erased.
+The game autosaves at every dawn and when the app goes to the background.
+Campaign: the Core's Island
+Dig, summon, set traps. Face fishermen, adventurers, knights and finally the Hero, while a human colony grows on the island.
+Survival: the Waves
+Endless expeditions, stronger and stronger. How many days will you last?
+Adventurer: the Call of the Dungeon
+Play an adventurer: prepare in town, descend into the Core's dungeon and shatter its crystal.
+Daily challenge
+One island, one set of rules and one score shared by all players, every day.
+{0} / {1} unlocked · profile {2}
+Choose your adventurer
+Your adventurer
+Without a name, you'll be called by your class
+"—": original colour. Hair disappears under heavy armour helmets.
+Set off on the adventure
+Master volume
+All the game's sounds
+Day, night and battle themes
+Cave, surf, heartbeats
+Fights, traps, digging, interface
+Interface size
+Bigger (or smaller) buttons and text
+Guided tutorial
+Tips and an arrow pointing to the button to tap
+Birth of the orb, first boat
+Lighting effects
+Glow, vignette, colours (turn off on a modest phone)
+Ambient particles
+Fireflies, clouds, dust, reflections on the water
+Screen shake
+Shakes on impacts
+At every dawn and when leaving the app
+When the crystal is hit or your hero is wounded
+Interface en anglais / English interface
+Each profile has its own games and statistics. They are saved on this device.
+(active)
+{0} h {1} played · best day: {2} · games: {3}
+Delete the profile?
+"{0}" and all its saves will be permanently erased.
+New profile
+Welcome, Core
+What is the name of the mind awakening on this island?
+Name of the new profile:
+Profile name
+# SidePanel.cs
+THE DUNGEON IS UNDER ATTACK
+You can't build, place or summon while intruders remain.
+Your monsters, however, can still receive orders.
+Command the monsters
+Free (1st time)
+{0}: level {1} required
+(+{1} mana/s, renown every day)
+Loot from slain intruders lands here. Display it as a trophy (table in the dungeon) or absorb it.
+The treasury is empty. Kill intruders: they sometimes drop their gear.
+{0} · prestige {1} · {2} mana
+(core)
+Locked
+· Level {0} · {1} mana
+· to connect with stairs
+Move core
+Core here…
+Unlock…
+{0} theme
+# SkillTreeWindow.cs
+Talents · {0}
+{0} point(s)
+to spend   ·
+one point per new floor reached, one per rank validated at the Guild
+{0} pt
+# TalentTreeWindow.cs
+Core talents
+{0} point{1} to spend
+·  one point per Core level
+No free points  ·  one point per Core level
+# CatalogBuilder.cs
+texture not found
+{0} sprites
+Mark rock to dig
+Fill in a tile
+Remove an object (half refunded)
+Move the core elsewhere in the dungeon (90 % of max mana)
+{0} Evolves into {1} then {2}. Upkeep: {3} mana/day.
+Cave boar
+Very fast, charges fleeing intruders. Upkeep: 5 mana/day.
+Temple spirit
+Ancient guardian: freezes intruders with dread. Upkeep: 14 mana/day.
+Lifting the portcullis…
+The maw bites!
+Spinning blade: wounds on every pass.
+Retractable spikes
+Shoot up from the ground every 2.4 s (22 damage).
+Spider web
+Ensnares intruders: speed -65 % while crossing it.
+Rotating blades
+Spin endlessly: 16 damage per second to anyone who gets close.
+Falls every 3.6 s: 48 damage.
+Spear column
+Spears in all 4 directions: hits all around (26 damage).
+Explodes when an intruder passes (75 area damage). Rearms in 25 s.
+Spectral trap
+A wraith springs out: 30 damage and the chilled intruders slow down for 3 s.
+Bear trap
+Snaps shut on an intruder: wounds them and holds them for 3.5 s. Rearms itself.
+Toxic gas
+Permanent cloud: poisons and slows nearby intruders.
+Wooden door
+Arched door: intruders lose 2.5 s forcing it, then it stays open. Closed, it blocks sight, shots... and your monsters, unless you order otherwise.
+Lever door
+Puzzle: it can't be forced. An intruder must find and pull a lever (within 12 tiles): the party scatters, your monsters take advantage.
+Opens nearby lever doors (12 tiles) for 40 s. Hide it at the end of a guarded dead end.
+Rune door
+Puzzle: three rune stones (within 12 tiles) must glow at the same time to open it. Intruders split up to awaken them.
+Rune stone
+Glows for 25 s when touched. Three at once open a rune door.
+Pressure plate
+Darts (9 damage), nearby doors slam shut and stay locked for 8 s, your nearby monsters come running. Rearms in 10 s.
+Iron portcullis
+Holds each intruder for 5 s while they lift it: perfect in front of an ambush.
+Bone maw
+Living crypt door: holds for 6 s and bites (12 damage) each intruder who forces it.
+Flamethrower
+Spits fire intermittently. Heavy damage.
+Lights up the corridors (especially at night).
+Treasure chest
+Bait: greedy intruders make a detour to loot it. Every day, the Core refills it (loot taken from the dead, or riches born from mana).
+Simple decoration.
+Brood nest
+Hatchery: three nests close together hatch a monster every morning (of the family most present in the room).
+Monster forge (3 anvils or forges): your monsters take 15 % less damage there and evolve for 25 % less mana.
+Monster forge (3 anvils or forges): protection and cheaper evolutions. It lights up the room.
+Bait: a hungry intruder who sees it rushes over and gorges, motionless and unsuspecting. Restocked every morning.
+Crates and barrels.
+A dungeon with style draws the curious.
+Trophy helm
+Keepsake of an unlucky knight.
+Weapons of the defeated.
+Blue crystals
+A cold glow. Together, crystals form a sanctuary.
+Red crystals
+They pulse like a heart.
+Amber crystals
+You'd swear it's gold. So would the intruders.
+Green crystals
+A sickly glow, soothing to your creatures.

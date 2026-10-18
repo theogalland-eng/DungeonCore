@@ -1,0 +1,280 @@
+Be ranked A: the elite will come
+Defeat a hero
+Become a legend: rank SSS
+Thoughts of the Core
+Done: {0}  (+{1} mana)
+# PossessionController.cs
+Your vessel was destroyed! Your mind returns to the crystal.
+# PressurePlate.cs
+Click!
+# PrisonSystem.cs
+{0} is knocked out and thrown in a cell
+{0} fades away in their cell
+Your prisoners feed the crystal: +{0} mana
+Rumours speak of a rescue...
+{0} is released: your mercy will be talked about
+{0} has escaped!
+No colony to pay the ransom
+The colony pays {0}'s ransom: +{1} mana
+Captures: off
+Captures: on
+Prisoners ({0})
+Every morning, they feed the crystal. As long as they're here, the Guild may attempt a rescue.
+in a cell for {1} day(s) · will fade in {2} day(s)
+# ProfileStore.cs
+Autosave
+Slot {0}
+# PuzzleSwitch.cs
+They found the lever. Clever little things.
+They're awakening my runes... Let them take their time.
+The rune lights up
+# RaidSystem.cs
+No colony to attack
+Raids only happen at night
+Too late: dawn will break before they reach the colony
+Bloody raid: {0} monster(s) swoop on the colony
+Terror raid: {0} monster(s) set out to frighten the colony
+Tonight, no quarter. Let them learn who this island belongs to.
+Tonight, they'll hear nothing but growls... and their own screams.
+BLOODY RAID: lots of mana, but the colony will send a high-level PUNITIVE EXPEDITION.
+TERROR RAID: the colony's morale collapses, no one dies. Your monsters return before dawn.
++{0} (fear)
+Dawn breaks: your monsters return to the dungeon
+, {0} monster(s) lost
+Raid over: {0} settler(s) killed{1}
+Raid over: {0} settler(s) terrorised{1}
+# RelationSystem.cs
+Colony: {0} ({1}{2})
+You killed a resident during the truce
+a resident perished in the dungeon
+{0} was spared
+You let {0} intruder(s) go: your monsters step aside
+Go. And tell them the Core can also show mercy.
+Relation already at maximum
+mana crystals left near the camp
+At dawn, the settlers find glowing crystals in front of their tents. They whisper, worried... then pick them up.
+No colony
+Truce already in place
+Relation {0}/{1} required
+A punitive expedition is on its way
+Truce concluded with the colony
+An old man walks alone up to the cave entrance and lays down an olive branch.
+A truce... As long as they don't cross my threshold, I'll let them live.
+TRUCE: mana offering every morning, rarer and smaller expeditions. Killing a colony resident would be a betrayal.
+You broke the truce
+The harbour bell rings all night. Pigeons fly off to the mainland, carrying a single word: betrayal.
+Bloody raid during the truce
+Raid during the truce
+night-time massacre
+night of terror
+The colony calls for revenge: punitive expedition expected on day {0}!
+PUNITIVE EXPEDITION: {0} × {1} come to avenge the colony!
+Black banners on the sea. These aren't the curious: they're avengers.
+I struck the colony... here is the blood price.
+Colony offering: +{0} mana
+The truce has lapsed: the colony no longer trusts you
+# ReputationSystem.cs
+Tales of your dungeon are spreading (+{0} renown)
+# Rumors.cs
+A rank {0} adventurer
+Rank {0}, they say. {1}. I'm going back tomorrow anyway.
+An old fisherman
+The Guild hasn't ranked the cave yet. I'm telling you: there's something alive down there.
+A scarred mercenary
+Beware of "{0}". He has already killed {1} of ours. You hear him before you see him.
+A hunter
+Watch your step. {0} took half my blood, and I never even saw it.
+A merchant
+Royal chests, heaps of gold, trophies... That dungeon is richer than the king. Or it's bait.
+They say there are chests at the bottom. No one has come back with full arms yet.
+I wrote a song about {0}, {1}. No one survived to tell me how it ends.
+I've come out alive {0} times. I know its traps by heart. Next time, I'm coming back with the crystal.
+I went in, I came out. And I wrote it all down. That dungeon won't scare me anymore.
+We kept {0}'s tankard. He always said he'd come back. This time, he didn't.
+A passing priestess
+Some of the missing are said to be alive, locked up down there. I've heard screams at night, near the entrance.
+a crypt where the dead rise stronger
+a hall full of weapons, where monsters strike like soldiers
+a treasure room that glitters all the way down the corridors
+a sanctuary where creatures heal before your eyes
+a garden of mushrooms glowing in the dark... and slimy things crawling in it
+A young apprentice
+My master says there's {0}.
+Too many funerals lately. People are talking about going back to the mainland.
+A drunkard
+Did you see the moon? Red as blood. No one goes down the hole tonight. No one.
+A dungeon that grows on its own inside a mountain... I say the mountain is alive. Hic.
+An adventurer
+They say the crystal down there thinks. Like you and me. Gives me the shivers.
+# SaveSystem.cs
+Game saved ({0})
+Save failed
+Save not found or unreadable
+dd/MM/yyyy HH:mm
+Game loaded: day {0}
+# Seasons.cs
+A new season begins: {0}
+A new season begins: {0}.
+The cold descends on the island. Beasts go to ground, bellies cry famine... mine too.
+# StoryManager.cs
+I went to bed... and woke up as a crystal, adrift off an island. Died in my sleep, no doubt.
+Status? Menu?... Nothing. No system. But if I focus, I feel my integrity, and this energy I breathe: mana.
+A seagull carried me to this crack, in the side of the volcano. I poured my mana into the rock... and the cave became my body.
+Everything I shape drains me. But the more I grow, the more I'll be able to breathe.
+Open the right panel. DIG expands your lair; every action costs mana, which comes back on its own — faster at night.
+Day {0}
+Night falls: mana flows in
+The Guild's assessment team lands ({0} rank {1} adventurers)
+A boat lands: {0} rank {1} adventurers
+A boat lands: {0} × {1}
+By all the saints... We're alive. Does anyone know this island?
+Up there, a cave in the mountain. We can shelter there until the sea calms down.
+Humans. The first I've seen since... since I died.
+I can feel their mana from here. Warm. Tempting. If they come in, I'll drink a little... or all of it.
+An intruder in the dungeon is slowly drained of mana; killed, they release all their essence. A survivor will go home and tell what they saw.
+Three days and they haven't come home. If there's a beast in there, we'll find it.
+Pitchforks, torches and a hunter with a bow. They're looking for their missing.
+A rank {0} dungeon, almost untouched, and the Guild pays an exploration bounty? It's now or never.
+Keep formation. Shield in front, Lise behind, and nobody touches the chests until I say so.
+Professionals. A shield in front, a healer behind, an archer and a mage to whittle me down from afar.
+Target the healers and the shooters: they're fragile, but a well-protected party can sweep everything.
+Rank {0}. The Guild asked for elite blades, so here we are.
+Priestess, bless our weapons. Archmage, burn everything that moves. This dungeon won't see the end of the week.
+No more onlookers or bounty hunters. These ones come to kill me, and they know how.
+A figure haloed in light sets foot on the beach. The settlers kneel as it passes.
+Rank SSS, they say. A dungeon worth the trip, at last.
+I can feel your presence, Core. Show yourself, and let's end this.
+The hero. So that was the end of the story?... Not if I'm the one writing it.
+Team leader
+Standard procedure: we map, we count the monsters, we spot the traps. Nobody plays hero.
+And what if there really is a core in there?
+We put it in the report, and we don't touch it. We're not paid to die.
+Inspectors. They've come to rate my dungeon like you'd rate an inn.
+The team measures, it isn't trying to destroy you. If it returns, the rank will depend on what it saw; if members don't return, the Guild will judge you far more dangerous.
+No survivors. No one will go back to tell...
+{0} intruders have left the island
+Expedition over: {0} dead, {1} survivor(s)
+Your dungeon has been reported to the Adventurers' Guild
+They're rowing like the damned out to sea. By tomorrow, the whole harbour will know what they saw here.
+No one came back. And that's exactly what will draw the others.
+In this world, the Adventurers' Guild ranks everything dangerous: adventurers and dungeons alike, from rank F (novices) to rank SSS (heroes, the nations' elite, almost demigods).
+Sooner or later, an assessment team will come to measure your dungeon. Monsters, traps, wounded, dead, treasure: what they report will decide the rank of the adventurers sent to you next.
+An exam, then. Might as well pass it... one way or the other.
+The Guild ranks your dungeon: rank {0}
+No one came back, and that's already an answer. Rank {0}... They're afraid of me.
+Rank {0}. They ranked me higher because I killed some of their own. Fear is my best advertising.
+Rank {0}. Now I'm officially on file, like an inn or a swamp to avoid.
+From now on, expeditions match your dungeon's rank. GREED (treasure, loot, decor) draws more people; HOSTILITY (deaths, wounds) makes adventurers more relentless. Both gauges are shown at the top left.
+Every expedition that returns changes your ranking. A dungeon that kills rises fast, and then they send knights, then heroes.
+Knocked out, not dead. Behind the bars, they tremble... and their mana slowly seeps towards me.
+A prisoner feeds the crystal every morning. Free them to soothe the colony, sell them for ransom, or absorb them at once.
+I name you {0}. This floor is yours: let no one cross it alive.
+So it shall be, Master.
+One guardian per floor: stronger, tougher, it regenerates quickly. If it falls, you can name another.
+{0} "{1}" is back (rank {2})
+Do you remember me, Core? I haven't forgotten anything. Not your corridors, not your traps.
+Him... He's back. They call him "{0}" now. And he's moved up in the world.
+Me again. This time, I know exactly where you hide your traps.
+Every time I come out, I get stronger. And you?
+The others are afraid of you. Me, I know you.
+The threat grows: you are talked about as far as the {0}
+Level {0}: more monsters, traps and mana
+{0} enters your dungeon
+{0} saw your crystal and runs away!
+A wave of heat runs through you: a human being's essence dissolves into the crystal.
+It's... good. Too good. Part of me rejoices. The other part remembers being human.
+{0} left the island alive
+A creature born from my mana. It obeys me without a word... and if I focus, I see through its eyes.
+Select a monster then "Possess" to control it directly.
+The rock groans. Beneath your foundations a new space opens: {0}.
+Dig a STAIRCASE from the floor above (Floors panel) to connect this level. You'll then be able to shelter your core there.
+The crystal splits with light, dissolves... then reforms further into the rock.
+Well... that cost me almost nothing. The rock is still young, it gives way easily.
+The core's first move is free. Later moves will cost 90 % of your maximum mana reserve: choose your refuge well.
+Exhausting. Almost all my mana went into it. But here, they'll have a harder time reaching me.
+They're not leaving. They're settling... because of me. I've become a destination.
+The COLONY grows as long as the dungeon stays profitable: survivors who come home rich make it prosper, the dead terrify it. It makes expeditions more frequent and better equipped.
+They really don't intend to leave.
+Upkeep is deducted every morning. Reduce your troops or keep a mana reserve.
+Move (WASD / joystick) and attack (Space / button). A possessed monster hits harder.
+# Talents.cs
+Beastmaster
+Mason of the abyss
+Digging costs 30 % less mana.
++3 maximum traps.
+Trap and decor upkeep -25 %.
+Devious mechanisms
+Doors take 50 % longer to force; pressure plates twice as cruel.
+Cathedral of darkness
+Dungeon prestige ×1.5.
+Summoning a monster costs 15 % less mana.
+Tough flesh
+Your monsters have 15 % more HP.
+Full bellies
+Your monsters' hunger rises 30 % slower.
++3 maximum monsters.
+Ancient blood
+Evolutions -25 % mana, monster experience +25 %.
+Intruders are 10 % more likely to flee.
+Inside the dungeon, intruders see 15 % less far.
+Crystal's thirst
+Intruder mana drain +25 %.
+Lurking in the shadows
+Your posted monsters set an ambush in 2 s, and their first hit deals double damage.
+Dying torches
+Intruders' torches go out after 40 s in the dungeon.
+No points (one per level)
+Talent acquired: {0}
+The Core acquires a talent: {0}.
+# ThemedRooms.cs
+Treasure room
+Fungal garden
+Monster forge
+undead +25 %
+monsters +15 % damage
+treasure prestige ×1.5, draws the greedy from afar
+regeneration ×3
+slimes and mushrooms +30 %
+a monster is born every morning
+monster upkeep -10 % (up to -30 %)
+monsters -15 % damage taken, evolutions -25 %
+Hatchery: no more room for a new creature
+Hatchery: a new creature is born ({0})
+Room formed: {0} ({1})
+These objects, brought together, give this place a soul. My creatures feel at home here.
+Three objects of the same theme placed close together form a room: crypt, armoury, treasure room, sanctuary, fungal garden — or functional rooms: hatchery (nests), pantry (food), forge (anvils, forges).
+# TreasureChest.cs
+Takes: {0}
+Treasure!
+# UpkeepSystem.cs
+Dungeon upkeep: -{0} mana
+Not enough mana for upkeep ({0}): monsters starving, traps idle!
+# ChronicleWindow.cs
+Chronicles of the island
+Nothing worth telling yet. Patience: the island has a long memory.
+# ColonyWindow.cs
+No human colony on the island yet. It will appear when the world discovers your existence.
+Propose a truce
+Intruders on the island
+Let them go
+Night raids
+Raid the camp
+Terror raid
+Bloody raid
+Secret trade
+Outpost of the Core
+terrified
+worried
+{0} · population {1}
+No colony yet
+Truce: offering of
+every morning, rarer (+1 day) and smaller (-1) expeditions.
+Killing a resident = betrayal.
+Hatred: expeditions one tier stronger and more numerous.
+Hostility: one more intruder in each expedition.
+Respect: a truce can be proposed.
+Tolerance: the colony sends its expeditions less often (+½ day).
+Distrust: no particular consequence.
+Kill: − · let go / spare: + · bribes: + · raids: −− (betrayal during a truce).
+Bribe ({0} mana)
+Bribe: {0}

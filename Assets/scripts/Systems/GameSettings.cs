@@ -66,6 +66,13 @@ public static class GameSettings
         set => PlayerPrefs.SetInt("opt_vibrate", value ? 1 : 0);
     }
 
+    /// <summary>Langue de l'interface : "fr" (d'origine) ou "en" (traduction par Loc).</summary>
+    public static string Language
+    {
+        get => PlayerPrefs.GetString("opt_lang", Application.systemLanguage == SystemLanguage.French ? "fr" : "en");
+        set => PlayerPrefs.SetString("opt_lang", value);
+    }
+
     /// <summary>Tutoriel guidé : conseil sous l'objectif et flèche vers le bouton à toucher.</summary>
     public static bool TutorialHints
     {

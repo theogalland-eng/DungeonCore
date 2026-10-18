@@ -71,6 +71,9 @@ Prérequis : Python 3 avec **Pillow**, **NumPy** et **SciPy**. À lancer depuis 
 | `make_decals.py` | Détails de sol du donjon (fissures, cailloux, ossements, mousse, flaques), entièrement procéduraux. |
 | `make_gull.py` | La mouette de la cinématique d'intro (vol, chute, posée). |
 | `make_sfx.py` · `make_ambience.py` | **Bruitages et ambiances entièrement synthétisés** (coups, sorts, pièges, ressac, souffle de caverne, battements de cœur ; jungle, nuit, lac, volcan, village). |
+| `make_voices.py` | **Voix non verbales** par synthèse de formants : cris des familles de monstres (repérage, blessure, mort) et des intrus homme / femme (cri de guerre, blessure, mort, panique) → `vx_*.wav`. |
+| `extract_strings.py` · `build_loc.py` | **Traduction anglaise** : `extract_strings.py` liste les textes affichés du code (découpés comme à l'exécution, trous `{0}`) dans `strings_fr.txt` (`--missing` : seulement ceux pas encore traduits) ; on écrit l'anglais ligne à ligne dans `loc/en_N.txt` (+ `loc/en_extra.txt` pour les mots isolés), puis `build_loc.py` assemble `Assets/Resources/Localization/en.txt`. |
+| `make_music_layers.py` | **Couches musicales dynamiques** sans tempo (tambours de guerre, nappe d'effroi) mêlées par `MusicManager` selon la tension. |
 | `make_banner.py` | La bannière de ce README. |
 | `pixellab*.py` · `build_pixellab_sheets.py` | Client de l'API PixelLab : création d'objets et de personnages, téléchargement, assemblage en planches. |
 

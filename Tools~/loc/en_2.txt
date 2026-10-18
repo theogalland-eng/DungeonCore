@@ -1,0 +1,330 @@
+A crystal has no brain. No nerves. So what am I thinking with? What am I seeing with?
+The sun sets. No one comes.
+Wait. A conscious crystal, on a lost island... I know this. I've read it dozens of times.
+A dungeon core. A living stone that feeds on mana, digs tunnels and fills them with monsters to protect itself.
+If that's it, there must be a system. An interface. Something.
+Status?
+...Status. Menu. Help.
+No one to explain. All right. Calm down.
+There's nothing to read. But if I focus on myself... I feel things.
+My integrity, first. Not a crack. As long as I stay whole, I live. If I shatter... I'd rather not think about it.
+I see without eyes. So I'm already using something. Mana?
+I have no lungs anymore, but the idea of breathing is still there. I try. Breathe in... breathe out.
+...There. Points of light, colourless. They come closer when I breathe in.
+And the ones I've swallowed, I can send back out. Direct them. Badly, but I can.
+Days pass. Maybe two weeks. The sphere does nothing but breathe.
+At night, mana comes on its own. By day, I have to force it.
+And I can't keep it all. Past a certain point, it overflows and slips away.
+Rings all around me. It's beautiful... and useless. I spin them, that's all.
+I'm not going to spend eternity going round in circles on a beach!
+...ENOUGH!
+A seagull was passing by. Bad timing.
+No, no... I didn't mean to...
+It's alive. I can feel it. There's mana in it too, warm, flowing everywhere... and mine is replacing it.
+I could take it all. I can feel it would make me grow.
+...No. Not like this.
+But if my mana is inside it... does it obey me? Fly.
+I see through its eyes. I feel the wind beneath its wings... I'm flying.
+A single beach. Jungle everywhere. And the volcano in the middle, smoking. It's alive too.
+Sails, over there. There are humans, somewhere on the other side.
+If they land, the first thing they'll find is a gem lying on the sand. I can't stay here.
+I need shelter... That crack, in the side of the mountain.
+Gently... There. You can go. Thank you.
+On the beach, my mana clung to the rock. Here, there's nothing but rock.
+I breathe out. Slowly. Into the ground, into the walls...
+I feel the stone the way I felt the seagull. The floor, the walls, the tunnel to the entrance. All of it is me.
+And if it's my body, I can move it.
+A pedestal. So I'm not rolling on the ground anymore.
+...It's exhausting. Everything I shape drains me.
+So I breathe. Not just with myself. With the whole cave.
+It's so much stronger...
+For now, I'm just a hole in a mountain. But I can grow.
+Day 1. Beneath the mountain, something breathes.
+If I have to be a dungeon... I might as well be a good one.
+# CoreSpells.cs
+Intruders in the dungeon freeze; the weakest flee.
+Your monsters recover 40 % of their HP.
+The ceiling collapses on the largest group of intruders.
+Torches go out, intruders' sight halved (20 s).
+Lv. {0}
+{0} s
+{0} mana
+No intruders in the dungeon
+What the... ?
+Do you feel that cold in your bones?
+They tremble... but stay. Brave. For now.
+Your monsters are in top shape
+Rise, my children.
+The mountain crushes you. It obeys me.
+Just one? The mountain is hungry.
+I can't see a thing!
+Darkness is my home. It devours you.
+# CrawlerBoss.cs
+Lord of the lair
+Guardian of floor {0}
+To me, my children!
+{0} flies into a rage and calls for reinforcements
+ENOUGH!
+{0} pounds the ground: get away from the red circles!
+# CrawlerContracts.cs
+Hunt: {0} {1}
+Exploration: reach floor {0}
+Plunder: {0} chests (floor {1} or deeper)
+Bounty: slay the guardian of floor {0}
+to do
+{0} gold + item
+Two contracts at a time, no more
+Contract accepted: {0}
+Contract fulfilled: {0} — claim the bounty at the Guild hall
+# CrawlerDungeon.cs
+The Cave
+The Mouldy Galleries
+The Flooded Caverns
+The Crypt
+The Catacombs
+The Frozen Depths
+The Crystal Veins
+The Sunken Fortress
+The River of Lava
+The Crystal's Lair
+Skrag the Weasel
+Mother Mould
+Countess Ysolde
+# CrawlerGear.cs
+Uncommon
+Battle axe
+Longbow
+Horn bow
+Blessed mace
+Pilgrim's staff
+Chainmail
+Studded leather
+Runic tunic
+Blessed mail
+Pilgrim's cloak
+of the Wolf
+of the Bear
+of the Viper
+of the Fox
+of the Wanderer
+of the Shadow
+Moon Whisper
+Core's Tear
+Last Oath
+Frost Heart
+Song of the Abyss
+Scarlet Dawn
+# CrawlerMode.cs
+Sturdy in melee. Skill: Whirlwind (hits all around).
+Shoots from afar. Skill: Volley (three arrows at three targets).
+Explosive fireballs. Skill: Nova (explosion around yourself).
+Hits lightly, lasts long. Skill: Prayer (big heals).
+Bag full:
+left behind for {2} gold
+Found:
+({2}) — bag: I key
+{0} (you)
+The Guild's boat drops you at the island's pier. In the distance, the volcano smokes.
+Another one who wants a piece of the dungeon? It has TEN floors, and every step down is worse than the last.
+Visit the forge, the mages' tower, and come to the hall: that's where parties form. Alone, you won't get past the fourth floor.
+The crystal is at the very bottom. Shatter it, and your name will be sung in every tavern.
+Move: WASD / arrows or joystick. Attack: Space, click or button. Run: Shift or full joystick. Roll: Ctrl, right click or Dodge button. Skill: R. Potion: F. Interact (doors, people, chests, stairs): E. Recall stone: T.
+You step back out into the open air
+New floor: +1 talent point (K key)
+Floor {0} reached: the Guild can now take you straight down there
+The dungeon grew back while you were away...
+Floor {0}
+The air hums. At the very bottom, a glow beats like a heart: the Core's crystal.
+So many steps just to die here... Come closer, little hero.
+War drums echo in the distance. Something big guards the stairs.
+A tomb-like chill. Whispers in a dead tongue rise from the depths.
+You are already outside
+No recall stone (mages' tower)
+The recall stone takes you back to town
+No more potions (mages' tower)
+No more rations (tavern, chests, hunting)
+You're not hungry
++{0} ration{1} of meat
+Your stomach growls (G: eat)
+Butcher: {0}
+Open the chest
+Go down: floor {0} — {1}
+Go back up to floor {0}
+Passage circle: go down to floor {0}
+Enter: {0}
++{0} gold
++1 potion
++1 ration
++1 recall stone
+You've earned rank {0}: have it validated at the Guild hall
+You collapse...
+The innkeeper
+We picked you up at the cave entrance. Healing isn't free: {0} coins. Get some rest, and don't go back empty-handed.
+We picked you up at the cave entrance. Get some rest... and learn to run.
+{0} fell in battle
+The bard
+The drinkers
+The guildmaster
+Recruitment board
+The adventurers
+The blacksmith
+The scrying orb
+♪ Ten stone steps, ten doors of night... the crystal waits for one who won't take flight! ♪
+Alone past the third floor? Recruit at the board, or prepare your epitaph.
+Images rise in the crystal... Floor {0}, "{1}".
+Critters, mostly. Rats, slimes, goblins. Save your potions for further down.
+Orcs, walking dead. And on the fifth, a warlord guards the stairs.
+Gnolls, wraiths, golems... Down there, a healer is worth more than a sword.
+Liches. Vampires. An archlich on the eighth. Don't go down without a party.
+The crystal. And what guards it. May the gods be with you.
+Goodbye
+Your purse: {0} gold
+·   Potions: {1}   ·   Recall stones: {2}
+"A bed, some soup, and we're done. Your companions too, if they can pay — and you're paying."
+Rest ({0} gold): full health for the whole party
+The party is rested
+A hot soup (6 gold): fully fed
+Provisions: 3 rations (14 gold)
+"Everything that leaves my forge comes back dented. When it comes back."
+Weapon level {0} (damage ×{1}) · Armour level {2} (HP ×{3})
+Sharpen the weapon ({0} gold)
+Reinforce the armour ({0} gold)
+Equip the party ({0} gold): companions +15 % HP and damage
+"Red for wounds. Blue to go home. Don't drink the green ones."
+Healing potion (25 gold)
+Three potions (65 gold)
+Recall stone (45 gold): back to town (T key)
+Your rank: {0} · Monsters defeated: {1} · Deepest floor: {2}/{3}
+Validate rank {0} (+8 % per rank)
+You are now a rank {0} adventurer
+Next rank ({0}): {1} monsters defeated.
+Report your exploration (bounty: {0} gold)
+Guild contracts
+(two at a time, renewed each time you return from the dungeon)
+Claim the bounty: {0} ({1} gold + item)
+bounty: {2}
+Accept: {0}  ({1} gold + {2} item)
+Passage open: the circle in the dungeon's first room leads to floor {0}.
+The Guild opens a direct passage to floors 4 and 7 once an adventurer has reached them.
+Your party: {0}/{1} companions. A fallen companion doesn't come back.
+• {0} — rank {2} {1} ({3}/{4} HP)
+Available recruits:
+{0} — rank {2} {1} ({3} gold)
+No one wants to go down anymore... Come back later.
+Not enough gold
+{0} joins your party
+You pay, I hit. Deal.
+Ten floors? I've seen worse. Well... not really.
+Stay behind me and all will be well.
+If I fall, keep my share for my mother.
+The island's dungeon has fallen
+The crystal shatters. In every tavern on the mainland, they'll sing your name.
+Class:
+·   Rank:
+·   Monsters defeated:
+Surviving companions:
+·   Gold:
+·   Time:
+{2} min
+Back to the home screen
+{0}  ·  rank {1}
+Floor {0}/{1} — {2}
+The dungeon town
+hunger
+HP {0}/{1}   ·
+{2} gold
+·   Potions {3}   ·   Rations {4}   ·   Recall {5}{6}
+{0}   ·   record: floor {1}   ·   defeated {2}
+{3} HP
+Contract
+phase {1}/3
+Talents
+[E] {0}
+# CrawlerPlayer.cs
+Out of breath
+# CrawlerSkills.cs
+Iron skin
+Damage taken -10 %.
+HP +20 %.
+Damage taken a further -15 %.
+Damage +12 %.
+Below half HP, damage +30 %.
+Bloodthirst
+Each hit heals you for 8 % of the damage dealt.
+Wide blade
+Whirlwind radius +35 %.
+Skill cooldown -25 %.
+Steel storm
+Whirlwind power +60 %.
+Hawk eye
+Light step
+Critical +8 %.
+Precise shot
+Damage +15 %.
+Critical +12 %.
+Speed +10 %.
+Dodge +10 %.
+Second wind
+Stamina recovery +40 %.
+Full quiver
+Volley fires two more arrows.
+Rain of arrows
+Volley power +60 %, range +30 %.
+Fireball explosion radius +40 %.
+Damage +20 %.
+Skill cooldown -20 %.
+Stamina recovery +30 %.
+Mana shield
+Damage taken -20 %.
+Nova radius +35 %.
+Nova power +60 %.
+Potions heal 50 % more.
+Shield of faith
+Prayer heals 40 % more.
+Prayer also heals the whole party.
+Skill cooldown -30 %.
+Each hit heals you for 10 % of the damage dealt.
+Critical +10 %.
+Other class
+Previous talent required
+{0} point(s) required
+Talent learned: {0}
+# Domination.cs
+Domination of the island: {0}.
+Domination of the island ({0}/3): {1}
+the colony has submitted
+They bring me their offerings and lower their eyes. This colony now lives in my shadow.
+the colony has fallen
+Not a soul left in their houses. Their walls will be mine.
+the crystal rests in the Heart of the volcano
+Here, in the deepest depths, the magma sings with me. Nowhere will I be stronger.
+the Guild's Champion has fallen
+Their best. The greatest of them all. And now just a memory in my tunnels.
+The whole island is yours.
+The island is yours
+Days:
+·   Intruders absorbed:
+·   Heroes defeated:
+·   Evolutions:
+The colony bends the knee, the Guild's Champion is no more, and your crystal pulses in the Heart of the volcano.
+All across the mainland, they whisper your name.
+Keep reigning
+done
+Domination of the island
+Subdue or conquer the colony
+Slay the Guild's Champion (rank S)
+Place the crystal in the Heart of the volcano
+# DungeonCatalog.cs
+Blade wheel
+Volcanic rock
+# DungeonDoor.cs
+Forcing the door…
+Sealed by runes…
+There must be a lever…
+Blocked!
+# DungeonLayers.cs
+Invalid floor
+Already unlocked
+Unlock the previous floor first
+{0} unlocked: {1}
+No floor to connect

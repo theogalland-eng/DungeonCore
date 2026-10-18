@@ -1,0 +1,300 @@
+The stairs are placed on floor {0} (above)
+Place the stairs on the dungeon floor
+Stairs dug down to {0}
+The floor must be connected by stairs
+# ExpeditionManager.cs
+The exhausted expedition turns back towards its boat
+A colony resident ventures towards your mountain
+Guild Champion
+Aldéric the Undefeated, Guild Champion
+The Guild sends its Champion: Aldéric the Undefeated lands
+Aldéric the Undefeated, Guild Champion, lands on the island.
+Aldéric the Undefeated
+They say a crystal thinks, beneath this mountain. I've come to silence it.
+A lone rank {0} adventurer lands
+A lone visitor lands: {0}
+A castaway washes up on the beach...
+{0} castaways wash up on the beach...
+The storm has brought me survivors, soaked, exhausted... and lost. No one knows they're here.
+# GameDifficulty.cs
+To discover the game. Intruders are few and flee easily, mana flows freely.
+The intended experience. Adventurers fight back, the Guild reacts quickly, mana must be managed.
+For seasoned Cores. Larger, higher-ranked parties that rarely flee.
+No mercy. Fierce intruders, scarce mana, and a single life: no manual saves.
+# GuildSystem.cs
+harmless, a training ground for novices
+not very dangerous, for apprentices only
+dangerous for the reckless
+dangerous: experienced adventurers only
+very dangerous: seasoned parties required
+deadly: for the elite only
+a calamity: the Guild's masters handle it
+a catastrophe: nations are worried
+the apocalypse: only heroes can face it
+terrifying creatures
+a creature lurking in the dark
+several creatures
+traps and wounds
+a companion who never came out
+companions who never came out
+a strange cave and a glow deep in the rock
+fishermen and villagers vanished without a trace
+The Guild team has seen what it wanted to see: it's heading back to report
+The Guild reranks your dungeon: rank {0}
+The Guild downgrades your dungeon: rank {0}
+The rank {0} team never came back.
+The team came back... one of them missing.
+The team came back... without {0} of their own.
+The team came back whole, notebooks full.
+Dungeon unknown to the world
+Reported to the Guild: an assessment is being prepared
+Guild assessment underway (rank {0} team)
+Rank {0} dungeon
+greed {1} · hostility {2}
+# InteriorSystem.cs
+The Dungeon Tavern
+Talk to the innkeeper
+Listen to the bard
+Drink with the regulars
+Adventurers' Guild hall
+Guildmaster's counter
+Recruitment board (form a party)
+Listen to the adventurers
+The Forge
+Talk to the blacksmith
+Weapon rack
+The Mages' Tower
+Talk to the apothecary
+Consult the scrying orb
+The counter
+The blacksmith
+The Guild counter
+What people say
+Guild registry
+The island's dungeon is not ranked yet.
+Island dungeon: rank {0}
+Greed {0}    Hostility {1}
+Missing adventurers: {0}
+Exploration bounty: {0} gold coins
+Dungeon veterans
+— fallen
+{0} "{1}" — rank {2}, {3} expedition(s)
+Gear of the island's adventurers:
+HP
+Damage
+The bigger the colony grows, the better equipped intruders are. A frightened village buys less armour...
+Mages' bestiary
+"We study what lives beneath the mountain. The better to fight it."
+No creatures recorded.
+My gaze slips all the way into their tavern. They drink, they laugh... and they talk about me.
+# IntruderCamp.cs
+An expedition sets up camp near the beach
+An expedition sets up camp near the beach.
+They're pitching tents. They mean to stay... Tonight, they'll sleep by their fire. Vulnerable.
+Expedition camp: the wounded heal there, intruders sleep there at night. Colony window → Raid the camp, at night.
+Night only
+A raid is already underway
+No monsters available
+Camp raid: {0} monster(s) swoop on the sleepers
+Help! We're under attack!
+To arms!
+Camp raid over
+Your monsters swooped on the sleeping intruders' camp.
+# IslandEvents.cs
+Volcano awakening
+Blood moon
+{0} on the island.
+The sky tears open: a storm hits the island
+The sea rises, the wind howls through my tunnels. No boat will risk it... nor be able to leave.
+A thick fog covers the island
+A fog you could cut with a knife. Those who enter today won't see my monsters until the last moment.
+The volcano rumbles: the mountain's mana is boiling
+The mountain wakes with me. I feel the magma pulsing through the rock... and the mana with it.
+Rain is falling: the intruders' torches won't last
+Tonight, the moon will be red
+A blood moon. My creatures are restless: tonight, they'll be thirsty.
+Calm returns to the island
+My torch! It's soaked...
+The sky curses us!
+What was that?!
+The lava flows are cooling
+The mountain shakes! Intruders lose their footing
+The mountain shakes...
+# LootPickup.cs
+Loot!
+# LootSystem.cs
+Copper coins
+A fisherman's pay.
+Leather purse
+A few savings, carefully sewn in.
+Bag of provisions
+Stale bread and dried fish.
+Rusty key
+It hasn't opened anything in a long time.
+Silver coins
+Struck with the Kingdom's seal.
+Copper ingot
+A raw ingot from the mainland.
+Adventurer's pack
+Ropes, torches and scribbled maps.
+Silver ring
+Engraved with a forgotten name.
+Gold coins
+A guild's bounty.
+Mercenary's sword
+Chipped by a hundred fights.
+Mage's staff
+It still crackles with an unfinished spell.
+Mana potion
+A concentrate of what you are made of.
+Silver ingot
+Pure metal, cold to the touch.
+Bronze crown
+That of a small, ambitious lord.
+Emerald blade
+Forged by the elves of the mainland.
+Silver diadem
+A court jewel, set with crystals.
+Ruby signet ring
+The seal of a noble house.
+Medal of bravery
+Awarded to the boldest knights.
+Silver chalice
+Blessed by the Kingdom's priests.
+Emerald amulet
+A talisman against the undead. It didn't work.
+Gold ingot
+Enough to buy a whole village.
+Blessed sword
+A hero's weapon, blessed by the Goddess.
+Hero's crown
+Promised to whoever defeats the Core.
+Solar shield
+It shines even in darkness.
+Cursed sceptre
+It whispers your name.
+Priestess's wand
+It used to heal heroes. Not anymore.
+Tournament cup
+A champion's trophy... now yours.
+Loot:
+({2}) — Treasure panel
+They were carrying something... My corridors swallowed it.
+TREASURE tab: display loot as a TROPHY (prestige: renown and mana every day) or ABSORB it for mana.
+{0} absorbed: +{1} mana
+Trophy:
+Displayed on a table, it brings {0} prestige (renown and ambient mana).
++{0} prestige
+Let them see what's left of those who came before them.
+# MonsterLife.cs
+More!
+I've had enough!
+{0} deserts the dungeon (unhappy)
+{0}, too unhappy, deserted the dungeon.
+I'm bored...
+Grrr... meat!
+Grrr!
+Nothing goes to waste in my tunnels.
+Yum!
+Crr crr
+exhausted
+in good shape
+Mood: {0} · {1} · {2}
+· bored
+{0} and {1} are now inseparable
+{0} and {1} have become inseparable.
+Even my monsters can love. Strange.
+{0} and {1} can't stand each other anymore
+{0} and {1} have become rivals.
+Noooo!
+Inseparable from {0}
+{0} friend{1}
+{0} rival{1}
+# MonsterMind.cs
+Only a dungeon creature can guard a floor
+It must have reached its final form
+It's already this floor's guardian
+This floor already has its guardian
+{0} mana needed
+{0} becomes {1}
+of the floor
+of the
+of the
+of the
+of
+Guardian {0}
+None shall pass.
+The crystal is mine to guard.
+Another hero? Come closer.
+Did you come to die in my home?
+Rank {0}... Is that all?
+The Master entrusted me with this floor. Back off.
+More souls to reap...
+Rise, my servants.
+Death is only the beginning.
+Your blood smells of fear.
+Come... closer.
+What a delicious visit.
+Burn!
+Your gods can't hear you down here.
+Hah! Prey.
+You shouldn't have come.
+The cold will take you.
+Master, our corridors are bare. A trap or two near the entrance would break their momentum.
+We fight well, but traps wear the enemy down before they reach us. We'd need more.
+We are too few. Summon more creatures, or the next party will walk right through.
+The humans hate us. They'll come in greater numbers, and more determined. Get ready.
+Your treasures are the talk of the mainland. They draw fortune hunters... and their gold.
+The one they call "{0}" knows our traps. Move them, or he'll disarm them again.
+Mana is overflowing from the crystal. Don't let it go to waste: dig, summon, build.
+This red moon... I feel my strength multiply. Let them come tonight.
+Night is our ally. Mana flows and the humans can barely see.
+All is quiet, Master. Too quiet. They're planning something.
+It... is looking at me. Not like a beast. Like someone awaiting orders.
+Master. You gave me life; let me serve you.
+{0}, {1}, has fallen!
+{0}... You held your floor to the very end.
+# MonsterTraits.cs
+Summoned skeleton
+# MonsterUnit.cs
+Ultimate form
+Impossible during an attack
+Experience {0}/{1}
+Core level {0} required
+{0} can evolve!
+Evolution ready
+Evolution: {0}!
+{0} evolves into {1}.
+# MusicManager.cs
+Music A
+Music B
+Ambience A
+Ambience B
+Danger ambience
+War layer
+Dread layer
+| war={0}/{1} dread={2}/{3}
+| want={0} cur={1} playing={2}
+# NemesisSystem.cs
+{0} "{1}" has fallen for good
+{0}... {1} times you came back. Strangely, I'll almost miss you.
+{0} "{1}" will never return to tell my secrets.
+# ObjectiveSystem.cs
+Dig a real lair
+Right panel → Build → Dig, then tap the rock around the crystal.
+Give life to a first creature
+Monsters tab: pick a creature then tap the dug floor.
+Set a trap in my corridors
+Traps tab: place it on the intruders' path.
+Absorb an intruder's essence
+Intruders come by boat. "Call" brings some without waiting.
+Survive the Guild's assessment
+After a few visits, the Guild judges the dungeon: hold on.
+Evolve one of my creatures
+Tap a seasoned creature, then "Evolve".
+Choose a Core talent
+Each level grants a point: "Talents" button.
+Open a new floor in the rock
+Floors tab: unlock the next floor, then dig a staircase.
+Be ranked C by the Guild
+Absorb twenty intruders
