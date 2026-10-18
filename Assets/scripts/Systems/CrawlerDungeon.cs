@@ -208,7 +208,12 @@ public static class CrawlerDungeon
             var u = it.prefab != null ? it.prefab.GetComponent<MonsterUnit>() : null;
             if (u == null || u.familyId != family || u.stage != 1) continue;
             var p = it.prefab;
-            for (int s = 1; s < stage && u.nextStage != null; s++) { p = u.nextStage; u = p.GetComponent<MonsterUnit>(); }
+            for (int s = 1; s < stage && u.nextStage != null; s++)
+            {
+                // au stade 2, une fois sur trois, la famille prend une voie de rôle (archers, mages...)
+                p = s == 1 && u.HasChoice && Random.value < 0.35f ? u.branches[Random.Range(0, u.branches.Length)] ?? u.nextStage : u.nextStage;
+                u = p.GetComponent<MonsterUnit>();
+            }
             return p;
         }
         return null;

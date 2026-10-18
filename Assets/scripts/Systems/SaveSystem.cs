@@ -205,6 +205,7 @@ public class SaveSystem : MonoBehaviour
                 energy = g.Life != null ? g.Life.energy : 90f,
                 mood = g.Life != null ? g.Life.mood : 60f,
                 variant = g.GetComponent<MonsterVariant>() != null ? g.GetComponent<MonsterVariant>().theme : null,
+                role = u.role,
             });
         }
 
@@ -338,7 +339,7 @@ public class SaveSystem : MonoBehaviour
         var prefabs = MonsterPrefabs(cat);
         foreach (var m in d.monsters)
         {
-            if (!prefabs.TryGetValue(m.family + "_" + m.stage, out var prefab)) continue;
+            if (!prefabs.TryGetValue(PrefabKey(m.family, m.role, m.stage), out var prefab)) continue;
             var ai = MonsterSpawner.Instance != null ? MonsterSpawner.Instance.SpawnFree(prefab, new Vector2(m.x, m.y), new Vector2(m.ax, m.ay), m.name) : null;
             if (ai == null) continue;
             MonsterVariant.Inherit(ai.gameObject, string.IsNullOrEmpty(m.variant) ? null : m.variant);
@@ -396,20 +397,26 @@ public class SaveSystem : MonoBehaviour
     }
 
     /// <summary>Prefabs de monstres par « famille_stade » (en suivant les chaînes d'évolution du catalogue).</summary>
+    private static string PrefabKey(string family, string role, int stage) =>
+        string.IsNullOrEmpty(role) ? family + "_" + stage : family + "_" + role + "_" + stage;
+
+    /// <summary>Prefabs par « famille[_rôle]_stade », voies de rôle comprises.</summary>
     private static Dictionary<string, GameObject> MonsterPrefabs(DungeonCatalog cat)
     {
         var map = new Dictionary<string, GameObject>();
+        var todo = new Stack<GameObject>();
         foreach (var item in cat.items)
+            if (item.kind == ItemKind.Monster && item.prefab != null) todo.Push(item.prefab);
+        for (int guard = 0; todo.Count > 0 && guard < 2000; guard++)
         {
-            if (item.kind != ItemKind.Monster || item.prefab == null) continue;
-            var p = item.prefab;
-            for (int guard = 0; p != null && guard < 5; guard++)
-            {
-                var u = p.GetComponent<MonsterUnit>();
-                if (u == null || string.IsNullOrEmpty(u.familyId)) break;
-                map[u.familyId + "_" + u.stage] = p;
-                p = u.nextStage;
-            }
+            var p = todo.Pop();
+            var u = p != null ? p.GetComponent<MonsterUnit>() : null;
+            if (u == null || string.IsNullOrEmpty(u.familyId)) continue;
+            string key = PrefabKey(u.familyId, u.role, u.stage);
+            if (map.ContainsKey(key)) continue;
+            map[key] = p;
+            if (u.nextStage != null) todo.Push(u.nextStage);
+            if (u.branches != null) foreach (var b in u.branches) if (b != null) todo.Push(b);
         }
         return map;
     }

@@ -16,6 +16,7 @@ public static class Voices
         { "goblin", "goblin" }, { "orc", "orc" }, { "rat", "rat" }, { "gnoll", "beast" },
         { "skeleton", "undead" }, { "zombie", "undead" }, { "ghost", "undead" }, { "lich", "undead" }, { "vampire", "undead" },
         { "imp", "imp" }, { "demon", "demon" }, { "slime", "slime" }, { "mushroom", "slime" }, { "lizard", "lizard" }, { "golem", "golem" },
+        { "spider", "lizard" },
     };
 
     private static readonly HashSet<string> Feminine = new HashSet<string>

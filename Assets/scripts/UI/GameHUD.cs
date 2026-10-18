@@ -861,7 +861,9 @@ public class GameHUD : MonoBehaviour
         {
             bool ok = unit.CanEvolveNow(out string why);
             string next = unit.nextStage != null ? unit.nextStage.GetComponent<MonsterUnit>()?.familyName ?? unit.nextStage.name : "";
-            evolveLabel.text = ok ? $"Évoluer en {next} ({unit.EffectiveEvolveCost} mana)" : $"<color=#C8BFA8>Évolution : {why}</color>";
+            evolveLabel.text = !ok ? $"<color=#C8BFA8>Évolution : {why}</color>"
+                : unit.HasChoice ? $"Évoluer : choisir sa voie ({unit.EffectiveEvolveCost} mana)"
+                : $"Évoluer en {next} ({unit.EffectiveEvolveCost} mana)";
             evolveButton.GetComponent<Image>().color = ok ? new Color(0.62f, 0.46f, 0.1f, 1f) : new Color(0.25f, 0.22f, 0.18f, 1f);
         }
     }
@@ -871,7 +873,9 @@ public class GameHUD : MonoBehaviour
         var sel = MonsterSelector.Instance;
         if (sel == null || sel.SelectedGoblins.Count != 1) return;
         var unit = sel.SelectedGoblins[0].GetComponent<MonsterUnit>();
-        unit?.Evolve();
+        if (unit == null) return;
+        if (unit.HasChoice) EvolveChoiceDialog.Open(unit);    // voie classique ou voie de rôle
+        else unit.Evolve();
     }
 
     private void PossessSelected()

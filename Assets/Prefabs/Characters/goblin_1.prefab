@@ -267,7 +267,12 @@ MonoBehaviour:
   familyId: goblin
   familyName: Gobelin
   stage: 1
+  role: 
+  pathDesc: 
+  portrait: {fileID: 0}
   nextStage: {fileID: 4489254533443408943, guid: 40e1d3bdd5f57d44aa6c89af0c9e9f03, type: 3}
+  branches:
+  - {fileID: 4522371980699189416, guid: 84bd24a27c8146740bf5a159950d5bac, type: 3}
   xpToEvolve: 60
   evolveCost: 36
   evolveLevelRequired: 4

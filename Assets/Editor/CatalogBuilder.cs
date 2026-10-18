@@ -350,8 +350,10 @@ public static class CatalogBuilder
                     EditorUtility.SetDirty(mu.gameObject);
                 }
             }
+            var paths = CharacterImporter.Branches().Where(br => br.family == fam.id).Select(br => br.names[0]).ToArray();
             Monster($"{fam.id}_1", fam.names[0], fam.cost, fam.level,
-                $"{fam.desc} Évolue en {fam.names[1]} puis {fam.names[2]}. Entretien : {fam.upkeep} mana/jour.");
+                $"{fam.desc} Évolue en {fam.names[1]} puis {fam.names[2]}" + (paths.Length > 0 ? $" — ou prend une autre voie : {string.Join(", ", paths)}" : "") +
+                $". Entretien : {fam.upkeep} mana/jour.");
         }
         Monster("cave_boar", "Sanglier des cavernes", 70, 7, "Très rapide, charge les intrus qui fuient. Entretien : 5 mana/jour.");
         Monster("temple_spirit", "Esprit du temple", 320, 20, "Gardien antique : glace les intrus d'effroi. Entretien : 14 mana/jour.");

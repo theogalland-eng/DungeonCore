@@ -1,4 +1,4 @@
-﻿#if UNITY_EDITOR
+#if UNITY_EDITOR
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -91,7 +91,7 @@ public static class CharacterImporter
         public string desc;
         public string dirOrder = "DULR";
         public int frame = 64;
-        public System.Func<int, string, string> file;   // (stade, état) → fichier ou fragment de chemin
+        public System.Func<int, string, string> file;   // (stade, état) → fichier ou fragment de chemin (null : planches 8 directions seulement)
         public System.Action<GameObject, int> traits;   // pouvoirs par stade
     }
 
@@ -161,8 +161,88 @@ public static class CharacterImporter
                 file = (n, st) => $"Golem{n}/With_shadow/Golem{n}_{st}_with_shadow.png",
                 desc = "Colosse de roche, lent mais presque indestructible : ses coups sonnent les intrus.",
                 traits = (go, s) => { var t = T(go); t.slowMult = 0.25f; t.slowSeconds = 0.6f + 0.3f * s; } },
+            // ── familles dessinées pour le projet (Tools~/make_creatures.py)
+            new Family { id = "spider", folder = "Spider", names = new[] { "Araignée des cavernes", "Tisseuse", "Reine-araignée" },
+                hp = 70, dmg = 9, range = 1.1f, chase = 1.8f, cd = 0.9f, cost = 55, level = 4, upkeep = 6,
+                desc = "Son venin empoisonne ; la Tisseuse tend des toiles qui engluent les intrus, la Reine pond des araignées au combat.",
+                traits = (go, s) =>
+                {
+                    var t = T(go); t.poisonDps = 2 + 2 * s; t.poisonSeconds = 4f;
+                    if (s >= 2) { t.webCount = s == 2 ? 2 : 4; t.webSprite = TrapArt.Frames("web").FirstOrDefault(); }
+                    if (s == 3) { t.summonPrefab = Prefab("spider_1"); t.summonCount = 2; t.summonCooldown = 15f; t.summonLifetime = 45f; t.summonName = "Araignée"; }
+                } },
         };
         return f;
+    }
+
+    /// <summary>
+    /// Voie de rôle d'une famille : au passage au stade 2, le joueur choisit entre la voie classique et ces voies
+    /// (planches Tools~/make_monster_roles.py : Characters8/&lt;famille&gt;_&lt;rôle&gt;_&lt;stade&gt;). Stats = famille × multiplicateurs.
+    /// </summary>
+    public class Branch
+    {
+        public string family, role;
+        public string[] names;                      // stades 2 et 3
+        public string desc;
+        public float hp = 1f, dmg = 1f, range = -1f, chase = 1f, cd = -1f;
+        public System.Action<GameObject, int> traits;
+    }
+
+    public static List<Branch> Branches() => new List<Branch>
+    {
+        new Branch { family = "goblin", role = "archer", names = new[] { "Gobelin archer", "Tireur d'élite gobelin" },
+            hp = 0.85f, dmg = 0.9f, range = 4.5f, cd = 1.1f,
+            desc = "Tire des flèches de loin et recule quand on l'approche. Le tireur d'élite vise plus loin et porte des coups critiques.",
+            traits = (go, s) => { var t = T(go); t.projectileFx = "arrow"; if (s == 3) { t.critChance = 0.25f; go.GetComponent<GobelinAI>().attackRange = 5.5f; } } },
+        new Branch { family = "skeleton", role = "mage", names = new[] { "Squelette mage", "Nécromancien" },
+            hp = 0.8f, dmg = 0.95f, range = 4f, cd = 1.35f,
+            desc = "Lance des traits de magie glacée qui ralentissent. Le nécromancien relève en squelettes les intrus tombés près de lui.",
+            traits = (go, s) =>
+            {
+                var t = T(go); t.projectileColor = new Color(0.45f, 1f, 0.65f); t.slowMult = 0.75f; t.slowSeconds = 1.2f;
+                if (s == 3) { t.raiseDead = 3; t.raisePrefab = Prefab("skeleton_1"); }
+            } },
+    };
+
+    /// <summary>Prefabs des voies de rôle d'une famille (stade 3 d'abord : le stade 2 le référence).</summary>
+    static IEnumerable<Spec> BranchSpecs(Family fa)
+    {
+        foreach (var b in Branches())
+        {
+            if (b.family != fa.id) continue;
+            var br = b;
+            for (int stage = 3; stage >= 2; stage--)
+            {
+                int s = stage;
+                string id = $"{fa.id}_{br.role}_{s}";
+                var f8 = Files8(id);
+                if (f8 == null) { Debug.LogWarning($"[CharacterImporter] planches absentes : {id} (Tools~/make_monster_roles.py)"); continue; }
+                yield return new Spec
+                {
+                    id = id, displayName = br.names[s - 2], kind = Kind.Monster, frame = 64, files = f8, dirs8 = true,
+                    configure = go =>
+                    {
+                        float range = br.range > 0f ? br.range : fa.range;
+                        Gob(go, br.names[s - 2], Mathf.Round(fa.hp * HpMult[s - 1] * br.hp), Mathf.Round(fa.dmg * DmgMult[s - 1] * br.dmg), range,
+                            0.5f, fa.chase * SpeedMult[s - 1] * br.chase, range > 2f ? 6.5f : 5f, br.cd > 0f ? br.cd : fa.cd);
+                        var u = go.GetComponent<MonsterUnit>() ?? go.AddComponent<MonsterUnit>();
+                        u.familyId = fa.id;
+                        u.familyName = br.names[s - 2];
+                        u.stage = s;
+                        u.role = br.role;
+                        u.pathDesc = br.desc;
+                        u.branches = null;
+                        u.upkeepPerDay = UpkeepFor(fa, s);
+                        u.nextStage = s < 3 ? Prefab($"{fa.id}_{br.role}_3") : null;
+                        u.xpToEvolve = s < 3 ? EvolveXp[1] : 0;
+                        u.evolveCost = s < 3 ? Mathf.RoundToInt(fa.cost * 2.5f) : 0;
+                        u.evolveLevelRequired = EvolveLevel(fa, s);
+                        fa.traits?.Invoke(go, s);
+                        br.traits?.Invoke(go, s);
+                    },
+                };
+            }
+        }
     }
 
     /// <summary>Niveau du Noyau requis pour faire évoluer un stade (stade 1 → 2 : niveau+2, 2 → 3 : niveau+4).</summary>
@@ -187,8 +267,10 @@ public static class CharacterImporter
             for (int stage = 3; stage >= 1; stage--)
             {
                 int s = stage;
+                // voies de rôle (stades 3 puis 2) avant le stade 1, qui les référence
+                if (s == 1) list.AddRange(BranchSpecs(fa));
                 var files = new Dictionary<string, string>();
-                foreach (var st in StdStates) files[st] = fa.file(s, st);
+                if (fa.file != null) foreach (var st in StdStates) files[st] = fa.file(s, st);
                 // planches 8 directions (Tools~/make_8dir.py) quand elles existent
                 var f8 = Files8($"{fa.id}_{s}");
                 list.Add(new Spec
@@ -203,6 +285,9 @@ public static class CharacterImporter
                         u.familyId = fa.id;
                         u.familyName = fa.names[s - 1];
                         u.stage = s;
+                        u.role = null;
+                        u.pathDesc = s == 2 ? $"Plus robuste et plus fort, il garde sa façon de combattre. {fa.desc}" : null;
+                        u.branches = s == 1 ? Branches().Where(b => b.family == fa.id).Select(b => Prefab($"{fa.id}_{b.role}_2")).Where(p => p != null).ToArray() : null;
                         u.upkeepPerDay = UpkeepFor(fa, s);
                         u.nextStage = s < 3 ? Prefab($"{fa.id}_{s + 1}") : null;
                         u.xpToEvolve = s < 3 ? EvolveXp[s - 1] : 0;
@@ -746,7 +831,7 @@ public static class CharacterImporter
     /// <summary>Première image de l'animation d'attente (face à la caméra) : l'apparence réelle en jeu.</summary>
     public static Sprite IdleSprite(string id)
     {
-        foreach (var name in new[] { $"{id}_Idle_Down", $"{id}_Idle", $"{id}_Walk_Down", $"{id}_Walk" })
+        foreach (var name in new[] { $"{id}_Idle_Down", $"{id}_Idle_S", $"{id}_Idle", $"{id}_Walk_Down", $"{id}_Walk_S", $"{id}_Walk" })
         {
             var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>($"Assets/Animations/Generated/{id}/{name}.anim");
             if (clip == null) continue;
@@ -818,6 +903,13 @@ public static class CharacterImporter
         if (sr != null && sr.sprite != s)
         {
             sr.sprite = s;
+            EditorUtility.SetDirty(pf);
+        }
+        // portrait recadré des formes évoluées (fenêtre de choix de voie)
+        var mu = pf.GetComponent<MonsterUnit>();
+        if (mu != null && mu.stage >= 2 && mu.portrait == null)
+        {
+            mu.portrait = IconSprite(id);
             EditorUtility.SetDirty(pf);
         }
         return s;

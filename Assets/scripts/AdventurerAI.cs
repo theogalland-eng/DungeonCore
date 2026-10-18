@@ -17,6 +17,8 @@ public class AdventurerAI : MonoBehaviour
 {
     /// <summary>Tous les intrus vivants (évite les FindObjectsByType coûteux).</summary>
     public static readonly List<AdventurerAI> All = new List<AdventurerAI>();
+    /// <summary>Un intrus vient de mourir (nécromanciens qui relèvent les morts...).</summary>
+    public static event System.Action<AdventurerAI> AnyDied;
 
     public enum AdventurerState
     {
@@ -1005,6 +1007,7 @@ public class AdventurerAI : MonoBehaviour
         Chronicle.Add($"{Chronicle.Who(this)} est {cause}.");
         // mort dans le donjon : le corps reste... et nourrit vos monstres
         if (IsInsideDungeon) Corpse.Spawn(rb.position, 3);
+        if (!isDead) AnyDied?.Invoke(this);
         if (isDead || departed) return;
         isDead = true;
 

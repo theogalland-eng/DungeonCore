@@ -268,7 +268,11 @@ MonoBehaviour:
   familyId: lich
   familyName: Liche
   stage: 2
+  role: 
+  pathDesc: 
+  portrait: {fileID: 21300000, guid: d8cd2e746c5f9c74bbc70ed68ca4c9e6, type: 3}
   nextStage: {fileID: 8494899693046237873, guid: 12456ace1695d904b9db01343134696c, type: 3}
+  branches: []
   xpToEvolve: 180
   evolveCost: 350
   evolveLevelRequired: 18
@@ -293,8 +297,17 @@ MonoBehaviour:
   slowSeconds: 0
   burnDps: 0
   burnSeconds: 0
+  poisonDps: 0
+  poisonSeconds: 0
+  critChance: 0
   projectileColor: {r: 0.5, g: 1, b: 0.6, a: 1}
+  projectileFx: 
+  webCount: 0
+  webSprite: {fileID: 0}
+  raiseDead: 0
+  raisePrefab: {fileID: 0}
   summonPrefab: {fileID: 321398268140917867, guid: bd84cd152d2f45445adec630f0fcb80d, type: 3}
   summonCount: 2
   summonCooldown: 12
   summonLifetime: 40
+  summonName: "Squelette invoqu\xE9"

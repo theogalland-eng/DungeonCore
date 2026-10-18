@@ -268,7 +268,11 @@ MonoBehaviour:
   familyId: demon
   familyName: "D\xE9mon"
   stage: 2
+  role: 
+  pathDesc: 
+  portrait: {fileID: 21300000, guid: d4e04aac43cf29247959560e85767122, type: 3}
   nextStage: {fileID: 6356439577026491178, guid: 8b1cec2ec086f864ea4ce41b3875d7f0, type: 3}
+  branches: []
   xpToEvolve: 180
   evolveCost: 650
   evolveLevelRequired: 22
@@ -293,8 +297,17 @@ MonoBehaviour:
   slowSeconds: 0
   burnDps: 8
   burnSeconds: 3
+  poisonDps: 0
+  poisonSeconds: 0
+  critChance: 0
   projectileColor: {r: 0, g: 0, b: 0, a: 0}
+  projectileFx: 
+  webCount: 0
+  webSprite: {fileID: 0}
+  raiseDead: 0
+  raisePrefab: {fileID: 0}
   summonPrefab: {fileID: 0}
   summonCount: 0
   summonCooldown: 12
   summonLifetime: 40
+  summonName: "Squelette invoqu\xE9"

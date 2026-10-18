@@ -14,10 +14,18 @@ public class MonsterUnit : MonoBehaviour
     public string familyId;
     public string familyName;
     [Range(1, 3)] public int stage = 1;
+    [Tooltip("Voie de rôle (archer, mage...) ; vide = voie classique")]
+    public string role;
+    [Tooltip("Ce que propose cette forme quand on la choisit (fenêtre d'évolution)")]
+    [TextArea] public string pathDesc;
+    [Tooltip("Portrait recadré (fenêtre d'évolution)")]
+    public Sprite portrait;
 
     [Header("Évolution")]
     [Tooltip("Prefab du stade suivant (vide = forme finale)")]
     public GameObject nextStage;
+    [Tooltip("Voies de rôle proposées à l'évolution, en plus de la voie classique (stade 1 → 2)")]
+    public GameObject[] branches;
     public int xpToEvolve = 60;
     public int evolveCost = 50;
     public int evolveLevelRequired = 2;
@@ -30,6 +38,8 @@ public class MonsterUnit : MonoBehaviour
     public bool summoned;
 
     public bool IsFinalForm => nextStage == null;
+    /// <summary>L'évolution propose un choix de voie (classique ou rôle).</summary>
+    public bool HasChoice => branches != null && System.Array.Exists(branches, b => b != null);
     /// <summary>Coût réel de l'évolution (une forge des monstres le réduit).</summary>
     public int EffectiveEvolveCost => Mathf.RoundToInt(evolveCost * ThemedRooms.EvolveCostMult(transform.position) * Talents.EvolveCostMult);
     public bool ReadyToEvolve => !IsFinalForm && xp >= xpToEvolve;
@@ -106,14 +116,15 @@ public class MonsterUnit : MonoBehaviour
     }
 
     /// <summary>Fait évoluer le monstre (paie le mana) : remplacé par la forme suivante au même endroit.</summary>
-    public MonsterUnit Evolve()
+    public MonsterUnit Evolve(GameObject target = null)
     {
+        if (target == null) target = nextStage;
         if (!CanEvolveNow(out string reason)) { GameHUD.Toast(reason, GameHUD.WarningColor); return null; }
         if (ManaSystem.Instance != null && !ManaSystem.Instance.TrySpend(EffectiveEvolveCost)) return null;
         if (GameManager.Instance != null) GameManager.Instance.statEvolutions++;
 
         var old = GetComponent<GobelinAI>();
-        var go = Instantiate(nextStage, transform.position, Quaternion.identity, transform.parent);
+        var go = Instantiate(target, transform.position, Quaternion.identity, transform.parent);
         var oldVariant = GetComponent<MonsterVariant>();
         if (oldVariant != null) MonsterVariant.Inherit(go, oldVariant.theme);   // la variante survit à l'évolution
         var ai = go.GetComponent<GobelinAI>();
@@ -122,7 +133,7 @@ public class MonsterUnit : MonoBehaviour
             ai.dungeonCore = old.dungeonCore;
             ai.anchorPoint = old.anchorPoint;
             var pa = old.anchorPoint != null ? old.anchorPoint.GetComponent<PatrolAnchor>() : null;
-            if (pa != null) { pa.UnregisterGoblin(old); pa.RegisterGoblin(ai); }
+            if (pa != null) { pa.RegisterGoblin(ai); pa.UnregisterGoblin(old); }   // dans cet ordre : une ancre vide se détruit
             ai.gobelinName = go.GetComponent<MonsterUnit>()?.familyName ?? go.name;
         }
         go.name = ai != null ? ai.gobelinName : go.name;
@@ -151,7 +162,7 @@ public class MonsterUnit : MonoBehaviour
             ai.dungeonCore = old.dungeonCore;
             ai.anchorPoint = old.anchorPoint;
             var pa = old.anchorPoint != null ? old.anchorPoint.GetComponent<PatrolAnchor>() : null;
-            if (pa != null) { pa.UnregisterGoblin(old); pa.RegisterGoblin(ai); }
+            if (pa != null) { pa.RegisterGoblin(ai); pa.UnregisterGoblin(old); }   // dans cet ordre : une ancre vide se détruit
             ai.gobelinName = go.GetComponent<MonsterUnit>()?.familyName ?? go.name;
         }
         go.name = ai != null ? ai.gobelinName : go.name;

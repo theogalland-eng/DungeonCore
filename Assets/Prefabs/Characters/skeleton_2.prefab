@@ -267,7 +267,12 @@ MonoBehaviour:
   familyId: skeleton
   familyName: Squelette guerrier
   stage: 2
+  role: 
+  pathDesc: "Plus robuste et plus fort, il garde sa fa\xE7on de combattre. Soldat
+    mort-vivant infatigable."
+  portrait: {fileID: 21300000, guid: 5fe5a0d5c2b22d6489f7ddfa40c9f875, type: 3}
   nextStage: {fileID: 4755817276128474933, guid: 757c3e9fa960bf34bbed71a92039123c, type: 3}
+  branches: []
   xpToEvolve: 180
   evolveCost: 112
   evolveLevelRequired: 7

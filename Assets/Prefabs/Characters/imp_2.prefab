@@ -268,7 +268,11 @@ MonoBehaviour:
   familyId: imp
   familyName: Diablotin de feu
   stage: 2
+  role: 
+  pathDesc: 
+  portrait: {fileID: 21300000, guid: 0beffdb4657591c4f907d4129c910c4b, type: 3}
   nextStage: {fileID: 7080422669657789845, guid: c93cdaf5e19fb1d4f8b7ca7819a1058f, type: 3}
+  branches: []
   xpToEvolve: 180
   evolveCost: 175
   evolveLevelRequired: 12
@@ -293,8 +297,17 @@ MonoBehaviour:
   slowSeconds: 0
   burnDps: 6
   burnSeconds: 3
+  poisonDps: 0
+  poisonSeconds: 0
+  critChance: 0
   projectileColor: {r: 1, g: 0.55, b: 0.2, a: 1}
+  projectileFx: 
+  webCount: 0
+  webSprite: {fileID: 0}
+  raiseDead: 0
+  raisePrefab: {fileID: 0}
   summonPrefab: {fileID: 0}
   summonCount: 0
   summonCooldown: 12
   summonLifetime: 40
+  summonName: "Squelette invoqu\xE9"

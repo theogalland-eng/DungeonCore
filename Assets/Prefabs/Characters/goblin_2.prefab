@@ -267,7 +267,12 @@ MonoBehaviour:
   familyId: goblin
   familyName: Gobelin pillard
   stage: 2
+  role: 
+  pathDesc: "Plus robuste et plus fort, il garde sa fa\xE7on de combattre. Vif et
+    sournois, mais fragile : frappe vite."
+  portrait: {fileID: 21300000, guid: 7bcb6c4bb101f8d4389e48df2b5e9352, type: 3}
   nextStage: {fileID: 8344069988074151932, guid: caa8709beea823c4895e1beedc410244, type: 3}
+  branches: []
   xpToEvolve: 180
   evolveCost: 75
   evolveLevelRequired: 6

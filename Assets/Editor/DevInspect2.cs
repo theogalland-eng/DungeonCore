@@ -1148,6 +1148,76 @@ public static class DevInspect3
         }
         return $"garde-manger posé, {n} monstres affamés (le 2e tient la position)";
     }
+    /// <summary>Nouvelles familles / voies de rôle : importe les prefabs (deux passes : la reine référence l'araignée du stade 1).</summary>
+    public static string ImportNewMonsters()
+    {
+        string[] ids = { "goblin_archer_3", "goblin_archer_2", "goblin_3", "goblin_2", "goblin_1",
+                         "skeleton_mage_3", "skeleton_mage_2", "skeleton_3", "skeleton_2", "skeleton_1",
+                         "spider_3", "spider_2", "spider_1" };
+        UnityEditor.AssetDatabase.Refresh();
+        string r = CharacterImporter.ImportOnly(ids);
+        CharacterImporter.ImportOnly("spider_3");
+        return r;
+    }
+    static GobelinAI SpawnMon(string id, Vector2 off)
+    {
+        var pf = CharacterImporter.Prefab(id);
+        var core = Object.FindFirstObjectByType<DungeonCore>().transform.position;
+        Vector2 p = (Vector2)core + off;
+        return pf != null ? MonsterSpawner.Instance.SpawnFree(pf, p, p, id) : null;
+    }
+    public static string EvolveChoiceTest()
+    {
+        for (int i = 0; i < 8; i++) PlayerLevel.Instance.AddXP(PlayerLevel.Instance.xpForNextLevel);
+        ManaSystem.Instance.Add(5000);
+        var g = SpawnMon("goblin_1", new Vector2(-1f, -1f));
+        var s = SpawnMon("skeleton_1", new Vector2(1f, -1f));
+        foreach (var m in new[] { g, s }) { var u = m.GetComponent<MonsterUnit>(); u.xp = u.xpToEvolve; }
+        EvolveChoiceDialog.Open(g.GetComponent<MonsterUnit>());
+        return $"niveau {PlayerLevel.Instance.currentLevel} branches gob={g.GetComponent<MonsterUnit>().branches?.Length} sq={s.GetComponent<MonsterUnit>().branches?.Length}";
+    }
+    public static string EvolvePaths()
+    {
+        var sb = new System.Text.StringBuilder();
+        Object.FindFirstObjectByType<EvolveChoiceDialog>()?.gameObject.SetActive(false);
+        foreach (var g in GobelinAI.All.ToArray())
+        {
+            var u = g != null ? g.GetComponent<MonsterUnit>() : null;
+            if (u == null || !u.HasChoice) continue;
+            var nu = u.Evolve(u.branches[0]);
+            if (nu == null) { sb.Append("échec "); continue; }
+            var fin = nu.EvolveFree();
+            sb.Append($"[{u.familyId} → {nu.familyName} → {fin?.familyName}] ");
+        }
+        SpawnMon("spider_3", new Vector2(0f, 1.5f));
+        SpawnMon("spider_2", new Vector2(-1.5f, 1.5f));
+        return sb.ToString();
+    }
+    public static string NewMonstersFight()
+    {
+        var core = Object.FindFirstObjectByType<DungeonCore>().transform.position;
+        int k = 0;
+        foreach (var a in AdventurerAI.All.ToArray())
+        {
+            if (a == null) continue;
+            Vector2 p = (Vector2)core + new Vector2(-2f + (k % 4) * 1.3f, -3.2f - (k / 4) * 0.8f);
+            var rb = a.GetComponent<Rigidbody2D>(); rb.position = p; a.transform.position = p;
+            k++;
+        }
+        return $"{k} intrus amenés";
+    }
+    public static string NewMonstersState()
+    {
+        var sb = new System.Text.StringBuilder();
+        foreach (var g in GobelinAI.All) if (g != null)
+        {
+            var u = g.GetComponent<MonsterUnit>(); var t = g.GetComponent<MonsterTraits>();
+            sb.Append($"[{g.gobelinName} pv={g.currentHealth:0}/{g.maxHealth:0} portée={g.attackRange} rôle={u?.role} summoned={u?.summoned}] ");
+        }
+        sb.Append($" toiles={SpiderWeb.All.Count} intrus={AdventurerAI.All.Count}");
+        return sb.ToString();
+    }
+    public static string CoreShot() { var p = Object.FindFirstObjectByType<DungeonCore>().transform.position; return DevInspect.Shot(p.x, p.y - 1.5f, 3.5f, 1200, 900, "core"); }
     public static string LarderShot() { var f = FoodBait.All[0]; var p = f.transform.position; return DevInspect.Shot(p.x, p.y, 4f, 1000, 800, "larder"); }
     public static string LarderState()
     {

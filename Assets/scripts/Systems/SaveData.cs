@@ -110,6 +110,7 @@ public class MonsterSave
     public int traits = -1;
     public float hunger = 20f, energy = 90f, mood = 60f;
     public string variant;   // thème de la variante d'étage (vide : aucune)
+    public string role;      // voie de rôle (archer, mage...) ; vide : voie classique
 }
 
 [Serializable]

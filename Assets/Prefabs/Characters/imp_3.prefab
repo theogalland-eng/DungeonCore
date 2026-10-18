@@ -268,7 +268,11 @@ MonoBehaviour:
   familyId: imp
   familyName: Diablotin infernal
   stage: 3
+  role: 
+  pathDesc: 
+  portrait: {fileID: 21300000, guid: 8e9cc33aa8983654684c3e8cbb0e8b29, type: 3}
   nextStage: {fileID: 0}
+  branches: []
   xpToEvolve: 0
   evolveCost: 0
   evolveLevelRequired: 12
@@ -293,8 +297,17 @@ MonoBehaviour:
   slowSeconds: 0
   burnDps: 8
   burnSeconds: 3
+  poisonDps: 0
+  poisonSeconds: 0
+  critChance: 0
   projectileColor: {r: 1, g: 0.55, b: 0.2, a: 1}
+  projectileFx: 
+  webCount: 0
+  webSprite: {fileID: 0}
+  raiseDead: 0
+  raisePrefab: {fileID: 0}
   summonPrefab: {fileID: 0}
   summonCount: 0
   summonCooldown: 12
   summonLifetime: 40
+  summonName: "Squelette invoqu\xE9"

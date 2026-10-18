@@ -268,7 +268,11 @@ MonoBehaviour:
   familyId: mushroom
   familyName: Myconide ancien
   stage: 3
+  role: 
+  pathDesc: 
+  portrait: {fileID: 21300000, guid: 4d2f8769df625dd489848d800532d42d, type: 3}
   nextStage: {fileID: 0}
+  branches: []
   xpToEvolve: 0
   evolveCost: 0
   evolveLevelRequired: 8
@@ -293,8 +297,17 @@ MonoBehaviour:
   slowSeconds: 5
   burnDps: 0
   burnSeconds: 0
+  poisonDps: 0
+  poisonSeconds: 0
+  critChance: 0
   projectileColor: {r: 0, g: 0, b: 0, a: 0}
+  projectileFx: 
+  webCount: 0
+  webSprite: {fileID: 0}
+  raiseDead: 0
+  raisePrefab: {fileID: 0}
   summonPrefab: {fileID: 0}
   summonCount: 0
   summonCooldown: 12
   summonLifetime: 40
+  summonName: "Squelette invoqu\xE9"

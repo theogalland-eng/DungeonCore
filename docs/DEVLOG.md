@@ -229,3 +229,12 @@ Mise en ligne du projet sur GitHub (ce dépôt), avec cette documentation.
 ### Repas des monstres
 
 - 🍖 **Les monstres vont se servir seuls au garde-manger** quand ils ont faim : un cadavre tout proche d'abord, sinon le **garde-manger** garni le plus proche **du même étage** (une portion chacun, regarni chaque matin), sinon une salle de réserves. Un monstre à qui l'on a ordonné de **tenir la position** ne quitte plus son poste, ni pour manger, ni pour se quereller (l'ordre interrompt un repas en cours).
+
+### Nouvelles voies et familles — salve 1
+
+- 🌿 **Évolution à embranchements** : au passage au stade 2, certaines familles proposent, en plus de la **voie classique**, une **voie de rôle**. Le bouton *Évoluer* ouvre une fenêtre de choix : une carte par voie (apparence, rôle, PV, dégâts, mêlée ou distance, forme ultime). La voie choisie se sauvegarde ; dans le mode Aventurier, un monstre sur trois de stade 2+ prend une voie de rôle.
+- 🏹 **Gobelin archer → Tireur d'élite gobelin** : tire des flèches de loin et recule quand on l'approche ; le tireur d'élite vise plus loin (5,5 cases) et porte des **coups critiques** (25 %, dégâts doublés). Arc tenu contre le flanc, bandé puis relâché à l'attaque, carquois dans le dos pour le stade 3 (`Tools~/make_monster_roles.py`, à partir des calques du pack).
+- 💀 **Squelette mage → Nécromancien** : traits de magie glacée qui ralentissent ; le nécromancien **relève en squelettes** (3 au plus, 60 s) les intrus tombés près de lui. Chapeau pointu et bâton à orbe, crâne au sommet du bâton pour le nécromancien.
+- 🕷️ **Nouvelle famille : les araignées** (natives du Jardin fongique et des Catacombes), dessinées pour le projet (`Tools~/make_creatures.py` : petites formes 3D projetées en vue plongeante, 8 directions, pattes animées) : *Araignée des cavernes* (venin), *Tisseuse* (tend jusqu'à 2 **toiles** qui engluent les intrus), *Reine-araignée* (4 toiles, **pond des araignées** au combat).
+- 🐛 Faire évoluer un monstre seul sur son ancre de patrouille détruisait l'ancre (erreurs en fin de combat) : la nouvelle forme s'inscrit avant que l'ancienne se retire.
+- 🇬🇧 Noms et descriptions de toutes les familles de monstres enfin traduits.

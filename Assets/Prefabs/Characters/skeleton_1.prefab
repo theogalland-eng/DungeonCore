@@ -267,7 +267,12 @@ MonoBehaviour:
   familyId: skeleton
   familyName: Squelette
   stage: 1
+  role: 
+  pathDesc: 
+  portrait: {fileID: 0}
   nextStage: {fileID: 5555295133745480811, guid: db80ca51874b0564d85347fd639fc676, type: 3}
+  branches:
+  - {fileID: 2376546726429240009, guid: 8de32832ef622574b8acf439fe2508c1, type: 3}
   xpToEvolve: 60
   evolveCost: 54
   evolveLevelRequired: 5

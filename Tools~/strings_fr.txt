@@ -1,124 +1,16 @@
-# DungeonBuilder.cs
-Ne vit qu'ici : {0}
-# CageTrap.cs
-Une cage !
-# GraspTrap.cs
-Lâche-moi !
-# MonsterVariant.cs
-Rat des braises
-des braises
-explose en étincelles en mourant
-Slime de feu
-de feu
-laisse une traînée brûlante, ses coups brûlent
-Gobelin pyromane
-lance des fioles de feu
-Squelette ardent
-ses coups brûlent
-Rat d'égout
-d'égout
-rapide dans l'eau
-Slime des marées
-des marées
-se régénère dans l'eau
-Gobelin pêcheur
-lance un filet qui ralentit
-Squelette noyé
-ses coups repoussent
-Rat des neiges
-des neiges
-sa morsure engourdit
-Slime de givre
-de givre
-ses coups ralentissent
-Gobelin des glaces
-des glaces
-lance des javelots de glace
-Squelette gelé
-éclate en éclats de glace en mourant
-Rat pestiféré
-sa morsure empoisonne
-Slime toxique
-libère un nuage toxique en mourant
-Gobelin sporé
-ses spores aveuglent
-Squelette moussu
-se régénère
-Rat de quartz
-de quartz
-cuirassé de cristal
-Slime de cristal
-de cristal
-renvoie 20 % des dégâts
-Gobelin prismatique
-son éclat attire les intrus
-Squelette de cristal
-chaque coup draine du mana
-Rat spectral
-évite un coup sur quatre
-Slime d'ectoplasme
-son contact glace
-Gobelin goule
-se nourrit de ses coups
-Squelette des cryptes
-des cryptes
-frappe plus fort
-Rat des ossuaires
-des ossuaires
-Slime d'ossements
-Squelette des catacombes
-des catacombes
-Rat de garnison
-de garnison
-Slime d'acier
-très résistant, mais lent
-Gobelin en armure
-en armure
-+40 % de PV, plus lent
-Squelette légionnaire
-son bouclier pare un quart des dégâts
-Un filet !
-Qu'est-ce qui brille, là ?
-# OilTrap.cs
-Ça glisse !
-# TrapdoorTrap.cs
-Aaaah !
-Une fosse !
-# TrapKit.cs
-Seulement sur un étage : {0}
-Se fixe au mur : posez-le contre une paroi
-# SidePanel.cs
-• ici : {0}
-• chez lui (+15 %)
-• piège de l'étage
-• se fixe au mur
+# MonsterTraits.cs
+Mort relevé
+Relève-toi... et sers-moi.
+# EvolveChoiceDialog.cs
+Faire évoluer {0}
+Choisissez sa voie : elle mène à une forme ultime différente. Coût : {0} mana.
+Voie classique
+Voie de rôle
+PV {0}   ·   Dégâts {1}   ·   {2}
+Forme ultime : {0}
+# GameHUD.cs
+Évoluer : choisir sa voie ({0} mana)
 # CatalogBuilder.cs
-Lame pendulaire
-Une lame balaie la case sans fin : 28 dégâts à chaque passage.
-Scie au sol
-Court dans sa fente, dans l'axe du couloir : ronge et ralentit qui marche dessus (15 dégâts/s).
-Cage tombante
-Tombe sur l'intrus et l'enferme 5 s : vos monstres n'ont plus qu'à frapper. Se réarme en 12 s.
-Rune explosive
-Rougeoie 0,8 s quand on marche dessus, puis souffle la zone (70 dégâts). Se réarme en 20 s.
-Lances murales
-Se fixe au mur : des lances traversent le couloir toutes les 3 s (26 dégâts, deux cases).
-Lanceur de fléchettes
-Se fixe au mur : trois fléchettes dans l'axe du couloir dès qu'un intrus s'y engage (6 cases).
-Le sol s'ouvre : l'intrus tombe à l'étage du dessous (ou au fond d'une fosse). Se réarme en 15 s.
-Dalle huilée
-On y glisse sans contrôle, droit dans le piège suivant. Une flamme voisine l'embrase.
-Rocher roulant
-Au bout d'un couloir : dévale toute la ligne quand un intrus s'y engage (45 dégâts à chacun). Revient en 30 s.
-Geyser de magma
-Fournaise : bouillonne, puis crache la lave toutes les 4 s (35 dégâts et brûlure).
-Sanctuaire englouti : aspire et ralentit les intrus alentour, noie ceux qui y tombent.
-Caverne gelée : l'ombre grandit, le glaçon tombe (40 dégâts, ralentit). Se réarme en 10 s.
-Champignon à spores
-Jardin fongique : un nuage de spores empoisonne et aveugle les intrus proches.
-Prisme laser
-Temple de cristal : se charge, puis tire un rayon dans l'axe du couloir (18 dégâts, 4 cases de chaque côté).
-Mains squelettiques
-Crypte et catacombes : des mains d'os jaillissent et agrippent l'intrus 3 s.
-Arbalète cachée
-Forteresse : se fixe au mur et tire un carreau dans l'axe du couloir toutes les 2,5 s (30 dégâts).
+{0} Évolue en {1} puis {2}
+— ou prend une autre voie : {0}
+. Entretien : {0} mana/jour.
