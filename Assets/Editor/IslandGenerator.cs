@@ -580,7 +580,7 @@ public static class IslandGenerator
         TerrainArt.ClearCache();
         var water = TerrainArt.Water();
         BlobTile tSand = TerrainArt.Blob("sand"), tRock = TerrainArt.Blob("rock"), tGrass = TerrainArt.Blob("grass"),
-                 tJungle = TerrainArt.Blob("jungle"), tLava = TerrainArt.Blob("lava");
+                 tJungle = TerrainArt.Blob("jungle"), tLava = TerrainArt.Blob("lava"), tSnow = TerrainArt.Blob("snow");
         BlobTile tTrampled = TerrainArt.Blob("trampled"), tDirt = TerrainArt.Blob("dirt"), tPaved = TerrainArt.Blob("paved");
         tTrampled.sameAs = new TileBase[] { tDirt }; tDirt.sameAs = new TileBase[] { tTrampled };
         EditorUtility.SetDirty(tTrampled); EditorUtility.SetDirty(tDirt);
@@ -601,6 +601,7 @@ public static class IslandGenerator
         var lGrass = Layer("T_Herbe", -9);
         var lJungle = Layer("T_Jungle", -8);
         var lLava = Layer("T_Lave", -7);
+        var lSnow = Layer("T_Neige", -7);   // n'apparaît qu'en hiver (Seasons)
         var lCliff = Layer("T_Falaise", -6);
         Layer("Sentier", -5);
         Layer("Routes", -4);
@@ -652,6 +653,10 @@ public static class IslandGenerator
                 if (GrassOwn(g)) lGrass.SetTile(c, tGrass);
                 if (JungleAt(x, y)) lJungle.SetTile(c, tJungle);
                 if (g == K.Lava) { lLava.SetTile(c, tLava); lavaCells.Add(c); }
+                // neige d'hiver par plaques (pas sur la grève ni près de la lave)
+                if ((g == K.Low || g == K.High || g == K.Cliff) && !NearAny(x, y, (a, b) => Ground(a, b) == K.Lava) &&
+                    Fbm(x * 0.09f + o2.x, y * 0.09f + o5.y, 3) > 0.47f)
+                    lSnow.SetTile(c, tSnow);
 
                 switch (g)
                 {

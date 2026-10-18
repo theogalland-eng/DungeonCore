@@ -119,7 +119,7 @@ public class MonsterLife : MonoBehaviour
         if (CrawlerMode.Active || !ai.IsAlive()) return;
         float dt = Time.deltaTime;
         float day = GameManager.Instance != null ? GameManager.Instance.dayLengthSeconds : 180f;
-        hunger = Mathf.Min(100f, hunger + 100f / (day * 1.5f) * dt * (Has(Trait.Glutton) ? 1.5f : 1f));
+        hunger = Mathf.Min(100f, hunger + 100f / (day * 1.5f) * dt * (Has(Trait.Glutton) ? 1.5f : 1f) * Seasons.HungerMult);
         if (Sleeping) energy = Mathf.Min(100f, energy + 8f * dt);
         else energy = Mathf.Max(0f, energy - 100f / day * dt * (Has(Trait.Lazy) ? 1.5f : 1f));
         if (ai.InCombat) OnFight();

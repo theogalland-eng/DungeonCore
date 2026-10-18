@@ -609,7 +609,7 @@ public class GameHUD : MonoBehaviour
             string layerLabel = lay != null && lay.layers.Count > 1 ? $"  ·  {lay.layers[lay.CurrentView].name}" : "";
             var ev = IslandEvents.Instance;
             string evLabel = ev != null && ev.Current != IslandEvent.None ? $"  ·  <color=#FFB36B>{ev.Name}</color>" : "";
-            dayText.text = $"Jour {gm.CurrentDay}  ·  {gm.GetTimeOfDayLabel()}{layerLabel}{evLabel}";
+            dayText.text = $"Jour {gm.CurrentDay}  ·  {Seasons.CurrentName}  ·  {gm.GetTimeOfDayLabel()}{layerLabel}{evLabel}";
             SetBar(dayFill, gm.DayProgress);
             pauseButtonImage.color = gm.UserPaused ? ButtonActiveColor : SegmentColor;
             foreach (var kv in speedButtons)

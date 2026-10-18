@@ -1204,7 +1204,7 @@ public class GobelinAI : MonoBehaviour, IDamageable
         if (damageable != null && damageable.IsAlive())
         {
             attackAnimTimer = 0.4f;
-            float ambushMult = (ambushing ? 1.5f : 1f) * (life != null ? life.DamageMult : 1f);
+            float ambushMult = (ambushing ? 1.5f : 1f) * (life != null ? life.DamageMult : 1f) * IslandEvents.FireMult(Family);
             if (ambushing) { ambushing = false; RevealAmbush(); FloatingText.Spawn(transform.position + Vector3.up * 0.7f, "Embuscade !", new Color(1f, 0.55f, 0.35f), 1f); }
             float dmg = ambushMult * attackDamage * ThemeDamageMult() * (IslandEvents.Instance != null ? IslandEvents.Instance.MonsterDamageMult : 1f)
                         * ThemedRooms.DamageMult(rb.position, Family);

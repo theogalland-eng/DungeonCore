@@ -77,6 +77,8 @@ public class AdventurerAI : MonoBehaviour
     // ── Vie (faim, traits, humeurs) : AdventurerLife ──
     public AdventurerLife Life { get; private set; }
     [System.NonSerialized] public float moodSpeedMult = 1f;
+    /// <summary>Torche éteinte par la pluie : dans le donjon, il voit moins loin.</summary>
+    [System.NonSerialized] public bool TorchWet;
     [Tooltip("Ajouté à la probabilité de fuir (peureux +, courageux -)")]
     [System.NonSerialized] public float fleeBias;
     /// <summary>Direction de marche (pour placer la formation derrière le guerrier).</summary>
@@ -816,6 +818,8 @@ public class AdventurerAI : MonoBehaviour
         // Au camp de la colonie (potions du mage), les soins sont plus rapides
         var colony = SettlementManager.Instance;
         float campMult = colony != null && colony.CampfirePosition.HasValue ? (colony.HasBuilding("tent_magic") ? 2.5f : 1.6f) : 1f;
+        var ownCamp = IntruderCamp.Of(this);
+        if (ownCamp != null && Vector2.Distance(ownCamp.Center, rb.position) < 3f) campMult = Mathf.Max(campMult, 2f);
         Heal(healingPerSecond * campMult * Time.fixedDeltaTime);
         if (combat.currentHealth < combat.maxHealth) return;
 
@@ -924,6 +928,12 @@ public class AdventurerAI : MonoBehaviour
         // La colonie a un feu de camp : on s'y replie pour se soigner
         var camp = SettlementManager.Instance != null ? SettlementManager.Instance.CampfirePosition : (Vector2?)null;
         if (camp.HasValue) safeZonePosition = camp.Value + offset * 0.5f;
+        else
+        {
+            // à défaut de colonie : le camp de l'expédition
+            var own = IntruderCamp.Of(this);
+            if (own != null) safeZonePosition = own.Center + offset * 0.5f;
+        }
         SetDestination(safeZonePosition);
 
         DLog.Log($"[{DisplayName}] RETRAITE ({retreatCount}/{maxRetreats + 1})");
@@ -1271,7 +1281,8 @@ public class AdventurerAI : MonoBehaviour
 
     private Transform DetectNearestEnemy()
     {
-        Collider2D[] hits = Physics2D.OverlapCircleAll(rb.position, detectionRange * IslandEvents.Detection, enemyLayer);
+        float sight = detectionRange * IslandEvents.Detection * (TorchWet && IsInsideDungeon ? 0.75f : 1f);
+        Collider2D[] hits = Physics2D.OverlapCircleAll(rb.position, sight, enemyLayer);
         float closestDist = Mathf.Infinity;
         Transform closest = null;
 

@@ -470,7 +470,7 @@ public class CrawlerMode : MonoBehaviour
     {
         if (Player == null || Frozen) return;
         bool indoors = InteriorSystem.Instance != null && InteriorSystem.Instance.Physical;
-        if (!indoors) satiety = Mathf.Max(0f, satiety - 100f / satietyDuration * Time.deltaTime * (Player.Running ? 1.6f : 1f));
+        if (!indoors) satiety = Mathf.Max(0f, satiety - 100f / satietyDuration * Time.deltaTime * (Player.Running ? 1.6f : 1f) * Seasons.HungerMult);
         Player.StaminaRegenMult = satiety <= 0f ? 0.4f : satiety < 25f ? 0.65f : 1f;
         var c = Player.Combat;
         c.damageMult = satiety <= 0f ? 0.8f : 1f;

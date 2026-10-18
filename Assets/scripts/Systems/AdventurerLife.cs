@@ -58,7 +58,7 @@ public class AdventurerLife : MonoBehaviour
         Task.Eat => "mange une ration", Task.Drink => "boit un coup", Task.Hunt => "chasse",
         Task.Cook => "fait griller du gibier", Task.Brawl => brawlToDeath ? "se bat à mort !" : "se bagarre",
         Task.Bait => "se goinfre au garde-manger", Task.Sulk => "broie du noir",
-        Task.Puzzle => "cherche le mécanisme de la porte", _ => null,
+        Task.Puzzle => "cherche le mécanisme de la porte", Task.Rest => "dort au camp", _ => null,
     };
     public bool Hungry => hunger >= 70f;
     public bool Starving => hunger >= 92f;
@@ -66,7 +66,7 @@ public class AdventurerLife : MonoBehaviour
     private AdventurerAI ai;
     private AdventurerCombat combat;
 
-    private enum Task { None, Eat, Drink, Hunt, Cook, Brawl, Bait, Sulk, Puzzle }
+    private enum Task { None, Eat, Drink, Hunt, Cook, Brawl, Bait, Sulk, Puzzle, Rest }
     private Task task;
     private float taskTimer, taskEnd, nextThink, nextStatTick, insideTime;
     private WildAnimal prey;
@@ -132,7 +132,7 @@ public class AdventurerLife : MonoBehaviour
         var gm = GameManager.Instance;
         float day = gm != null ? gm.dayLengthSeconds : 180f;
         // la faim monte d'environ 100 par jour sur l'île (plus vite dans le donjon : on s'y dépense)
-        hunger = Mathf.Min(100f, hunger + 100f / day * dt * (Has(Trait.Glutton) ? 1.6f : 1f) * (ai.IsInsideDungeon ? 1.25f : 1f));
+        hunger = Mathf.Min(100f, hunger + 100f / day * dt * (Has(Trait.Glutton) ? 1.6f : 1f) * (ai.IsInsideDungeon ? 1.25f : 1f) * Seasons.HungerMult);
         drunk = Mathf.Max(0f, drunk - dt * 0.012f);
         if (ai.IsInsideDungeon)
         {
@@ -185,6 +185,20 @@ public class AdventurerLife : MonoBehaviour
     {
         if (!ai.CanBeBusy) return;
         Vector2 pos = transform.position;
+
+        // la nuit, ceux qui sont dehors dorment au camp de l'expédition
+        var gmn = GameManager.Instance;
+        if (gmn != null && gmn.IsNight && !ai.IsInsideDungeon && hunger < 85f)
+        {
+            var camp = IntruderCamp.Of(ai);
+            if (camp != null && Begin(Task.Rest, 9999f))
+            {
+                restCamp = camp;
+                ai.LifeGoTo(camp.RestSpot(ai));
+                ai.Speak("On campe ici pour la nuit.", new Color(0.85f, 0.85f, 1f));
+                return;
+            }
+        }
 
         // manger une ration
         if (hunger >= 60f && rations > 0)
@@ -364,6 +378,7 @@ public class AdventurerLife : MonoBehaviour
             case Task.Cook: return TickCook();
             case Task.Brawl: return TickBrawl();
             case Task.Puzzle: return TickPuzzle();
+            case Task.Rest: return TickRest();
         }
         Finish();
         return false;
@@ -454,6 +469,23 @@ public class AdventurerLife : MonoBehaviour
         go.AddComponent<LavaGlow>();
         Fx.Play("smoke_rise", at, 1f);
         return go;
+    }
+
+    private IntruderCamp restCamp;
+
+    private bool TickRest()
+    {
+        var gm = GameManager.Instance;
+        if (restCamp == null || gm == null || !gm.IsNight) { Finish(); return false; }   // l'aube : on repart
+        Vector2 spot = restCamp.RestSpot(ai);
+        if (Vector2.Distance(transform.position, spot) > 0.5f) { ai.LifeMove(); return true; }
+        ai.LifeStop();
+        ai.LifeFace(restCamp.Center);
+        // au coin du feu : on reprend des forces, la faim monte moins vite
+        hunger = Mathf.Max(0f, hunger - Time.fixedDeltaTime * 0.25f);
+        if (combat.currentHealth < combat.maxHealth) combat.currentHealth = Mathf.Min(combat.maxHealth, combat.currentHealth + combat.maxHealth * 0.01f * Time.fixedDeltaTime);
+        if (Mathf.Repeat(taskTimer, 6f) < Time.fixedDeltaTime) FloatingText.Spawn(transform.position + Vector3.up * 0.7f, "Zzz", new Color(0.7f, 0.75f, 1f), 0.7f);
+        return true;
     }
 
     // ─────────────────────────────────────────────

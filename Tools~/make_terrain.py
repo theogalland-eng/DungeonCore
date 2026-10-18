@@ -227,6 +227,19 @@ def style_lava(c):
     c.put(rim, hexc('#1c1920'))
 
 
+def style_snow(c):
+    """Neige d'hiver par plaques : blanc bleuté, bord ombré, quelques scintillements."""
+    s = c.s(3.4)
+    vis = c.m & (s > 3.2)
+    soft = c.m & ~vis & (s > 2.0) & (c.f['grain'] > 0.6)
+    fill(c, vis, c.f['tex'] * 0.85 + c.f['grain'] * 0.15, ['#c9d6e0', '#dfe8ef', '#dfe8ef', '#eef4f8'])
+    c.put(vis & (c.f['grain'] > 0.985), hexc('#ffffff'))
+    rim = vis & (s < 4.4)
+    c.put(rim & ~c.lit, hexc('#a9bccb'))
+    c.put(rim & c.lit, hexc('#c9d6e0'))
+    c.put(soft, hexc('#dfe8ef'), 160)
+
+
 def style_trampled(c):
     """Herbe foulée : premier stade d'un sentier né du passage."""
     s = c.s(3.2)
@@ -555,7 +568,7 @@ def main():
         'cell_id': cid.astype(float), 'cell_border': cb,
     }
     styles = {'sand': style_sand, 'rock': style_rock, 'grass': style_grass, 'jungle': style_jungle,
-              'lava': style_lava, 'trampled': style_trampled, 'dirt': style_dirt, 'paved': style_paved}
+              'lava': style_lava, 'snow': style_snow, 'trampled': style_trampled, 'dirt': style_dirt, 'paved': style_paved}
     water()
     cliff()
     decors()

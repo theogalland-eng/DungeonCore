@@ -14,7 +14,7 @@ public class ColonyWindow : MonoBehaviour
     private RectTransform window;
     private TextMeshProUGUI relationState, relationEffects, punitiveText, spareText, raidText;
     private RectTransform gaugeMarker;
-    private Button bribeBtn, truceBtn, spareBtn, terrorBtn, bloodBtn;
+    private Button bribeBtn, truceBtn, spareBtn, terrorBtn, bloodBtn, campBtn;
     private float refresh;
 
     public bool IsOpen => window != null && window.gameObject.activeSelf;
@@ -164,6 +164,8 @@ public class ColonyWindow : MonoBehaviour
         // ── Raids
         var raid = Section(window, "Raids", "Raids nocturnes", "torch", -710, 246);
         raidText = UIKit.LabelAt(raid, "", 18, UIKit.Sub, new Vector2(20, -52), new Vector2(772, 100));
+        campBtn = UIKit.BtnAt(raid, "Raid sur le camp", () => { var c = IntruderCamp.Raidable(); if (c != null && c.LaunchRaid()) Close(); },
+            new Vector2(1, 1), new Vector2(-16, -10), new Vector2(250, 44), 17, new Color(0.45f, 0.2f, 0.12f, 1f));
         terrorBtn = UIKit.BtnAt(raid, "Raid de terreur", () => { if (RaidSystem.Instance != null && RaidSystem.Instance.Launch(false)) Close(); }, new Vector2(0, 0), new Vector2(20, 18), new Vector2(378, 66), 21,
             new Color(0.42f, 0.3f, 0.12f, 1f));
         bloodBtn = UIKit.BtnAt(raid, "Raid sanglant", () => { if (RaidSystem.Instance != null && RaidSystem.Instance.Launch(true)) Close(); }, new Vector2(1, 0), new Vector2(-20, 18), new Vector2(378, 66), 21,
@@ -254,6 +256,12 @@ public class ColonyWindow : MonoBehaviour
                   (can ? "" : $"\n<color=#9A96B0>{why}</color>");
             terrorBtn.interactable = can;
             bloodBtn.interactable = can;
+            var camp = IntruderCamp.Raidable();
+            string campWhy = null;
+            bool campOk = camp != null && camp.CanRaid(out campWhy);
+            campBtn.gameObject.SetActive(camp != null);
+            campBtn.interactable = campOk;
+            UIKit.SetLabel(campBtn, campOk ? "Raid sur le camp" : $"<size=80%>Camp : {campWhy}</size>");
         }
     }
 }

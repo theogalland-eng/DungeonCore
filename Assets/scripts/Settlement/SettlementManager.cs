@@ -252,7 +252,7 @@ public class SettlementManager : MonoBehaviour
     {
         if (stage == 0) return;
         int pop = Population;
-        foreach (var b in buildings) if (b.IsComplete) { food += b.def.foodPerDay; prosperity += b.def.prosperityPerDay; }
+        foreach (var b in buildings) if (b.IsComplete) { food += Mathf.RoundToInt(b.def.foodPerDay * Seasons.FoodMult); prosperity += b.def.prosperityPerDay; }
         food -= pop * foodPerSettlerPerDay;
         if (food < 0) { food = 0; morale -= 6f; GameHUD.Toast("La colonie a faim", GameHUD.InfoColor); }
         prosperity += pop * 0.45f + stage * 0.8f + (morale - 50f) / 12f;

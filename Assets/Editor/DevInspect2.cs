@@ -741,6 +741,34 @@ public static class DevInspect3
         sb.Append($" monstres={MonsterUnit.All.Count}");
         return sb.ToString();
     }
+    public static string Winter()
+    {
+        var gm = GameManager.Instance;
+        typeof(GameManager).GetProperty("CurrentDay").SetValue(gm, 19);   // jour 19 : hiver (6 jours par saison)
+        DevInspect.NewDay();
+        return $"saison {Seasons.CurrentName} jour {GameManager.Instance.CurrentDay}";
+    }
+    public static string RainNow() { IslandEvents.Instance.Begin(IslandEvent.Rain, GameManager.Instance.CurrentDay + 1); return "pluie"; }
+    public static string EruptNow() { IslandEvents.Instance.Begin(IslandEvent.Eruption, GameManager.Instance.CurrentDay + 1); return "éruption"; }
+    public static string WeatherState()
+    {
+        var ev = IslandEvents.Instance;
+        int wet = 0; foreach (var a in AdventurerAI.All) if (a != null && a.TorchWet) wet++;
+        var f = typeof(IslandEvents).GetField("newLava", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        var lava = f != null ? (System.Collections.IList)f.GetValue(ev) : null;
+        return $"événement={ev.Current} brume={ev.MorningFog} saison={Seasons.CurrentName} torches mouillées={wet} lave nouvelle={lava?.Count}";
+    }
+    public static string CallExpedition() { ExpeditionManager.Instance.CallNextExpedition(); return "expédition appelée"; }
+    public static string CampState()
+    {
+        var sb = new System.Text.StringBuilder($"camps={IntruderCamp.All.Count} ");
+        foreach (var c in IntruderCamp.All) if (c != null) sb.Append($"[camp {c.Center} raid={c.RaidActive}] ");
+        foreach (var a in AdventurerAI.All) if (a != null) sb.Append($"<{a.State} {a.Life?.Activity}> ");
+        sb.Append($" nuit={GameManager.Instance.IsNight}");
+        return sb.ToString();
+    }
+    public static string CampRaid() { var c = IntruderCamp.Raidable(); return c == null ? "pas de camp" : c.LaunchRaid() ? "raid lancé" : "refusé"; }
+    public static string CampShot() { var c = IntruderCamp.All.Count > 0 ? IntruderCamp.All[0] : null; return c == null ? "pas de camp" : DevInspect.Shot(c.Center.x, c.Center.y, 6, 1600, 1000, "camp"); }
     public static string DropCorpse() { var c = DungeonTerritory.Instance.CoreCell; Corpse.Spawn(DungeonBuilder.Instance.floorTilemap.GetCellCenterWorld(c + new Vector3Int(1, -1, 0)), 3); return "cadavre posé"; }
     public static string MonsterReport()
     {

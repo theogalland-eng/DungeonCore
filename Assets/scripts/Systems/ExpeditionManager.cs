@@ -88,6 +88,14 @@ public class ExpeditionManager : MonoBehaviour
     public int CurrentRank { get; private set; } = -1;
 
     public event Action<AdventurerTier, int> OnExpeditionArrived;
+
+    /// <summary>Une fois débarqués (et leur carte d'expédition partagée), les intrus installent leur camp.</summary>
+    private System.Collections.IEnumerator PitchCampLater(List<AdventurerAI> group)
+    {
+        yield return new WaitForSeconds(2.5f);
+        group.RemoveAll(a => a == null || a.IsDead);
+        IntruderCamp.TryPitch(group);
+    }
     public event Action<int, int> OnExpeditionEnded;   // (tués, enfuis)
 
     private readonly List<AdventurerAI> members = new List<AdventurerAI>();
@@ -457,6 +465,7 @@ public class ExpeditionManager : MonoBehaviour
         if (GameManager.Instance != null) GameManager.Instance.statExpeditions++;
         if (punitive) rel.AnnouncePunitive(tier, spawned.Count);
         OnExpeditionArrived?.Invoke(tier, spawned.Count);
+        StartCoroutine(PitchCampLater(new List<AdventurerAI>(spawned)));
     }
 
     /// <summary>

@@ -16,7 +16,7 @@ PAL = {
     'H': '#C8644A', 'h': '#8F3A2E', 'P': '#F2D7C0', 'B': '#D9A45C', 'b': '#9C6A30', 'Y': '#F2D27A',
     'R': '#D9534A', 'r': '#8F2F35', 'G': '#79A844', 'g': '#3F6A2C', 'S': '#EFE9DC',
     'K': '#2C2832', 'k': '#4A4550', 'M': '#6B6470', 'm': '#8D8590', 'A': '#FF7A2A', 'a': '#A8361C', 'Y': '#FFE2A0',
-    'V': '#8E7CFF', 'v': '#5A48C0', 'U': '#C9A8FF', 'E': '#E8DCC0', 'e': '#B8A888', 'T': '#5A4A3A',
+    'C': '#C8B48A', 'c': '#8F7A55', 'V': '#8E7CFF', 'v': '#5A48C0', 'U': '#C9A8FF', 'E': '#E8DCC0', 'e': '#B8A888', 'T': '#5A4A3A',
 }
 
 FOOD_CACHE = [
@@ -161,6 +161,32 @@ PLATE_DOWN = [
     '..OOOOOOOOOO..',
 ]
 
+TENT = [
+    '..........O..........',
+    '.........OGO.........',
+    '........OCCcO........',
+    '.......OCCCccO.......',
+    '......OCCCCcccO......',
+    '.....OCCCCOcccCO.....',
+    '....OCCCCOdOcccCO....',
+    '...OCCCCOdddOcccCO...',
+    '..OCCCCOdddddOcccCO..',
+    '.OCCCCOdddddddOcccCO.',
+    'OOOOOOOOOOOOOOOOOOOOO',
+]
+
+CAMPFIRE = [
+    '......OYO......',
+    '.....OYAYO.....',
+    '....OAYYAAO....',
+    '....OAAYAaO....',
+    '...OaAAAAaO....',
+    '..OOOaAaAOOO...',
+    '.OWWwOOOOOwWWO.',
+    'OWWwwwOOOwwwWWO',
+    '.OOOOOOOOOOOOO.',
+]
+
 CORPSE = [
     '......OOO.........',
     '.....OEEEO..OOOO..',
@@ -203,11 +229,16 @@ def main():
     draw(FOOD_CACHE, os.path.join(OUT, 'food_cache.png'))
     for name, rows in (('nest', NEST), ('anvil', ANVIL), ('forge', FORGE), ('lever_off', LEVER_OFF), ('lever_on', LEVER_ON),
                        ('rune_off', RUNE_OFF), ('rune_on', RUNE_ON), ('plate', PLATE), ('plate_down', PLATE_DOWN), ('seal', SEAL)):
+        pass
+    for name, rows in (('nest', NEST), ('anvil', ANVIL), ('forge', FORGE), ('lever_off', LEVER_OFF), ('lever_on', LEVER_ON),
+                       ('rune_off', RUNE_OFF), ('rune_on', RUNE_ON), ('plate', PLATE), ('plate_down', PLATE_DOWN), ('seal', SEAL)):
         draw(rows, os.path.join(OUT, f'{name}.png'))
     # chargé en jeu (Resources) : cadavre d'intrus que les monstres viennent dévorer
     res = os.path.join(ROOT, 'Assets', 'Resources', 'Props')
     os.makedirs(res, exist_ok=True)
     draw(CORPSE, os.path.join(res, 'corpse.png'))
+    draw(TENT, os.path.join(res, 'tent.png'))
+    draw(CAMPFIRE, os.path.join(res, 'campfire.png'))
     sheet = Image.new('RGBA', (11 * 26, 26), (40, 36, 52, 255))
     for i, n in enumerate(['food_cache', 'nest', 'anvil', 'forge', 'lever_off', 'lever_on', 'rune_off', 'rune_on', 'plate', 'plate_down', 'seal']):
         im = Image.open(os.path.join(OUT, f'{n}.png'))

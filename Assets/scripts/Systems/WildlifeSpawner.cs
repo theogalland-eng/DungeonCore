@@ -128,8 +128,8 @@ public class WildlifeSpawner : MonoBehaviour
                 births += 2;
                 continue;
             }
-            // naissance près d'un adulte, dans son troupeau
-            if (Random.value > 0.6f) continue;
+            // naissance près d'un adulte, dans son troupeau (au printemps et en été seulement)
+            if (!Seasons.Breeding || Random.value > 0.6f) continue;
             var parentAnimal = list[Random.Range(0, list.Count)];
             Spawn(kv.Key, (Vector2)parentAnimal.transform.position + Random.insideUnitCircle * 0.6f, parentAnimal.herd);
             births++;

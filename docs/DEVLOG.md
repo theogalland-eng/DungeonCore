@@ -155,3 +155,10 @@ Mise en ligne du projet sur GitHub (ce dépôt), avec cette documentation.
 - 🎭 **Traits** : lâche, sanguinaire, gourmand, paresseux, loyal, querelleur, sociable, vaillant.
 - 💞 **Liens** : amitiés entre voisins de la même famille, **couples inséparables** (bonus côte à côte), **rivalités** entre familles (gobelins et gnolls, orcs et hommes-lézards, morts-vivants et vivants) qui finissent en **querelles**. La mort d'un ami ou d'un compagnon les affecte.
 - La fiche du monstre sélectionné montre son humeur, ses besoins, ses traits et ses liens ; tout est sauvegardé (sauf les liens, qui se retissent).
+
+### Saisons, météo et camps
+
+- 🍂 **Saisons** (6 jours chacune) : printemps, été, **automne** roux, **hiver** enneigé (neige par plaques). La faune ne se reproduit qu'au printemps et en été ; l'hiver, tout le monde a plus faim (intrus, héros, monstres) et la colonie produit moitié moins de vivres ; l'automne, des récoltes abondantes et des pluies fréquentes.
+- 🌧️ **Pluie** : les torches des intrus restés dehors s'éteignent ; dans le donjon ils voient moins loin. **Brume matinale** certains jours. **Orages** : chaque coup de tonnerre fait sursauter les intrus du donjon (les peureux détalent).
+- 🌋 **Réveil du volcan** : les **coulées de lave avancent** sur les hautes terres, il **pleut des cendres**, diablotins et démons s'enhardissent ; la lave nouvelle refroidit ensuite.
+- ⛺ **Camps d'expédition** : un groupe d'au moins trois intrus plante ses tentes et allume un feu près de la plage ; les blessés s'y soignent, et **la nuit ceux qui sont dehors y dorment**. **Raid sur le camp** (fenêtre Colonie, la nuit) : vos monstres fondent sur les dormeurs (dégâts doublés), puis rentrent avant l'aube.

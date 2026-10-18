@@ -112,7 +112,8 @@ public class Atmosphere : MonoBehaviour
         {
             if (l == null) continue;
             float f = 0.82f + 0.3f * Mathf.PerlinNoise(t * 6f, seed);
-            l.intensity = baseI * f * dark;
+            var bearer = l.transform.parent != null ? l.transform.parent.GetComponent<AdventurerAI>() : null;
+            l.intensity = bearer != null && bearer.TorchWet ? 0f : baseI * f * dark;   // mouillée par la pluie
         }
     }
 
