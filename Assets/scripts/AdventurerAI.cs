@@ -81,6 +81,8 @@ public class AdventurerAI : MonoBehaviour
     [System.NonSerialized] public bool TorchWet;
     /// <summary>Le Champion de la Guilde (objectif de domination).</summary>
     [System.NonSerialized] public bool IsChampion;
+    /// <summary>Aveuglé par les Ombres du Noyau jusqu'à cet instant.</summary>
+    [System.NonSerialized] public float BlindUntil;
     [Tooltip("Ajouté à la probabilité de fuir (peureux +, courageux -)")]
     [System.NonSerialized] public float fleeBias;
     /// <summary>Direction de marche (pour placer la formation derrière le guerrier).</summary>
@@ -1288,7 +1290,7 @@ public class AdventurerAI : MonoBehaviour
 
     private Transform DetectNearestEnemy()
     {
-        float sight = detectionRange * IslandEvents.Detection * (TorchWet && IsInsideDungeon ? 0.75f : 1f) * (IsInsideDungeon ? Talents.IntruderSightMult : 1f);
+        float sight = detectionRange * IslandEvents.Detection * (TorchWet && IsInsideDungeon ? 0.75f : 1f) * (IsInsideDungeon ? Talents.IntruderSightMult : 1f) * (Time.time < BlindUntil ? 0.5f : 1f);
         Collider2D[] hits = Physics2D.OverlapCircleAll(rb.position, sight, enemyLayer);
         float closestDist = Mathf.Infinity;
         Transform closest = null;

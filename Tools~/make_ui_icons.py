@@ -233,6 +233,18 @@ ICONS = {
         '...ObO...',
         '...OOO...',
     ],
+    'moon': [
+        '...OOOO...',
+        '..OttTTO..',
+        '.OtTOOOO..',
+        'OtTO......',
+        'OtTO......',
+        'OtTO......',
+        'OtTTO.OO..',
+        '.OtTTOOTO.',
+        '..OttTTO..',
+        '...OOOO...',
+    ],
     'sword': [
         '.........OO',
         '........OTO',

@@ -258,6 +258,7 @@ public class MonsterLife : MonoBehaviour
                 {
                     hunger = Mathf.Max(0f, hunger - (corpse != null ? 65f : 45f));
                     if (corpse != null && GameManager.Instance != null) lastFedDay = GameManager.Instance.CurrentDay;
+                    if (corpse != null) CoreVoice.Say("corpse", "Rien ne se perd, dans mes galeries.");
                     FloatingText.Spawn(pos + Vector2.up * 0.7f, corpse != null ? "Miam !" : "Crr crr", new Color(1f, 0.75f, 0.5f), 0.8f);
                     Interrupt();
                     ai.ReturnToPost();
@@ -378,6 +379,7 @@ public static class MonsterSociety
                     a.Partner = b; b.Partner = a;
                     var na = a.GetComponent<GobelinAI>().gobelinName; var nb = b.GetComponent<GobelinAI>().gobelinName;
                     GameHUD.Toast($"{na} et {nb} sont désormais inséparables", GameHUD.GoldColor);
+                    CoreVoice.Say("couple", "Même mes monstres savent aimer. Étrange.");
                 }
                 if (v > -50f && nv <= -50f)
                     GameHUD.Toast($"{a.GetComponent<GobelinAI>().gobelinName} et {b.GetComponent<GobelinAI>().gobelinName} ne se supportent plus", GameHUD.WarningColor);

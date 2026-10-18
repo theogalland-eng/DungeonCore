@@ -42,6 +42,7 @@ public class PuzzleSwitch : MonoBehaviour
         if (!was)
         {
             Sfx.Play(kind == Kind.Lever ? "door_break" : "shine", transform.position, 0.6f);
+            CoreVoice.Say("puzzle", kind == Kind.Lever ? "Ils ont trouvé le levier. Petits malins." : "Ils éveillent mes runes... Qu'ils prennent leur temps.");
             FloatingText.Spawn(transform.position + Vector3.up * 0.6f, kind == Kind.Lever ? "Clac !" : "La rune s'illumine", kind == Kind.Lever ? new Color(0.9f, 0.85f, 0.7f) : new Color(0.75f, 0.65f, 1f), 0.8f);
         }
         Refresh();

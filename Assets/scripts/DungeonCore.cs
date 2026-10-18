@@ -30,6 +30,9 @@ public class DungeonCore : MonoBehaviour, IDamageable
     public bool pulse = true;
 
     private Color originalColor;
+    /// <summary>Taille du cristal selon le niveau du Noyau (CoreForm).</summary>
+    [HideInInspector] public float growth = 1f;
+    public void SetTint(Color c) { originalColor = c; if (spriteRenderer != null) spriteRenderer.color = c; }
     private float lastDamageTime = -999f;
     private float lastAlertTime = -999f;
     private Vector3 baseScale;
@@ -53,7 +56,7 @@ public class DungeonCore : MonoBehaviour, IDamageable
         if (pulse)
         {
             float s = 1f + Mathf.Sin(Time.time * 2f) * 0.03f;
-            transform.localScale = baseScale * s;
+            transform.localScale = baseScale * growth * s;
         }
     }
 

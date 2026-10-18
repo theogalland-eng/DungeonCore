@@ -766,6 +766,16 @@ public static class DevInspect3
         TalentTreeWindow.Instance.Open();
         return $"points={Talents.Points} acquis={Talents.Spent} max monstres={PlayerLevel.Instance.GetMaxMonsters()}";
     }
+    public static string SpellTest()
+    {
+        while (PlayerLevel.Instance.currentLevel < 10) PlayerLevel.Instance.AddXP(PlayerLevel.Instance.xpForNextLevel);
+        ManaSystem.Instance.Add(5000);
+        var cs = CoreSpells.Instance;
+        var sb = new System.Text.StringBuilder();
+        foreach (var s in cs.spells) { bool ok = cs.CanCast(s, out string why); cs.Cast(s); sb.Append($"{s.name}:{(ok ? "lancé" : why)} "); }
+        var core = Object.FindFirstObjectByType<DungeonCore>();
+        return sb + $" croissance={core.growth:0.00}";
+    }
     public static string RankS() { GuildSystem.Instance.officialRank = 6; return "rang S"; }
     public static string ChampionState()
     {

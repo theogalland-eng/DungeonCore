@@ -397,6 +397,7 @@ public class AdventurerLife : MonoBehaviour
         {
             hunger = Mathf.Max(0f, hunger - 70f);
             ai.Speak("Délicieux...", new Color(1f, 0.85f, 0.55f), true);
+            CoreVoice.Say("bait", "Ils mordent à l'appât. Les ventres pleins ne regardent jamais derrière eux.");
             Finish();
             return false;
         }
@@ -539,6 +540,7 @@ public class AdventurerLife : MonoBehaviour
         if (!other.Begin(Task.Brawl, 16f)) { Finish(); ai.EndBusy(); return false; }
         opponent = other; other.opponent = this;
         Brawls++;
+        CoreVoice.Say("brawl", lethal ? "Qu'ils s'entretuent. Moins de travail pour moi." : "Ils se battent entre eux... Délicieux.");
         brawlToDeath = other.brawlToDeath = lethal;
         ai.Speak(line, new Color(1f, 0.5f, 0.4f), true);
         other.ai.Speak(Random.value < 0.5f ? "Viens là !" : "Tu vas le regretter !", new Color(1f, 0.5f, 0.4f), true);
@@ -614,6 +616,7 @@ public class AdventurerLife : MonoBehaviour
         {
             ai.Speak("Au secours !", new Color(0.9f, 0.9f, 0.65f), true);
             Reveal(Trait.Coward);
+            CoreVoice.Say("coward", "Celui-là tremble comme une feuille.");
             ai.LifePanic();
         }
         if (Has(Trait.Lucky) && Random.value < 0.15f) Reveal(Trait.Lucky);

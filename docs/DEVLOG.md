@@ -170,3 +170,6 @@ Mise en ligne du projet sur GitHub (ce dépôt), avec cette documentation.
   - **Maître des bêtes** : invocations moins chères, monstres plus robustes, moins affamés, +3 monstres, évolutions moins chères et expérience accrue ;
   - **Ombre** : intrus plus prompts à fuir, qui voient moins loin, drain de mana accru, embuscades plus rapides et plus cruelles, torches qui s'éteignent dans le donjon.
 - 👑 **Dominer l'île** (objectif de fin de partie, suivi dans la fenêtre des talents) : **soumettre** la colonie (trêve et relation au plus haut) ou la **conquérir** (plus un habitant), abattre le **Champion de la Guilde** (Aldéric l'Invaincu, rang SSS, envoyé quand le donjon atteint le rang S, il revient s'il fuit), et installer le cristal au **Cœur du volcan**. Les trois réunis : écran de victoire, et l'on peut continuer à régner.
+- 💎 **Le cristal grandit** avec le niveau du Noyau : plus grand, plus lumineux, du bleu au violet puis à l'or, entouré d'éclats qui gravitent.
+- ✨ **Sorts du Noyau** (barre au bas de l'écran, mana et recharge) : **Terreur** (niv. 2), **Soin des créatures** (niv. 3), **Éboulement** sur le plus grand groupe d'intrus (niv. 5), **Ombres aveuglantes** (niv. 7).
+- 🗣️ **La voix du Noyau** commente, à mi-voix, ce qu'il voit : bagarres, couples de monstres, appâts, cadavres dévorés, énigmes résolues...

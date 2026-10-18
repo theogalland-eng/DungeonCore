@@ -240,6 +240,7 @@ public class GameHUD : MonoBehaviour
         BuildCanvas();
         BuildTopBar();
         BuildToolbar();
+        BuildSpellBar();
         BuildSelectionPanel();
         BuildPossessionPanel();
         BuildFeed();
@@ -703,9 +704,55 @@ public class GameHUD : MonoBehaviour
         return cachedCore;
     }
 
+    // ── Barre des sorts du Noyau ──
+    private RectTransform spellBar;
+    private readonly List<(CoreSpells.Spell s, Button b, RectTransform cd, TextMeshProUGUI label, Image icon)> spellButtons =
+        new List<(CoreSpells.Spell, Button, RectTransform, TextMeshProUGUI, Image)>();
+
+    private void BuildSpellBar()
+    {
+        spellBar = Place(NewRect("Sorts", root), new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(-160, 90), new Vector2(4 * 118 + 3 * 10, 100));
+        float x = 0;
+        foreach (var def in CoreSpells.Defs())
+        {
+            string id = def.id;
+            var b = MakeButton(spellBar, "Sort_" + id, "", new Vector2(0, 0), new Vector2(0, 0), new Vector2(x, 0), new Vector2(118, 100),
+                () => { var cs = CoreSpells.Instance; if (cs != null) cs.Cast(cs.spells.Find(z => z.id == id)); }, 16);
+            var rt = (RectTransform)b.transform;
+            var ic = UIKit.Icon(rt, def.icon, new Vector2(0, -10), 38, new Vector2(0.5f, 1));
+            var name = Label(rt, def.name, 16, TextColor, new Vector2(0, -52), new Vector2(118, 22), TextAlignmentOptions.Center, true);
+            UIKit.StyleHead(name);
+            var label = Label(rt, "", 15, ManaColor, new Vector2(0, -74), new Vector2(118, 20), TextAlignmentOptions.Center, true);
+            var cd = NewRect("Recharge", rt);
+            cd.anchorMin = Vector2.zero; cd.anchorMax = new Vector2(1, 0); cd.pivot = new Vector2(0.5f, 0);
+            cd.offsetMin = new Vector2(4, 4); cd.offsetMax = new Vector2(-4, 4);
+            var ci = cd.gameObject.AddComponent<Image>(); ci.color = new Color(0f, 0f, 0f, 0.55f); ci.raycastTarget = false;
+            spellButtons.Add((def, b, cd, label, ic));
+            x += 128;
+        }
+    }
+
+    private void UpdateSpellBar(bool possessing)
+    {
+        var cs = CoreSpells.Instance;
+        spellBar.gameObject.SetActive(cs != null && !possessing);
+        if (cs == null) return;
+        foreach (var (def, b, cd, label, icon) in spellButtons)
+        {
+            var s = cs.spells.Find(z => z.id == def.id);
+            bool ok = cs.CanCast(s, out string why);
+            b.interactable = ok;
+            icon.color = CoreSpells.Level >= s.level ? Color.white : new Color(1f, 1f, 1f, 0.3f);
+            label.text = ok ? $"{s.cost} mana" : why;
+            label.color = ok ? ManaColor : SubTextColor;
+            cd.anchorMax = new Vector2(1f, cs.Cooldown01(s));
+        }
+    }
+
     private void UpdateSelectionPanel()
     {
         bool possessing = PossessionController.Instance != null && PossessionController.Instance.IsPossessing;
+        UpdateSpellBar(possessing);
         bool selectMode = DungeonBuilder.Instance == null || DungeonBuilder.Instance.GetCurrentMode() == DungeonBuilder.BuildMode.None;
         selectionPanel.gameObject.SetActive(selectMode && !possessing);
         if (!selectionPanel.gameObject.activeSelf) return;
