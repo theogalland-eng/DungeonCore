@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -195,5 +195,6 @@ public class AmbientFx : MonoBehaviour
         col.contrast.Override(8f);
         vol.profile = profile;
         vol.enabled = GameSettings.PostProcessing;
+        GraphicsQuality.Apply();   // halo coupé et post-traitement allégé selon la qualité graphique
     }
 }

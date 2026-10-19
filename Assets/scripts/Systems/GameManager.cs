@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
@@ -95,7 +95,7 @@ public class GameManager : MonoBehaviour
         Instance = this;
         Time.timeScale = 1f;
 
-        Application.targetFrameRate = 60;
+        GraphicsQuality.Apply();   // cadence, HDR, post-traitement selon la qualité graphique (Options)
         // Les monstres (et les intrus) se traversent entre alliés : plus de bouchons dans les couloirs
         Physics2D.IgnoreLayerCollision(8, 8, true);
         Physics2D.IgnoreLayerCollision(7, 7, true);
@@ -158,6 +158,7 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
+        TileDiet.Run();   // ~45 000 tuiles animées de l'île ramenées à la seule bande côtière (fluidité sur téléphone)
         foreach (var l in FindObjectsByType<Light2D>(FindObjectsSortMode.None))
         {
             if (l.lightType == Light2D.LightType.Global)
@@ -177,6 +178,7 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
+        GraphicsQuality.Watch();   // téléphone trop lent : qualité abaissée d'un cran
         if (State != GameState.Playing || MainMenu.Frozen) return;   // l'accueil fige la partie
 
         dayTimer += Time.deltaTime;

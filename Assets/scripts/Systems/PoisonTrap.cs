@@ -35,7 +35,7 @@ public class PoisonTrap : MonoBehaviour
         tick -= Time.fixedDeltaTime;
         if (tick > 0f) return;
         tick = tickInterval;
-        foreach (var h in Physics2D.OverlapCircleAll(transform.position, radius, intruderLayer))
+        foreach (var h in Phys.Circle(transform.position, radius, intruderLayer))
         {
             var d = h.GetComponent<IDamageable>();
             if (d != null && d.IsAlive()) d.TakeDamage(damagePerTick);

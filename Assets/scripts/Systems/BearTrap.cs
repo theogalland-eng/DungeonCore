@@ -29,7 +29,7 @@ public class BearTrap : MonoBehaviour
     private void FixedUpdate()
     {
         if (!armed) return;
-        foreach (var h in Physics2D.OverlapCircleAll(transform.position, radius, intruderLayer))
+        foreach (var h in Phys.Circle(transform.position, radius, intruderLayer))
         {
             var ai = h.GetComponent<AdventurerAI>();
             var d = h.GetComponent<IDamageable>();

@@ -112,7 +112,7 @@ public class DungeonDoor : MonoBehaviour
         if (Time.time < lockedUntil || sealSwitches > 0)
         {
             // bloquée : impossible à forcer ; les intrus scellés dehors cherchent le mécanisme
-            foreach (var h in Physics2D.OverlapCircleAll(transform.position, radius, intruderLayer))
+            foreach (var h in Phys.Circle(transform.position, radius, intruderLayer))
             {
                 var ai = h.GetComponent<AdventurerAI>();
                 if (ai == null) continue;
@@ -126,7 +126,7 @@ public class DungeonDoor : MonoBehaviour
             }
             return;
         }
-        foreach (var h in Physics2D.OverlapCircleAll(transform.position, radius, intruderLayer))
+        foreach (var h in Phys.Circle(transform.position, radius, intruderLayer))
         {
             var ai = h.GetComponent<AdventurerAI>();
             if (ai == null)

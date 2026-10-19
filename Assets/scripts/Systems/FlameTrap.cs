@@ -77,7 +77,7 @@ public class FlameTrap : MonoBehaviour
         tick -= Time.fixedDeltaTime;
         if (tick > 0f) return;
         tick = tickInterval;
-        foreach (var h in Physics2D.OverlapCircleAll((Vector2)transform.position + damageOffset, radius, damageLayer))
+        foreach (var h in Phys.Circle((Vector2)transform.position + damageOffset, radius, damageLayer))
         {
             var d = h.GetComponent<IDamageable>();
             if (d != null && d.IsAlive()) { d.TakeDamage(damagePerTick); Sfx.Play("trap_fire", transform.position, 0.7f, 0.08f, 0.6f); }

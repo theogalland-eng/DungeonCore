@@ -185,7 +185,7 @@ public class MonsterTraits : MonoBehaviour
     {
         Vector2 dir = (hit - (Vector2)transform.position).normalized;
         for (float k = 0.6f; k <= 2.6f; k += 0.5f)
-            foreach (var h in Physics2D.OverlapCircleAll(hit + dir * k, 0.4f, 1 << 7))
+            foreach (var h in Phys.Circle(hit + dir * k, 0.4f, 1 << 7))
             {
                 var d = h.GetComponent<IDamageable>();
                 if (d == null || !d.IsAlive() || Vector2.Distance(h.transform.position, hit) < 0.3f) continue;
@@ -271,7 +271,7 @@ public class MonsterTraits : MonoBehaviour
         Vector2 dir = (at - me).normalized;
         Vector2 c = splashCone ? me : at;
         float r = splashCone ? (owner.attackRange + 1.2f) : splashRadius;
-        foreach (var h in Physics2D.OverlapCircleAll(c, r, 1 << 7))
+        foreach (var h in Phys.Circle(c, r, 1 << 7))
         {
             if (h.transform == main.transform) continue;
             var d = h.GetComponent<IDamageable>();

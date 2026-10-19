@@ -33,7 +33,7 @@ public class SpikeTrap : MonoBehaviour
 
     private void Strike()
     {
-        foreach (var h in Physics2D.OverlapCircleAll(transform.position, radius, damageLayer))
+        foreach (var h in Phys.Circle(transform.position, radius, damageLayer))
         {
             var d = h.GetComponent<IDamageable>();
             if (d != null && d.IsAlive()) d.TakeDamage(damage);

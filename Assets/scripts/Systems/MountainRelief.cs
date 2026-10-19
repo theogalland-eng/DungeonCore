@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
@@ -82,18 +82,25 @@ public class MountainRelief : MonoBehaviour
 
     public void Toggle() => SetUserView(!UserDungeonView);
 
+    private bool bandsSet;
+
     private void Update()
     {
         bool showRelief = !DungeonView || (MainMenu.Instance != null && MainMenu.Instance.InHome);
         float target = showRelief ? 1f : 0f;
+        float before = alpha;
         alpha = Mathf.MoveTowards(alpha, target, Time.unscaledDeltaTime / Mathf.Max(0.01f, fadeTime));
-        foreach (var b in bands)
+        if (alpha != before || !bandsSet)       // fondu terminé : plus rien à toucher
         {
-            if (b == null) continue;
-            b.enabled = alpha > 0.001f;
-            var c = b.color;
-            c.a = alpha;
-            b.color = c;
+            bandsSet = true;
+            foreach (var b in bands)
+            {
+                if (b == null) continue;
+                b.enabled = alpha > 0.001f;
+                var c = b.color;
+                c.a = alpha;
+                b.color = c;
+            }
         }
         if (craterLight != null) craterLight.intensity = alpha * (1.2f + 0.35f * Mathf.PerlinNoise(Time.time * 1.7f, 0f));
         if (showRelief != lastShown)
@@ -124,6 +131,8 @@ public class MountainRelief : MonoBehaviour
         var t = DungeonTerritory.Instance;
         var layers = DungeonLayers.Instance;
         if (t == null) return;
+        // vue du donjon et rien à rallumer : rien à faire (le cas de presque toutes les images)
+        if (!hide && hiddenR.Count == 0 && hiddenL.Count == 0) return;
         bool Inside(Vector3 p) => t.IsInside(p) && (layers == null || layers.IndexAt(p) == 0);
 
         // On ne touche qu'aux rendus éteints par nous (un piège qui se réarme reste caché, etc.)
@@ -131,12 +140,14 @@ public class MountainRelief : MonoBehaviour
         {
             if (c == null) return;
             bool h = hide && Inside(c.transform.position);
-            foreach (var r in c.GetComponentsInChildren<Renderer>(true))
+            c.GetComponentsInChildren(true, tmpR);
+            foreach (var r in tmpR)
             {
                 if (h && r.enabled) { r.enabled = false; hiddenR.Add(r); }
                 else if (!h && hiddenR.Remove(r)) r.enabled = true;
             }
-            foreach (var l in c.GetComponentsInChildren<Light2D>(true))
+            c.GetComponentsInChildren(true, tmpL);
+            foreach (var l in tmpL)
             {
                 if (h && l.enabled) { l.enabled = false; hiddenL.Add(l); }
                 else if (!h && hiddenL.Remove(l)) l.enabled = true;
@@ -151,6 +162,9 @@ public class MountainRelief : MonoBehaviour
         var core = FindCore();
         if (core != null) Apply(core);
     }
+
+    private static readonly List<Renderer> tmpR = new List<Renderer>();
+    private static readonly List<Light2D> tmpL = new List<Light2D>();
 
     private DungeonCore core;
     private DungeonCore FindCore()

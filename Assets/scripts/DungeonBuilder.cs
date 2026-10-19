@@ -140,6 +140,8 @@ public class DungeonBuilder : MonoBehaviour
         // Les murs passent devant les objets plats du sol (pics, toiles, décors au sol)
         var wallRenderer = stoneTilemap != null ? stoneTilemap.GetComponent<TilemapRenderer>() : null;
         if (wallRenderer != null && wallRenderer.sortingOrder < 2) wallRenderer.sortingOrder = 2;
+        // murs du bord des galeries triés avec les personnages : ce qui se tient derrière un mur est masqué par lui
+        WallOcclusion.Create(stoneTilemap, placedWallTilemap);
 
         var cursorGo = new GameObject("CellCursor");
         cellCursor = cursorGo.AddComponent<SpriteRenderer>();

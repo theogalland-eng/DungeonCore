@@ -1073,6 +1073,42 @@ public static class DevInspect3
         var p = b.floorTilemap.GetCellCenterWorld(origin + new Vector3Int(8, 3, 0));
         return $"{n} pièges {sb} " + DevInspect.Shot(p.x, p.y, 4.2f, 1600, 800, "traps_room");
     }
+    /// <summary>Pièges, décors et monstres contre les parois (vérifie l'ordre d'affichage avec les murs).</summary>
+    public static string LayeringShowcase()
+    {
+        string r = TrapShowcase();
+        var b = DungeonBuilder.Instance; var cat = DungeonCatalog.Get();
+        var core = Object.FindFirstObjectByType<DungeonCore>();
+        var origin = b.floorTilemap.WorldToCell(core.transform.position) + new Vector3Int(-8, -10, 0);
+        foreach (var (id, dx, dy) in new[] { ("banner", 3, 5), ("wall_torch", 5, 5), ("statue_knight", 7, 5), ("barrel", 9, 5), ("chest", 11, 0), ("gold_pile", 13, 0), ("candelabra", 15, 5) })
+        { var it = cat.Find(id); if (it != null) b.PlaceItemFree(it, origin + new Vector3Int(dx, dy, 0)); }
+        foreach (var (id, dx, dy) in new[] { ("goblin_2", 1, 5), ("orc_3", 15, 0), ("spider_3", 3, 0), ("gargoyle_2", 16, 5) })
+        {
+            var pf = CharacterImporter.Prefab(id);
+            Vector2 w = b.floorTilemap.GetCellCenterWorld(origin + new Vector3Int(dx, dy, 0));
+            var g = MonsterSpawner.Instance.SpawnFree(pf, w, w, id);
+            if (g != null) g.SetBehavior(GobelinAI.GoblinBehavior.Stay);
+        }
+        var p = b.floorTilemap.GetCellCenterWorld(origin + new Vector3Int(8, 3, 0));
+        return r + " | " + DevInspect.Shot(p.x, p.y, 4.2f, 1600, 800, "layering");
+    }
+    public static string IntruderShot() { foreach (var a in AdventurerAI.All) if (a != null && !a.IsDead) { var p = a.transform.position; return DevInspect.Shot(p.x, p.y, 4f, 1600, 1000, "intruder"); } return "aucun"; }
+    /// <summary>Scène chargée pour mesurer : niveau 9, une quinzaine de monstres, trois groupes d'intrus.</summary>
+    public static string BusyScene()
+    {
+        for (int i = 0; i < 8; i++) PlayerLevel.Instance.AddXP(PlayerLevel.Instance.xpForNextLevel);
+        string[] ids = { "goblin_2", "goblin_archer_2", "orc_2", "skeleton_mage_2", "spider_2", "rat_1", "rat_1", "slime_1", "skeleton_2", "orc_shaman_2", "bat_2", "wolf_2", "gnoll_2", "zombie_2", "imp_2" };
+        int n = 0;
+        for (int i = 0; i < ids.Length; i++) if (SpawnMon(ids[i], new Vector2(-2f + (i % 5), -1f - (i / 5) * 0.7f)) != null) n++;
+        var sp = Object.FindFirstObjectByType<AdventurerSpawner>(); for (int i = 0; i < 3; i++) sp.SpawnGroup();
+        return $"{n} monstres, 3 groupes";
+    }
+    public static string LayeringShot()
+    {
+        var b = DungeonBuilder.Instance; var core = Object.FindFirstObjectByType<DungeonCore>();
+        var p = b.floorTilemap.GetCellCenterWorld(b.floorTilemap.WorldToCell(core.transform.position) + new Vector3Int(0, -7, 0));
+        return DevInspect.Shot(p.x, p.y, 4.2f, 1600, 800, "layering");
+    }
     public static string ThemedTraps()
     {
         var L = DungeonLayers.Instance; var b = DungeonBuilder.Instance; var cat = DungeonCatalog.Get();
@@ -1312,6 +1348,22 @@ public static class DevInspect3
         return sb.ToString();
     }
     public static string CoreShot() { var p = Object.FindFirstObjectByType<DungeonCore>().transform.position; return DevInspect.Shot(p.x, p.y - 1.5f, 3.5f, 1200, 900, "core"); }
+    public static string SortingDump()
+    {
+        var sb = new System.Text.StringBuilder();
+        foreach (var t in Object.FindObjectsByType<UnityEngine.Tilemaps.TilemapRenderer>(FindObjectsSortMode.None))
+            sb.Append($"[TM {t.name} parent={t.transform.parent?.name} layer={t.sortingLayerName} order={t.sortingOrder} mode={t.mode} anchor={t.GetComponent<UnityEngine.Tilemaps.Tilemap>().tileAnchor} en={t.enabled}] ");
+        var hist = new System.Collections.Generic.Dictionary<string, int>();
+        foreach (var r in Object.FindObjectsByType<SpriteRenderer>(FindObjectsSortMode.None))
+        {
+            if (!r.enabled || !r.gameObject.activeInHierarchy) continue;
+            string root = r.transform.root.name;
+            string k = $"{r.sortingLayerName}/{r.sortingOrder} {root}";
+            hist.TryGetValue(k, out int n); hist[k] = n + 1;
+        }
+        foreach (var kv in hist.OrderBy(k => k.Key)) sb.Append($" | {kv.Key} x{kv.Value}");
+        return sb.ToString();
+    }
     public static string LarderShot() { var f = FoodBait.All[0]; var p = f.transform.position; return DevInspect.Shot(p.x, p.y, 4f, 1000, 800, "larder"); }
     public static string LarderState()
     {

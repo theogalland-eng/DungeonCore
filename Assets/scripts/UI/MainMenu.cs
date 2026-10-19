@@ -630,7 +630,7 @@ public class MainMenu : MonoBehaviour
     // ── Options
     private void ShowOptions()
     {
-        var box = OpenModal("Options", new Vector2(1760, 800));
+        var box = OpenModal("Options", new Vector2(1760, 900));
         float y = 100f;
         colX = -440f;
         VolumeRow(box, "Volume général", "Tous les sons du jeu", () => GameSettings.Volume, v => GameSettings.Volume = v, ref y);
@@ -642,6 +642,9 @@ public class MainMenu : MonoBehaviour
         ToggleRow(box, "Tutoriel guidé", "Conseils et flèche vers le bouton à toucher", () => GameSettings.TutorialHints, v => GameSettings.TutorialHints = v, ref y);
         y = 100f;
         colX = 440f;
+        VolumeRow(box, "Qualité graphique", "Économie : plus fluide sur un téléphone modeste", () => GameSettings.QualityLevel / 2f,
+            v => GraphicsQuality.Set((GraphicsQuality.Level)Mathf.Clamp(Mathf.RoundToInt(v * 2f), 0, 2), true), ref y,
+            () => GraphicsQuality.Name(GraphicsQuality.Current), 0.5f);
         ToggleRow(box, "Cinématiques", "Naissance de l'orbe, premier bateau", () => GameSettings.Cinematics, v => GameSettings.Cinematics = v, ref y);
         ToggleRow(box, "Effets de lumière", "Halo, vignettage, couleurs (désactiver sur un téléphone modeste)", () => GameSettings.PostProcessing, v => GameSettings.PostProcessing = v, ref y);
         ToggleRow(box, "Particules d'ambiance", "Lucioles, nuages, poussière, reflets sur l'eau", () => GameSettings.Ambient, v => GameSettings.Ambient = v, ref y);

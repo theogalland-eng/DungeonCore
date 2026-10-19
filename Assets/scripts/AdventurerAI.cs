@@ -215,7 +215,7 @@ public class AdventurerAI : MonoBehaviour
         if (isDead || !IsInsideDungeon) return;
         Map.Observe(rb.position, dungeonCoreTarget);
         if (!HasSeenCore && CanSeeCore()) { HasSeenCore = true; coreSeenAt = Time.time; }
-        var hits = Physics2D.OverlapCircleAll(rb.position, detectionRange * IslandEvents.Detection, enemyLayer);
+        var hits = Phys.Circle(rb.position, detectionRange * IslandEvents.Detection, enemyLayer);
         foreach (var h in hits)
         {
             var u = h.GetComponentInParent<MonsterUnit>();
@@ -1172,7 +1172,7 @@ public class AdventurerAI : MonoBehaviour
         if (hp <= healthThreshold) return true;
 
         int enemies = 0;
-        var hits = Physics2D.OverlapCircleAll(rb.position, detectionRange * IslandEvents.Detection, enemyLayer);
+        var hits = Phys.Circle(rb.position, detectionRange * IslandEvents.Detection, enemyLayer);
         foreach (var h in hits)
         {
             IDamageable d = h.GetComponent<IDamageable>();
@@ -1307,7 +1307,7 @@ public class AdventurerAI : MonoBehaviour
     private Transform DetectNearestEnemy()
     {
         float sight = detectionRange * IslandEvents.Detection * (TorchWet && IsInsideDungeon ? 0.75f : 1f) * (IsInsideDungeon ? Talents.IntruderSightMult : 1f) * (Time.time < BlindUntil ? 0.5f : 1f);
-        Collider2D[] hits = Physics2D.OverlapCircleAll(rb.position, sight, enemyLayer);
+        var hits = Phys.Circle(rb.position, sight, enemyLayer);
         float closestDist = Mathf.Infinity;
         Transform closest = null;
 

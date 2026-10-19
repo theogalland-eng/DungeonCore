@@ -34,7 +34,7 @@ public abstract class TrapKit : MonoBehaviour
     protected static List<AdventurerCombat> Victims(Vector2 c, float r)
     {
         var list = new List<AdventurerCombat>();
-        foreach (var h in Physics2D.OverlapCircleAll(c, r, 1 << 7))
+        foreach (var h in Phys.Circle(c, r, 1 << 7))
         {
             var ac = h.GetComponent<AdventurerCombat>();
             if (ac != null && ac.currentHealth > 0f && !list.Contains(ac)) list.Add(ac);

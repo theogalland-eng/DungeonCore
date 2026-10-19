@@ -741,7 +741,7 @@ public class GobelinAI : MonoBehaviour, IDamageable
             case "Salve":
             {
                 Transform best = null; float bd = 7f;
-                foreach (var h in Physics2D.OverlapCircleAll(rb.position, 7f, adventurerLayer))
+                foreach (var h in Phys.Circle(rb.position, 7f, adventurerLayer))
                 {
                     var d = h.GetComponent<IDamageable>();
                     if (d == null || !d.IsAlive() || !HasLineOfSight(h.transform)) continue;
@@ -787,7 +787,7 @@ public class GobelinAI : MonoBehaviour, IDamageable
             lastMoveDirection = dashDir;
             if (dashLeap) transform.localScale = dashScale * (1f + 0.25f * Mathf.Sin(k * Mathf.PI));
             if (!dashHit)
-                foreach (var h in Physics2D.OverlapCircleAll(rb.position, 0.7f, adventurerLayer))
+                foreach (var h in Phys.Circle(rb.position, 0.7f, adventurerLayer))
                 {
                     var d = h.GetComponent<IDamageable>();
                     if (d == null || !d.IsAlive()) continue;
@@ -828,7 +828,7 @@ public class GobelinAI : MonoBehaviour, IDamageable
         lastAttackTime = Time.time;
         attackAnimTimer = 0.35f;
 
-        Collider2D[] hits = Physics2D.OverlapCircleAll(rb.position, attackRange * 1.3f, adventurerLayer);
+        var hits = Phys.Circle(rb.position, attackRange * 1.3f, adventurerLayer);
         Transform best = null;
         float bestScore = float.MaxValue;
         foreach (var h in hits)
@@ -988,7 +988,7 @@ public class GobelinAI : MonoBehaviour, IDamageable
 
     private Transform DetectAdventurer()
     {
-        Collider2D[] hits = Physics2D.OverlapCircleAll(rb.position, detectionRange, adventurerLayer);
+        var hits = Phys.Circle(rb.position, detectionRange, adventurerLayer);
         float closestDist = Mathf.Infinity;
         Transform closest = null;
 
@@ -1300,7 +1300,7 @@ public class GobelinAI : MonoBehaviour, IDamageable
     /// <summary>Un intrus en vue (rayon réduit pour un monstre endormi).</summary>
     public Transform LifeDetect(float rangeMult)
     {
-        foreach (var h in Physics2D.OverlapCircleAll(rb.position, detectionRange * rangeMult, adventurerLayer))
+        foreach (var h in Phys.Circle(rb.position, detectionRange * rangeMult, adventurerLayer))
         {
             var d = h.GetComponent<IDamageable>();
             if (d != null && d.IsAlive() && HasLineOfSight(h.transform)) return h.transform;

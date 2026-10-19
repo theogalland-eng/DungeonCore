@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
 /// <summary>
@@ -132,7 +132,7 @@ public class AnimatedTrap : MonoBehaviour
 
     private void Apply(float amount, bool burst)
     {
-        foreach (var h in Physics2D.OverlapCircleAll(transform.position, radius, intruderLayer))
+        foreach (var h in Phys.Circle(transform.position, radius, intruderLayer))
         {
             var d = h.GetComponent<IDamageable>();
             if (d == null || !d.IsAlive()) continue;

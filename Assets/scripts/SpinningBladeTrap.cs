@@ -47,7 +47,7 @@ public class SpinningBladeTrap : MonoBehaviour
 
     private void FixedUpdate()
     {
-        Collider2D[] hits = Physics2D.OverlapCircleAll(bladeTransform.position, detectionRadius, damageLayer);
+        var hits = Phys.Circle(bladeTransform.position, detectionRadius, damageLayer);
         foreach (var hit in hits) TryDamage(hit);
     }
 

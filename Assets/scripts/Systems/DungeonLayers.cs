@@ -115,6 +115,7 @@ public class DungeonLayers : MonoBehaviour
         if (tm.GetTile(c) is AutoWallTile) return;   // murs : couleurs déjà dans les sprites
         tm.SetTileFlags(c, TileFlags.None);
         tm.SetColor(c, stone ? theme.stoneTint : theme.floorTint);
+        if (stone) WallOcclusion.Instance?.Mark(c);
     }
 
     public Rect WorldRect(int layer)

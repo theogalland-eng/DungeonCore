@@ -506,20 +506,14 @@ public class MonsterSelector : MonoBehaviour
         moveMarkerTimer = moveMarkerDuration;
     }
 
-    // Rectangle de sélection de zone (PC)
-    private void OnGUI()
+    // Rectangle de sélection de zone (PC) : dessiné par un composant activé seulement pendant le glisser
+    private SelectionBoxGUI box;
+    private void LateUpdate()
     {
-        if (!isDragging || PointerUtil.IsTouch) return;
-        Rect r = GetSelectionRect();
-        // OnGUI a l'origine en haut à gauche
-        Rect gui = new Rect(r.x, Screen.height - r.y - r.height, r.width, r.height);
-        GUI.color = boxColor;
-        GUI.DrawTexture(gui, Texture2D.whiteTexture);
-        GUI.color = boxBorderColor;
-        GUI.DrawTexture(new Rect(gui.x, gui.y, gui.width, 2), Texture2D.whiteTexture);
-        GUI.DrawTexture(new Rect(gui.x, gui.yMax - 2, gui.width, 2), Texture2D.whiteTexture);
-        GUI.DrawTexture(new Rect(gui.x, gui.y, 2, gui.height), Texture2D.whiteTexture);
-        GUI.DrawTexture(new Rect(gui.xMax - 2, gui.y, 2, gui.height), Texture2D.whiteTexture);
-        GUI.color = Color.white;
+        bool show = isDragging && !PointerUtil.IsTouch;
+        if (!show) { if (box != null && box.enabled) box.enabled = false; return; }
+        if (box == null) { box = gameObject.AddComponent<SelectionBoxGUI>(); box.fill = boxColor; box.border = boxBorderColor; }
+        box.enabled = true;
+        box.screenRect = GetSelectionRect();
     }
 }

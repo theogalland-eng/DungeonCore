@@ -46,7 +46,7 @@ public class SpiderWeb : MonoBehaviour
         if (age > life) { Destroy(gameObject); return; }
         if (Time.time < nextCheck) return;
         nextCheck = Time.time + 0.25f;
-        foreach (var h in Physics2D.OverlapCircleAll(transform.position, 0.45f, 1 << 7))
+        foreach (var h in Phys.Circle(transform.position, 0.45f, 1 << 7))
         {
             var ai = h.GetComponent<AdventurerAI>();
             if (ai != null) ai.Slow(0.4f, 0.6f);

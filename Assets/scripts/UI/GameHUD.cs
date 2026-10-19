@@ -634,7 +634,7 @@ public class GameHUD : MonoBehaviour
         refreshTimer -= Time.unscaledDeltaTime;
         if (refreshTimer <= 0f)
         {
-            refreshTimer = 0.1f;
+            refreshTimer = 0.25f;   // 4 fois par seconde suffit : chaque rafraîchissement refabrique les textes
             Refresh();
         }
     }
