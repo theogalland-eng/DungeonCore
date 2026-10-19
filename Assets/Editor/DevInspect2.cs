@@ -1170,6 +1170,18 @@ public static class DevInspect3
         return DevInspect.Shot(p.x, p.y - 0.3f, 2.2f, 1400, 1000, "astc");
     }
     public static string RainNow() { IslandEvents.Instance.Begin(IslandEvent.Rain, GameManager.Instance.CurrentDay + 1); return "pluie"; }
+    public static string QueueDigs()
+    {
+        var b = DungeonBuilder.Instance; var core = Object.FindFirstObjectByType<DungeonCore>();
+        var cc = b.floorTilemap.WorldToCell(core.transform.position);
+        var m = typeof(DungeonBuilder).GetMethod("ApplyDigMark", BindingFlags.NonPublic | BindingFlags.Instance);
+        typeof(DungeonBuilder).GetField("dragMarking", BindingFlags.NonPublic | BindingFlags.Instance)?.SetValue(b, true);
+        for (int dx = -6; dx <= 6; dx++) for (int dy = 3; dy <= 5; dy++) { var c = cc + new Vector3Int(dx, dy, 0); if (b.stoneTilemap.HasTile(c)) m.Invoke(b, new object[] { c }); }
+        return $"en attente {b.QueuedDigCount}";
+    }
+    public static string DigState() { var b = DungeonBuilder.Instance; return $"attente {b.QueuedDigCount} suspendu {b.DigPaused}"; }
+    public static string DigPause() { DungeonBuilder.Instance.DigPaused = true; return DigState(); }
+    public static string DigCancel() { DungeonBuilder.Instance.ClearDigQueue(); DungeonBuilder.Instance.DigPaused = false; return DigState(); }
     public static string OpenMainScene()
     {
         if (Application.isPlaying) return "arrêter le jeu d'abord";

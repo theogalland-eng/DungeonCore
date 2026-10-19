@@ -247,6 +247,7 @@ public class GameHUD : MonoBehaviour
         BuildToolbar();
         BuildSpellBar();
         BuildSelectionPanel();
+        BuildDigPanel();
         BuildPossessionPanel();
         BuildFeed();
         BuildDialogue();
@@ -421,6 +422,51 @@ public class GameHUD : MonoBehaviour
         hintPanel.Find("Liseré").gameObject.SetActive(false);
         hintText = Label(hintPanel, "", 21, TextColor, new Vector2(20, -6), new Vector2(1020, 56), TextAlignmentOptions.Center);
         hintText.textWrappingMode = TextWrappingModes.Normal;
+    }
+
+    // ── Creusements en attente : suspendre ou tout annuler (des intrus arrivent...)
+    private RectTransform digPanel;
+    private TextMeshProUGUI digLabel;
+    private Button digPauseBtn;
+    private int lastDigCount = -1;
+    private bool lastDigPaused;
+
+    private void BuildDigPanel()
+    {
+        digPanel = UIKit.PanelBox("Creusements", root, new Vector2(0.5f, 1), new Vector2(0, -128), new Vector2(720, 66));
+        digLabel = UIKit.LabelAt(digPanel, "", 22, UIKit.Text, new Vector2(18, -8), new Vector2(300, 50), TextAlignmentOptions.MidlineLeft);
+        digPauseBtn = UIKit.BtnAt(digPanel, "Suspendre", () =>
+        {
+            var b = DungeonBuilder.Instance;
+            if (b == null) return;
+            b.DigPaused = !b.DigPaused;
+            Toast(b.DigPaused ? "Creusement suspendu" : "Creusement repris", InfoColor);
+            RefreshDigPanel(true);
+        }, new Vector2(1, 0.5f), new Vector2(-206, 0), new Vector2(180, 50), 20);
+        UIKit.BtnAt(digPanel, "Tout annuler", () =>
+        {
+            var b = DungeonBuilder.Instance;
+            if (b == null) return;
+            int n = b.QueuedDigCount;
+            b.ClearDigQueue();
+            b.DigPaused = false;
+            Toast($"{n} creusement(s) annulé(s)", InfoColor);
+            RefreshDigPanel(true);
+        }, new Vector2(1, 0.5f), new Vector2(-14, 0), new Vector2(180, 50), 20, UIKit.Danger);
+        digPanel.gameObject.SetActive(false);
+    }
+
+    private void RefreshDigPanel(bool force = false)
+    {
+        var b = DungeonBuilder.Instance;
+        int n = b != null ? b.QueuedDigCount : 0;
+        bool paused = b != null && b.DigPaused;
+        if (!force && n == lastDigCount && paused == lastDigPaused) return;
+        lastDigCount = n; lastDigPaused = paused;
+        digPanel.gameObject.SetActive(n > 0 && !CrawlerMode.Active);
+        if (n <= 0) return;
+        digLabel.text = paused ? $"<color=#FFC266>Creusement suspendu</color> · {n} case(s)" : $"Creusement en cours · {n} case(s)";
+        UIKit.SetLabel(digPauseBtn, paused ? "Reprendre" : "Suspendre");
     }
 
     private void BuildSelectionPanel()
@@ -634,6 +680,7 @@ public class GameHUD : MonoBehaviour
         refreshTimer -= Time.unscaledDeltaTime;
         if (refreshTimer <= 0f)
         {
+            RefreshDigPanel();
             refreshTimer = 0.25f;   // 4 fois par seconde suffit : chaque rafraîchissement refabrique les textes
             Refresh();
         }

@@ -109,6 +109,8 @@ public class DungeonBuilder : MonoBehaviour
     public CatalogItem SelectedItem { get; private set; }
 
     public int QueuedDigCount => digQueue.Count;
+    /// <summary>Creusement suspendu (les marques restent, rien n'avance ni ne coûte) : utile quand des intrus entrent.</summary>
+    public bool DigPaused { get; set; }
     public bool IsMining => isMining;
     public float MiningProgress01 => isMining ? Mathf.Clamp01(miningProgress / EffectiveMiningTime) : 0f;
 
@@ -443,6 +445,7 @@ public class DungeonBuilder : MonoBehaviour
 
     private void ProcessDigQueue()
     {
+        if (DigPaused) return;
         if (isMining)
         {
             miningProgress += Time.deltaTime;
