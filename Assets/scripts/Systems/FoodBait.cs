@@ -23,6 +23,8 @@ public class FoodBait : MonoBehaviour
 
     private void Start()
     {
+        // le garde-manger nourrit les monstres du donjon ET appâte les intrus : 10 portions par jour
+        if (maxPortions < 10) maxPortions = 10;
         Portions = maxPortions;
         sr = GetComponentInChildren<SpriteRenderer>();
         if (GameManager.Instance != null) GameManager.Instance.OnNewDay += Refill;

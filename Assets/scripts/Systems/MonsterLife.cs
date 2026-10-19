@@ -185,7 +185,7 @@ public class MonsterLife : MonoBehaviour
         bool holding = ai.currentBehavior == GobelinAI.GoblinBehavior.Stay;
 
         // manger : un cadavre, sinon un garde-manger posé sur l'étage, sinon une salle de réserves
-        if (hunger > 55f && !holding)
+        if (hunger > 40f && !holding)
         {
             Corpse best = null;
             float bd = 22f;
@@ -200,7 +200,9 @@ public class MonsterLife : MonoBehaviour
             var food = NearestLarder(pos, layer);
             if (food != null)
             {
-                Begin(Task.Eat); corpse = null; larder = food; target = food.EatSpot(pos); ai.LifeGoTo(target); return true;
+                Begin(Task.Eat); corpse = null; larder = food; target = food.EatSpot(pos); ai.LifeGoTo(target);
+                Bark("Je vais manger !", new Color(1f, 0.85f, 0.55f));
+                return true;
             }
             if (ThemedRooms.NearestRoom(pos, ThemedRooms.Kind.Pantry, 60f, out var pantry))
             {
@@ -341,7 +343,7 @@ public class MonsterLife : MonoBehaviour
     public string Describe()
     {
         string m = mood > 70f ? "<color=#9CF0A8>heureux</color>" : mood > 40f ? "content" : mood > 22f ? "<color=#FFC266>maussade</color>" : "<color=#FF8A7A>malheureux</color>";
-        string h = hunger > 85f ? "<color=#FF8A7A>affamé</color>" : hunger > 55f ? "<color=#FFC266>a faim</color>" : "repu";
+        string h = hunger > 85f ? "<color=#FF8A7A>affamé</color>" : hunger > 40f ? "<color=#FFC266>a faim</color>" : "repu";
         string e = Sleeping ? "dort" : energy < 20f ? "<color=#FFC266>épuisé</color>" : "en forme";
         var sb = new System.Text.StringBuilder($"Humeur : {m} · {h} · {e}");
         if (boredom > 70f) sb.Append(" · s'ennuie");

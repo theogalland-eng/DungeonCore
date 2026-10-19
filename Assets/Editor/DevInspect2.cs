@@ -1182,6 +1182,26 @@ public static class DevInspect3
     public static string DigState() { var b = DungeonBuilder.Instance; return $"attente {b.QueuedDigCount} suspendu {b.DigPaused}"; }
     public static string DigPause() { DungeonBuilder.Instance.DigPaused = true; return DigState(); }
     public static string DigCancel() { DungeonBuilder.Instance.ClearDigQueue(); DungeonBuilder.Instance.DigPaused = false; return DigState(); }
+    /// <summary>Partie réaliste : monstres invoqués, un garde-manger posé, faim non forcée.</summary>
+    public static string LarderReal()
+    {
+        var b = DungeonBuilder.Instance; var cat = DungeonCatalog.Get();
+        var core = Object.FindFirstObjectByType<DungeonCore>();
+        var cc = b.floorTilemap.WorldToCell(core.transform.position);
+        PlacedObject placed = null;
+        for (int r = 2; r <= 8 && placed == null; r++)
+            for (int dx = -r; dx <= r && placed == null; dx++)
+                for (int dy = -r; dy <= r; dy++)
+                {
+                    var c = cc + new Vector3Int(dx, dy, 0);
+                    Vector2 w = b.floorTilemap.GetCellCenterWorld(c);
+                    if (!DungeonTerritory.Instance.IsInsideCell(c) || Physics2D.OverlapCircle(w, 0.6f, 1 << 6) != null) continue;
+                    if ((placed = b.PlaceItemFree(cat.Find("food_cache"), c)) != null) break;
+                }
+        foreach (var id in new[] { "goblin_1", "rat_1", "skeleton_1", "slime_1" }) SpawnMon(id, new Vector2(Random.Range(-1.5f, 1.5f), -1f));
+        return placed != null ? "garde-manger posé" : "pose impossible";
+    }
+    public static string ChronicleTail() { var l = new System.Collections.Generic.List<string>(); Chronicle.Capture(l); return string.Join(" | ", l.Skip(System.Math.Max(0, l.Count - 8))); }
     public static string OpenMainScene()
     {
         if (Application.isPlaying) return "arrêter le jeu d'abord";
