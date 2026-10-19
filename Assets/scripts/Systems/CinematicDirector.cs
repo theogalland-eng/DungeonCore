@@ -118,8 +118,7 @@ public partial class CinematicDirector : MonoBehaviour
         subText.fontStyle = FontStyles.Italic;
         stampText = NewCenterText(go.transform, "Stamp", 260, Color.white, 150f, 300f);
         stampText.fontStyle = FontStyles.Bold;
-        stampText.outlineWidth = 0.12f;
-        stampText.outlineColor = new Color32(20, 10, 25, 255);
+        UIKit.Outline(stampText, new Color32(20, 10, 25, 255), 0.12f);   // matériau partagé (pas un par texte)
 
         var skipImg = NewImage(go.transform, "Skip", new Color(0f, 0f, 0f, 0.45f));
         skipButton = skipImg.gameObject;

@@ -26,7 +26,7 @@ public class LootPickup : MonoBehaviour
         p.sr = go.AddComponent<SpriteRenderer>();
         p.sr.sprite = def.icon;
         p.sr.sortingOrder = 22;
-        p.glow = go.AddComponent<Light2D>();
+        p.glow = go.AddComponent<Light2D>(); Light2DCleanup.Attach(p.glow);
         p.glow.lightType = Light2D.LightType.Point;
         p.glow.color = LootSystem.RarityColors[def.rarity];
         p.glow.intensity = 0.9f;

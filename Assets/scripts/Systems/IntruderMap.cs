@@ -70,6 +70,33 @@ public class IntruderMap
         return false;
     }
 
+    private static readonly List<RaycastHit2D> sightHits = new List<RaycastHit2D>(16);
+
+    /// <summary>
+    /// Ligne de vue pour la carte : seuls les murs arrêtent le regard. Un garde-manger, un tonneau ou une statue
+    /// se voient par-dessus — sinon les cases derrière eux restaient « inconnues » pour toujours et les intrus
+    /// tournaient en rond dans la salle pour les découvrir. (Les portes fermées sont traitées à part.)
+    /// </summary>
+    /// <summary>Réglage de test : false = ancien comportement (les objets posés cachent la vue).</summary>
+    public static bool SeeOverObjects = true;
+
+    private static bool SightClear(Vector2 from, Vector2 to)
+    {
+        if (!SeeOverObjects) return AdventurerAI.ClearLine(from, to, 1 << 6, false);
+        Vector2 d = to - from;
+        float len = d.magnitude;
+        if (len < 0.05f) return true;
+        var filter = new ContactFilter2D { useLayerMask = true, layerMask = 1 << 6, useTriggers = Physics2D.queriesHitTriggers };
+        int n = Physics2D.CircleCast(from, 0.1f, d / len, filter, sightHits, len);
+        for (int i = 0; i < n; i++)
+        {
+            var col = sightHits[i].collider;
+            if (col == null || col.GetComponentInParent<PlacedObject>() != null) continue;   // objet posé : on voit par-dessus
+            return false;
+        }
+        return true;
+    }
+
     /// <summary>Ce que voit un intrus depuis sa position (ligne de vue, rayon de 5 cases ; une porte fermée arrête le regard).</summary>
     public void Observe(Vector2 pos, Transform core)
     {
@@ -89,7 +116,7 @@ public class IntruderMap
             Vector2 center = b.floorTilemap.GetCellCenterWorld(c);
             Vector2 toC = center - pos;
             Vector2 aim = toC.magnitude > 0.6f ? center - toC.normalized * 0.45f : center;
-            bool visible = c == c0 || AdventurerAI.ClearLine(pos, aim, 1 << 6, false);
+            bool visible = c == c0 || SightClear(pos, aim);
             if (!visible) continue;
             if (t.IsDungeonGround(c))
             {

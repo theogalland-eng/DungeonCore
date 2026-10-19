@@ -196,8 +196,7 @@ public class MonsterMind : MonoBehaviour
         tmp.fontStyle = FontStyles.Italic;
         tmp.alignment = TextAlignmentOptions.Center;
         tmp.color = new Color(1f, 0.95f, 0.85f);
-        tmp.outlineWidth = 0.25f;
-        tmp.outlineColor = new Color32(15, 8, 20, 255);
+        UIKit.Outline(tmp, new Color32(15, 8, 20, 255), 0.25f);   // matériau partagé (pas un par texte)
         tmp.rectTransform.sizeDelta = new Vector2(7f, 1.5f);
         tmp.sortingOrder = 41;
         Destroy(go, 3.5f);

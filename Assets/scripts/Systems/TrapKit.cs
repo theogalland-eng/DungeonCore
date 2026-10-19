@@ -119,7 +119,7 @@ public abstract class TrapKit : MonoBehaviour
 
     protected static void Light(GameObject go, Color c, float r, float i)
     {
-        var l = go.AddComponent<Light2D>();
+        var l = go.AddComponent<Light2D>(); Light2DCleanup.Attach(l);
         l.lightType = Light2D.LightType.Point;
         l.color = c;
         l.pointLightOuterRadius = r;

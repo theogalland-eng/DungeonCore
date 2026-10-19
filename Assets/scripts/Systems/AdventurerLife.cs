@@ -73,6 +73,8 @@ public class AdventurerLife : MonoBehaviour
     private PuzzleSwitch puzzle;
     private float nextPuzzle, puzzleArrive = -1f;
     private FoodBait bait;
+    private FoodBait ignoredBait;      // garde-manger inaccessible : ignoré un moment
+    private float ignoreBaitUntil;
     private AdventurerLife opponent;
     private bool brawlToDeath;
     private string[] brawlLines;
@@ -230,6 +232,7 @@ public class AdventurerLife : MonoBehaviour
         {
             // un garde-manger en vue (piège du Noyau)
             var b = FoodBait.Nearest(pos, Has(Trait.Glutton) ? 14f : 9f, this);
+            if (b != null && b == ignoredBait && Time.time < ignoreBaitUntil) b = null;
             if (b != null && ai.LifeSees(b.transform) && Begin(Task.Bait, 25f))
             {
                 bait = b; bait.Reserve(this);
@@ -404,7 +407,15 @@ public class AdventurerLife : MonoBehaviour
     {
         if (bait == null || bait.Portions <= 0) { Finish(); return false; }
         float d = Vector2.Distance(transform.position, bait.transform.position);
-        if (d > 1.1f) { ai.LifeMove(1.1f); return true; }
+        // à portée de bras au bout de quelques secondes (un meuble ou un compagnon gêne) : il se sert quand même
+        bool close = d <= 1.1f || (taskTimer > 5f && d < 2.3f);
+        if (!close)
+        {
+            // inaccessible : il renonce à CE garde-manger un moment (sinon il y revenait sans fin et tournait en rond)
+            if (taskTimer > 12f) { bait.Release(this); ignoredBait = bait; ignoreBaitUntil = Time.time + 90f; Finish(); return false; }
+            ai.LifeMove(1.1f);
+            return true;
+        }
         ai.LifeStop();
         ai.LifeFace(bait.transform.position);
         ai.LifeGesture(Mathf.Repeat(taskTimer, 0.7f) < 0.35f ? 0.1f : 0f);
@@ -478,7 +489,7 @@ public class AdventurerLife : MonoBehaviour
     {
         var go = new GameObject("Feu de camp");
         go.transform.position = at;
-        var l = go.AddComponent<UnityEngine.Rendering.Universal.Light2D>();
+        var l = go.AddComponent<UnityEngine.Rendering.Universal.Light2D>(); Light2DCleanup.Attach(l);
         l.lightType = UnityEngine.Rendering.Universal.Light2D.LightType.Point;
         l.color = new Color(1f, 0.6f, 0.25f);
         l.intensity = 0.9f;

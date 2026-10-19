@@ -81,6 +81,110 @@ public static class PerfProbe
         return sb.ToString();
     }
 
+    /// <summary>Les k images les plus lentes (lancement, saccades) et ce qui les remplit (y compris le chargement).</summary>
+    public static string ReportWorst(int k = 6)
+    {
+        ProfilerDriver.enabled = false;
+        int first = ProfilerDriver.firstFrameIndex, last = ProfilerDriver.lastFrameIndex;
+        if (first < 0) return "aucune image";
+        var frames = new List<(int f, float ms)>();
+        for (int f = first; f <= last; f++)
+            using (var v = ProfilerDriver.GetHierarchyFrameDataView(f, 0, HierarchyFrameDataView.ViewModes.MergeSamplesWithTheSameName, HierarchyFrameDataView.columnSelfTime, false))
+                if (v != null && v.valid) frames.Add((f, v.frameTimeMs));
+        var sb = new StringBuilder($"{frames.Count} images, total {frames.Sum(x => x.ms) / 1000f:0.0} s | ");
+        foreach (var (f, ms) in frames.OrderByDescending(x => x.ms).Take(k))
+        {
+            sb.Append($" || image {f - first} : {ms:0} ms");
+            using (var v = ProfilerDriver.GetHierarchyFrameDataView(f, 0, HierarchyFrameDataView.ViewModes.MergeSamplesWithTheSameName, HierarchyFrameDataView.columnTotalTime, false))
+            {
+                var tot = new Dictionary<string, float>();
+                var stack = new Stack<int>(); stack.Push(v.GetRootItemID());
+                var ch = new List<int>();
+                while (stack.Count > 0)
+                {
+                    int id = stack.Pop();
+                    string n = v.GetItemName(id);
+                    float t = v.GetItemColumnDataAsFloat(id, HierarchyFrameDataView.columnSelfTime);
+                    tot.TryGetValue(n, out float o); tot[n] = o + t;
+                    ch.Clear(); v.GetItemChildren(id, ch); foreach (var c in ch) stack.Push(c);
+                }
+                foreach (var kv in tot.OrderByDescending(x => x.Value).Take(10)) sb.Append($" | {kv.Value:0.0} ms {kv.Key}");
+            }
+        }
+        return sb.ToString();
+    }
+
+    /// <summary>Ce qui s'accumule au fil de la partie : objets par nom, ressources créées en mémoire, tas.</summary>
+    public static string Leaks()
+    {
+        var sb = new StringBuilder();
+        var gos = Object.FindObjectsByType<GameObject>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        sb.Append($"GameObjects {gos.Length} | Texture2D {Resources.FindObjectsOfTypeAll<Texture2D>().Length} | Sprite {Resources.FindObjectsOfTypeAll<Sprite>().Length}");
+        sb.Append($" | Material {Resources.FindObjectsOfTypeAll<Material>().Length} | Mesh {Resources.FindObjectsOfTypeAll<Mesh>().Length} | AudioClip {Resources.FindObjectsOfTypeAll<AudioClip>().Length}");
+        sb.Append($" | ScriptableObject {Resources.FindObjectsOfTypeAll<ScriptableObject>().Length}");
+        sb.Append($" | tas mono {Profiler.GetMonoUsedSizeLong() / 1048576f:0.0} Mo, alloué {Profiler.GetTotalAllocatedMemoryLong() / 1048576f:0} Mo");
+        string Key(string n) { int i = n.IndexOfAny("0123456789(_ ".ToCharArray()); return i > 2 ? n.Substring(0, i) : n; }
+        var groups = gos.GroupBy(g => Key(g.name)).OrderByDescending(g => g.Count()).Take(25);
+        sb.Append(" || " + string.Join(", ", groups.Select(g => $"{g.Key} {g.Count()}")));
+        return sb.ToString();
+    }
+
+    /// <summary>Ressources créées à l'exécution (pas des fichiers du projet), regroupées par nom.</summary>
+    public static string RuntimeAssets()
+    {
+        string Group<T>(string label) where T : Object
+        {
+            var all = Resources.FindObjectsOfTypeAll<T>().Where(o => !UnityEditor.EditorUtility.IsPersistent(o)).ToList();
+            var g = all.GroupBy(o => string.IsNullOrEmpty(o.name) ? "(sans nom)" : o.name).OrderByDescending(x => x.Count()).Take(8);
+            return $"{label} {all.Count} : " + string.Join(", ", g.Select(x => $"{x.Key} {x.Count()}"));
+        }
+        string shaders = string.Join(", ", Resources.FindObjectsOfTypeAll<Material>().Where(m => !UnityEditor.EditorUtility.IsPersistent(m))
+            .GroupBy(m => m.shader != null ? m.shader.name : "?").OrderByDescending(x => x.Count()).Take(6).Select(x => $"{x.Key} {x.Count()}"));
+        return Group<Material>("MAT") + " | shaders : " + shaders + " || " + Group<Sprite>("SPR") + " || " + Group<Mesh>("MESH") + " || " + Group<Texture2D>("TEX");
+    }
+
+    /// <summary>Mémoire des textures chargées par la scène de jeu (les plus grosses d'abord).</summary>
+    public static string TextureMemory()
+    {
+        var used = new HashSet<Texture>();
+        foreach (var r in Object.FindObjectsByType<SpriteRenderer>(FindObjectsInactive.Include, FindObjectsSortMode.None)) if (r.sprite != null) used.Add(r.sprite.texture);
+        var all = Resources.FindObjectsOfTypeAll<Texture2D>();
+        long total = 0; foreach (var t in all) total += Profiler.GetRuntimeMemorySizeLong(t);
+        var top = all.OrderByDescending(t => Profiler.GetRuntimeMemorySizeLong(t)).Take(15)
+            .Select(t => $"{t.name} {t.width}x{t.height} {t.format} {Profiler.GetRuntimeMemorySizeLong(t) / 1048576f:0.0}Mo");
+        long sum = 0; int n = 0;
+        foreach (var t in all) { if (UnityEditor.AssetDatabase.GetAssetPath(t).StartsWith("Assets/")) { sum += Profiler.GetRuntimeMemorySizeLong(t); n++; } }
+        return $"textures en mémoire {all.Length} = {total / 1048576f:0} Mo (dont projet {n} = {sum / 1048576f:0} Mo) | " + string.Join(" ; ", top);
+    }
+
+    /// <summary>Compression Android (ASTC 4×4, 8 bits/pixel au lieu de 32) des textures de sprites ; « filter » limite aux chemins contenant ce texte.</summary>
+    public static string AndroidAstc(string filter)
+    {
+        int n = 0;
+        UnityEditor.AssetDatabase.StartAssetEditing();   // une seule passe d'import pour tout le lot
+        try {
+        foreach (var guid in UnityEditor.AssetDatabase.FindAssets("t:Texture2D", new[] { "Assets" }))
+        {
+            string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
+            if (!string.IsNullOrEmpty(filter) && !path.Contains(filter)) continue;
+            var imp = UnityEditor.AssetImporter.GetAtPath(path) as UnityEditor.TextureImporter;
+            if (imp == null || imp.textureType != UnityEditor.TextureImporterType.Sprite) continue;
+            var ps = imp.GetPlatformTextureSettings("Android");
+            if (ps.overridden && ps.format == UnityEditor.TextureImporterFormat.ASTC_4x4) continue;
+            ps.overridden = true;
+            ps.format = UnityEditor.TextureImporterFormat.ASTC_4x4;
+            ps.compressionQuality = 100;
+            ps.maxTextureSize = imp.maxTextureSize;
+            imp.SetPlatformTextureSettings(ps);
+            imp.SaveAndReimport();
+            n++;
+        }
+        } finally { UnityEditor.AssetDatabase.StopAssetEditing(); }
+        return $"{n} textures passées en ASTC 4x4 (Android)";
+    }
+    public static string AstcAll() => AndroidAstc("");
+    public static string AstcTest() => AndroidAstc("Characters8/goblin_2") + " | " + AndroidAstc("Characters8/orc_3") + " | " + AndroidAstc("Characters8/spider_2");
+
     public static string AnimatedTiles()
     {
         var sb = new StringBuilder();

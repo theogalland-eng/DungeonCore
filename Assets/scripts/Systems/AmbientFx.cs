@@ -84,7 +84,7 @@ public class AmbientFx : MonoBehaviour
         var p = new Particle { t = go.transform, sr = sr, phase = Random.value * 10f };
         if (withLight)
         {
-            p.light = go.AddComponent<Light2D>();
+            p.light = go.AddComponent<Light2D>(); Light2DCleanup.Attach(p.light);
             p.light.lightType = Light2D.LightType.Point;
             p.light.color = new Color(0.8f, 1f, 0.45f);
             p.light.pointLightOuterRadius = 1.4f;

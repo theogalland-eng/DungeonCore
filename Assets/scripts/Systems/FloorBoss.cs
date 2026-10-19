@@ -165,7 +165,7 @@ public class BossSeal : MonoBehaviour
         sr.sortingOrder = 2;
         ringGo.transform.localScale = Vector3.one * (core != null ? 2.4f : 1.6f);
         s.ring = ringGo.transform;
-        var l = go.AddComponent<Light2D>();
+        var l = go.AddComponent<Light2D>(); Light2DCleanup.Attach(l);
         l.lightType = Light2D.LightType.Point;
         l.color = new Color(0.65f, 0.35f, 1f);
         l.intensity = 0.9f;

@@ -146,7 +146,7 @@ public class MonsterVariant : MonoBehaviour
             {
                 var g = new GameObject("Lueur de variante");
                 g.transform.SetParent(transform, false);
-                var l = g.AddComponent<Light2D>();
+                var l = g.AddComponent<Light2D>(); Light2DCleanup.Attach(l);
                 l.lightType = Light2D.LightType.Point;
                 l.color = look.glow;
                 l.intensity = 0.55f;
@@ -376,7 +376,7 @@ public class FireTrail : MonoBehaviour
         t.sr = go.AddComponent<SpriteRenderer>();
         t.sr.sprite = Sprite();
         t.sr.sortingOrder = 2;
-        var l = go.AddComponent<Light2D>();
+        var l = go.AddComponent<Light2D>(); Light2DCleanup.Attach(l);
         l.lightType = Light2D.LightType.Point;
         l.color = new Color(1f, 0.5f, 0.15f);
         l.intensity = 0.5f;

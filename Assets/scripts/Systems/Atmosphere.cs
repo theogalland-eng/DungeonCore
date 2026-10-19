@@ -92,7 +92,7 @@ public class Atmosphere : MonoBehaviour
         var go = new GameObject("Torche");
         go.transform.SetParent(who, false);
         go.transform.localPosition = new Vector3(0.15f, 0.35f, 0f);
-        var l = go.AddComponent<Light2D>();
+        var l = go.AddComponent<Light2D>(); Light2DCleanup.Attach(l);
         l.lightType = Light2D.LightType.Point;
         l.color = new Color(1f, 0.72f, 0.42f);
         l.pointLightOuterRadius = radius;
@@ -230,7 +230,7 @@ public class Atmosphere : MonoBehaviour
             var go = new GameObject("Lanterne");
             go.transform.SetParent(b.transform, false);
             go.transform.localPosition = new Vector3(0.55f, 0.45f, 0f);
-            var l = go.AddComponent<Light2D>();
+            var l = go.AddComponent<Light2D>(); Light2DCleanup.Attach(l);
             l.lightType = Light2D.LightType.Point;
             l.color = new Color(1f, 0.78f, 0.45f);
             l.pointLightOuterRadius = 2.4f;

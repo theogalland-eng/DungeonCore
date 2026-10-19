@@ -44,9 +44,12 @@ public class IslandEvents : MonoBehaviour
     public static readonly string[] Names = { "", "Tempête", "Brouillard", "Réveil du volcan", "Lune de sang", "Pluie" };
     public string Name => Names[(int)Current];
 
-    private readonly List<Transform> drops = new List<Transform>();
-    private readonly List<SpriteRenderer> dropsR = new List<SpriteRenderer>();
-    private readonly List<SpriteRenderer> fogs = new List<SpriteRenderer>();
+    // Pluie : un seul système de particules (un seul dessin, simulé par le moteur) au lieu de 110 sprites éclairés
+    // déplacés un à un ; brume : une seule nappe non éclairée au lieu de 9 calques plein écran (très coûteux sur téléphone).
+    private ParticleSystem rainPs;
+    private ParticleSystemRenderer rainRenderer;
+    private SpriteRenderer fogSr;
+    private static Material unlitMat;
     private Transform fx;
     private float nextThunder, nextQuake, nextGeyser, flash;
     private float weather;       // 0 → 1 : intensité visuelle de l'événement
@@ -62,30 +65,38 @@ public class IslandEvents : MonoBehaviour
     {
         if (GameManager.Instance != null) GameManager.Instance.OnNewDay += OnNewDay;
         fx = new GameObject("Météo").transform;
-        for (int i = 0; i < 110; i++)
-        {
-            var d = new GameObject("Goutte");
-            d.transform.SetParent(fx, false);
-            var sr = d.AddComponent<SpriteRenderer>();
-            sr.sprite = SpriteUtil.Square;
-            sr.sortingOrder = 60;
-            sr.color = new Color(0.7f, 0.8f, 1f, 0f);
-            d.transform.localScale = new Vector3(0.03f, 0.45f, 1f);
-            d.transform.rotation = Quaternion.Euler(0, 0, 14f);
-            drops.Add(d.transform);
-            dropsR.Add(sr);
-        }
-        for (int i = 0; i < 9; i++)
-        {
-            var f = new GameObject("Brume");
-            f.transform.SetParent(fx, false);
-            var sr = f.AddComponent<SpriteRenderer>();
-            sr.sprite = SpriteUtil.Glow;
-            sr.sortingOrder = 59;
-            sr.color = new Color(0.8f, 0.82f, 0.86f, 0f);
-            f.transform.localScale = new Vector3(Random.Range(10f, 18f), Random.Range(6f, 10f), 1f);
-            fogs.Add(sr);
-        }
+        if (unlitMat == null) { var sh = Shader.Find("Sprites/Default"); if (sh != null) unlitMat = new Material(sh); }
+        var pgo = new GameObject("Pluie");
+        pgo.transform.SetParent(fx, false);
+        rainPs = pgo.AddComponent<ParticleSystem>();
+        rainPs.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        var main = rainPs.main;
+        main.loop = true;
+        main.playOnAwake = false;
+        main.startSpeed = 0f;
+        main.maxParticles = 240;
+        main.simulationSpace = ParticleSystemSimulationSpace.World;
+        main.scalingMode = ParticleSystemScalingMode.Shape;
+        var shape = rainPs.shape;
+        shape.shapeType = ParticleSystemShapeType.Box;
+        var vel = rainPs.velocityOverLifetime;
+        vel.enabled = true;
+        vel.space = ParticleSystemSimulationSpace.World;
+        var em = rainPs.emission;
+        em.rateOverTime = 0f;
+        rainRenderer = pgo.GetComponent<ParticleSystemRenderer>();
+        rainRenderer.sharedMaterial = unlitMat;
+        rainRenderer.sortingOrder = 60;
+        rainPs.Play();
+
+        var fgo = new GameObject("Brume");
+        fgo.transform.SetParent(fx, false);
+        fogSr = fgo.AddComponent<SpriteRenderer>();
+        fogSr.sprite = SpriteUtil.Glow;
+        if (unlitMat != null) fogSr.sharedMaterial = unlitMat;
+        fogSr.sortingOrder = 59;
+        fogSr.color = new Color(0.8f, 0.82f, 0.86f, 0f);
+        fogSr.enabled = false;
         rain = gameObject.AddComponent<AudioSource>();
         rain.clip = Resources.Load<AudioClip>("Audio/Ambience/amb_rain");
         rain.loop = true;
@@ -183,32 +194,19 @@ public class IslandEvents : MonoBehaviour
         float roof = reliefV != null && reliefV.DungeonView ? 0.3f : 1f;
         bool ash = Current == IslandEvent.Eruption;
         float rainA = (Current == IslandEvent.Storm ? weather : Current == IslandEvent.Rain ? weather * 0.6f : ash ? weather * 0.5f : 0f) * roof;
-        for (int i = 0; i < drops.Count; i++)
-        {
-            var d = drops[i];
-            dropsR[i].enabled = rainA > 0.01f;
-            if (!dropsR[i].enabled) continue;
-            Vector3 p = d.position + (ash ? new Vector3(0.15f + Mathf.Sin(Time.time + i) * 0.2f, -1f, 0f) * (h * 0.25f * dt) : new Vector3(-0.25f, -1f, 0f) * (h * 1.6f * dt));
-            if (p.y < c.y - h - 1f || Mathf.Abs(p.x - c.x) > w + 2f)
-                p = new Vector3(c.x + Random.Range(-w - 1f, w + 2f), c.y + h + Random.Range(0f, 2f), 0f);
-            d.position = p;
-            d.localScale = ash ? new Vector3(0.05f * h / 6f, 0.05f * h / 6f, 1f) : new Vector3(0.025f * h / 6f, 0.42f * h / 6f, 1f);
-            dropsR[i].color = ash ? new Color(0.45f, 0.42f, 0.45f, 0.6f * rainA) : new Color(0.7f, 0.8f, 1f, 0.35f * rainA);
-        }
+        UpdateRain(rainA, ash, c, w, h);
 
         // Brume (brouillard, un peu pendant la tempête)
         morningFogA = Mathf.MoveTowards(morningFogA, MorningFog && !home ? 1f : 0f, Time.unscaledDeltaTime / 4f);
         float fogA = (Current == IslandEvent.Fog ? weather * 0.5f : Current == IslandEvent.Storm ? weather * 0.15f : 0f) * (roof < 1f ? 0.6f : 1f);
         fogA = Mathf.Max(fogA, morningFogA * 0.28f * (roof < 1f ? 0.4f : 1f));
-        for (int i = 0; i < fogs.Count; i++)
+        fogSr.enabled = fogA > 0.01f;
+        if (fogSr.enabled)
         {
-            var f = fogs[i];
-            f.enabled = fogA > 0.01f;
-            if (!f.enabled) continue;
-            float t = Time.time * 0.03f + i * 1.7f;
-            f.transform.position = new Vector3(c.x + Mathf.Sin(t) * w * 0.9f, c.y + Mathf.Cos(t * 0.8f + i) * h * 0.8f, 0f);
-            f.transform.localScale = new Vector3(w * 1.6f, h * 1.4f, 1f);
-            f.color = new Color(0.82f, 0.84f, 0.88f, fogA);
+            float t = Time.time * 0.03f;
+            fogSr.transform.position = new Vector3(c.x + Mathf.Sin(t) * w * 0.15f, c.y + Mathf.Cos(t * 0.8f) * h * 0.1f, 0f);
+            fogSr.transform.localScale = new Vector3(w * 3.2f, h * 3.2f, 1f);   // une nappe douce qui couvre l'écran
+            fogSr.color = new Color(0.82f, 0.84f, 0.88f, Mathf.Min(0.75f, fogA * 1.8f));
         }
 
         // Éclairs, secousses, geysers
@@ -261,6 +259,46 @@ public class IslandEvents : MonoBehaviour
     }
 
     private float morningFogA, nextLava, nextWet;
+
+    private float rainRate = -1f, rainH = -1f;
+    private bool rainAsh;
+
+    /// <summary>Gouttes (ou cendres) émises au-dessus de l'écran ; on ne touche aux réglages que s'ils changent.</summary>
+    private void UpdateRain(float a, bool ash, Vector2 c, float w, float h)
+    {
+        if (rainPs == null) return;
+        rainPs.transform.position = new Vector3(c.x + (ash ? 0f : w * 0.25f), c.y + h + 1f, 0f);
+        float rate = a > 0.01f ? (ash ? 45f : 170f) * Mathf.Clamp01(a * 1.6f) : 0f;
+        if (Mathf.Abs(rate - rainRate) > 2f) { var em = rainPs.emission; em.rateOverTime = rate; rainRate = rate; }
+        if (Mathf.Abs(h - rainH) < 0.25f && ash == rainAsh && rate > 0f) { var mm = rainPs.main; mm.startColor = RainColor(a, ash); return; }
+        rainH = h; rainAsh = ash;
+        var main = rainPs.main;
+        var shape = rainPs.shape;
+        shape.scale = new Vector3(w * 2.6f, 0.2f, 1f);
+        var vel = rainPs.velocityOverLifetime;
+        if (ash)
+        {
+            vel.x = new ParticleSystem.MinMaxCurve(-0.05f * h, 0.15f * h);
+            vel.y = new ParticleSystem.MinMaxCurve(-0.25f * h);
+            main.startLifetime = (2f * h + 2f) / (0.25f * h);
+            main.startSize = 0.05f * h / 6f;
+            rainRenderer.renderMode = ParticleSystemRenderMode.Billboard;
+        }
+        else
+        {
+            vel.x = new ParticleSystem.MinMaxCurve(-0.4f * h);
+            vel.y = new ParticleSystem.MinMaxCurve(-1.6f * h);
+            main.startLifetime = (2f * h + 2f) / (1.6f * h);
+            main.startSize = 0.025f * h / 6f;
+            rainRenderer.renderMode = ParticleSystemRenderMode.Stretch;
+            rainRenderer.velocityScale = 0.044f;   // longueur du trait ≈ celle des anciennes gouttes
+            rainRenderer.lengthScale = 1f;
+        }
+        vel.z = new ParticleSystem.MinMaxCurve(0f);
+        main.startColor = RainColor(a, ash);
+    }
+
+    private static Color RainColor(float a, bool ash) => ash ? new Color(0.45f, 0.42f, 0.45f, 0.6f) : new Color(0.7f, 0.8f, 1f, 0.35f);
 
     /// <summary>Pluie : les intrus dehors ont la torche mouillée (éteinte) ; un repos au camp la ranime.</summary>
     private void WetTorches()
@@ -340,7 +378,7 @@ public class IslandEvents : MonoBehaviour
             newLava.Add(n);
             var g = new GameObject("Lave nouvelle");
             g.transform.position = wp;
-            var l = g.AddComponent<Light2D>();
+            var l = g.AddComponent<Light2D>(); Light2DCleanup.Attach(l);
             l.lightType = Light2D.LightType.Point; l.color = new Color(1f, 0.45f, 0.15f); l.intensity = 0.7f; l.pointLightOuterRadius = 2.4f;
             g.AddComponent<LavaGlow>();
             newGlow.Add(g);

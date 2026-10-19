@@ -1065,8 +1065,7 @@ public class CrawlerMode : MonoBehaviour
         var menu = UIKit.BtnAt(hud, "Menu", () => MainMenu.Instance?.OpenPause(), new Vector2(1, 1), new Vector2(-16, -16), new Vector2(140, 60), 24);
 
         prompt = UIKit.LabelAt(hud, "", 28, new Color(1f, 0.95f, 0.8f), new Vector2(0, -24), new Vector2(1000, 44), TextAlignmentOptions.Center, new Vector2(0.5f, 1));
-        prompt.outlineWidth = 0.2f;
-        prompt.outlineColor = new Color32(10, 6, 16, 255);
+        UIKit.Outline(prompt, new Color32(10, 6, 16, 255), 0.2f);   // matériau partagé (pas un par texte)
         banner = UIKit.LabelAt(go.transform, "", 56, UIKit.Gold, new Vector2(0, 170), new Vector2(1400, 160), TextAlignmentOptions.Center, new Vector2(0.5f, 0.5f));
         banner.alpha = 0f;
 

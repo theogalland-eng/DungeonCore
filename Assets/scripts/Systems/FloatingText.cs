@@ -11,26 +11,35 @@ public class FloatingText : MonoBehaviour
     private Color color;
     private Vector3 vel;
 
+    // recyclés : un combat en affiche des centaines par minute (créer puis détruire un texte coûte cher)
+    private static readonly System.Collections.Generic.Stack<FloatingText> pool = new System.Collections.Generic.Stack<FloatingText>();
+
     public static void Spawn(Vector3 position, string text, Color color, float size = 1f)
     {
-        var go = new GameObject("FloatingText");
-        go.transform.position = position + (Vector3)(UnityEngine.Random.insideUnitCircle * 0.15f);
-        var ft = go.AddComponent<FloatingText>();
-        ft.tmp = go.AddComponent<TextMeshPro>();
+        FloatingText ft = null;
+        while (pool.Count > 0 && ft == null) ft = pool.Pop();
+        if (ft == null)
+        {
+            var go = new GameObject("FloatingText");
+            ft = go.AddComponent<FloatingText>();
+            ft.tmp = go.AddComponent<TextMeshPro>();
+            ft.tmp.alignment = TextAlignmentOptions.Center;
+            ft.tmp.fontStyle = FontStyles.Bold;
+            UIKit.Outline(ft.tmp, new Color32(0, 0, 0, 200), 0.25f);
+            ft.tmp.rectTransform.sizeDelta = new Vector2(4f, 1f);
+            ft.tmp.sortingOrder = 200;
+        }
+        var g = ft.gameObject;
+        g.SetActive(true);
+        g.transform.position = position + (Vector3)(UnityEngine.Random.insideUnitCircle * 0.15f);
         ft.tmp.text = text;
         ft.tmp.fontSize = 3.2f * size;
-        ft.tmp.alignment = TextAlignmentOptions.Center;
         ft.tmp.color = color;
-        ft.tmp.fontStyle = FontStyles.Bold;
-        ft.tmp.outlineWidth = 0.25f;
-        ft.tmp.outlineColor = new Color32(0, 0, 0, 200);
-        ft.tmp.rectTransform.sizeDelta = new Vector2(4f, 1f);
-        ft.tmp.sortingOrder = 200;
         ft.color = color;
         ft.maxLife = ft.life = 0.9f;
         // jaillit vers le haut en arc, d'un côté ou de l'autre
         ft.vel = new Vector3(UnityEngine.Random.Range(-0.6f, 0.6f), 2.2f, 0f);
-        go.transform.localScale = Vector3.one * 1.5f;
+        g.transform.localScale = Vector3.one * 1.5f;
     }
 
     private void Update()
@@ -45,6 +54,6 @@ public class FloatingText : MonoBehaviour
         Color c = color;
         c.a = Mathf.Clamp01(life / maxLife * 1.5f);
         tmp.color = c;
-        if (life <= 0f) Destroy(gameObject);
+        if (life <= 0f) { gameObject.SetActive(false); pool.Push(this); }
     }
 }

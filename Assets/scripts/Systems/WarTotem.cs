@@ -24,7 +24,7 @@ public class WarTotem : MonoBehaviour
         t.sr.sprite = frames != null && frames.Length > 0 ? frames[0] : null;
         t.sr.sortingOrder = WallOcclusion.SortingOrder;   // trié avec les monstres et les murs
         t.family = family; t.mult = mult; t.healPerSecond = healPct; t.life = life;
-        var l = go.AddComponent<UnityEngine.Rendering.Universal.Light2D>();
+        var l = go.AddComponent<UnityEngine.Rendering.Universal.Light2D>(); Light2DCleanup.Attach(l);
         l.lightType = UnityEngine.Rendering.Universal.Light2D.LightType.Point;
         l.color = new Color(1f, 0.3f, 0.2f);
         l.pointLightOuterRadius = t.radius;

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
@@ -238,7 +238,7 @@ public class LootSystem : MonoBehaviour
 
         if (def.rarity >= 3)
         {
-            var l = item.AddComponent<Light2D>();
+            var l = item.AddComponent<Light2D>(); Light2DCleanup.Attach(l);
             l.lightType = Light2D.LightType.Point;
             l.color = RarityColors[def.rarity];
             l.intensity = 0.6f;

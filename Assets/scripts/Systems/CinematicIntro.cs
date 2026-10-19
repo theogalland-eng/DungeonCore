@@ -484,7 +484,7 @@ public partial class CinematicDirector
         orb.position = at;
         var lg = new GameObject("Lueur");
         lg.transform.SetParent(orb, false);
-        orbLight = lg.AddComponent<Light2D>();
+        orbLight = lg.AddComponent<Light2D>(); Light2DCleanup.Attach(orbLight);
         orbLight.lightType = Light2D.LightType.Point;
         orbLight.color = new Color(0.45f, 0.8f, 1f);
         orbLight.pointLightOuterRadius = 1.8f;
@@ -1112,7 +1112,7 @@ public partial class CinematicDirector
                 gullTinted = true;
                 var lg = new GameObject("Lueur");
                 lg.transform.SetParent(gull, false);
-                gullLight = lg.AddComponent<Light2D>();
+                gullLight = lg.AddComponent<Light2D>(); Light2DCleanup.Attach(gullLight);
                 gullLight.lightType = Light2D.LightType.Point;
                 gullLight.color = new Color(0.45f, 0.8f, 1f);
                 gullLight.intensity = 0.7f;

@@ -470,7 +470,7 @@ public class InteriorSystem : MonoBehaviour
         }
         foreach (var sp in l.spots) sp.World = o + sp.local;
         // lumière d'ambiance (la nuit ne doit pas plonger la pièce dans le noir) + lampes chaudes
-        var amb = new GameObject("Ambiance").AddComponent<Light2D>();
+        var amb = new GameObject("Ambiance").AddComponent<Light2D>(); Light2DCleanup.Attach(amb);
         amb.transform.SetParent(root.transform, false);
         amb.lightType = Light2D.LightType.Point;
         amb.pointLightOuterRadius = Mathf.Max(l.w, l.h) * 0.9f;
@@ -479,7 +479,7 @@ public class InteriorSystem : MonoBehaviour
         amb.color = Color.Lerp(Color.white, l.light, 0.35f);
         foreach (var lp in l.lamps)
         {
-            var li = new GameObject("Lampe").AddComponent<Light2D>();
+            var li = new GameObject("Lampe").AddComponent<Light2D>(); Light2DCleanup.Attach(li);
             li.transform.SetParent(root.transform, false);
             li.transform.localPosition = new Vector3(lp.x, lp.y, 0f);
             li.lightType = Light2D.LightType.Point;

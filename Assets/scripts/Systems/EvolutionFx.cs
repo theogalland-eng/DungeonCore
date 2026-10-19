@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
 /// <summary>Effet lumineux d'évolution / d'invocation : anneau qui s'étend + éclat de lumière.</summary>
@@ -27,7 +27,7 @@ public class EvolutionFx : MonoBehaviour
         fx.ring = go.AddComponent<SpriteRenderer>();
         fx.ring.sprite = SpriteUtil.Circle;
         fx.ring.sortingOrder = 15;
-        fx.glow = go.AddComponent<Light2D>();
+        fx.glow = go.AddComponent<Light2D>(); Light2DCleanup.Attach(fx.glow);
         fx.glow.lightType = Light2D.LightType.Point;
         fx.glow.color = color;
         fx.glow.pointLightOuterRadius = size * 2.5f;

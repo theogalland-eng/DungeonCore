@@ -158,8 +158,7 @@ public class NemesisSystem : MonoBehaviour
         tmp.fontSize = 2.2f;
         tmp.alignment = TextAlignmentOptions.Center;
         tmp.color = c;
-        tmp.outlineWidth = 0.25f;
-        tmp.outlineColor = new Color32(10, 5, 10, 255);
+        UIKit.Outline(tmp, new Color32(10, 5, 10, 255), 0.25f);   // matériau partagé (pas un par texte)
         tmp.rectTransform.sizeDelta = new Vector2(6f, 1f);
         tmp.sortingOrder = 40;
     }

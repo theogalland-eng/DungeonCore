@@ -748,7 +748,6 @@ public static class DevInspect3
         DevInspect.NewDay();
         return $"saison {Seasons.CurrentName} jour {GameManager.Instance.CurrentDay}";
     }
-    public static string RainNow() { IslandEvents.Instance.Begin(IslandEvent.Rain, GameManager.Instance.CurrentDay + 1); return "pluie"; }
     public static string EruptNow() { IslandEvents.Instance.Begin(IslandEvent.Eruption, GameManager.Instance.CurrentDay + 1); return "éruption"; }
     public static string WeatherState()
     {
@@ -1102,6 +1101,80 @@ public static class DevInspect3
         for (int i = 0; i < ids.Length; i++) if (SpawnMon(ids[i], new Vector2(-2f + (i % 5), -1f - (i / 5) * 0.7f)) != null) n++;
         var sp = Object.FindFirstObjectByType<AdventurerSpawner>(); for (int i = 0; i < 3; i++) sp.SpawnGroup();
         return $"{n} monstres, 3 groupes";
+    }
+    /// <summary>Salle encombrée d'objets : un intrus qui la regarde depuis le centre doit tout voir (aucune case à « découvrir » dans la salle).</summary>
+    public static string ExploreClutter()
+    {
+        var b = DungeonBuilder.Instance; var cat = DungeonCatalog.Get();
+        var core = Object.FindFirstObjectByType<DungeonCore>();
+        var origin = b.floorTilemap.WorldToCell(core.transform.position) + new Vector3Int(-8, -10, 0);
+        foreach (var (id, dx, dy) in new[] { ("food_cache", 4, 3), ("barrel", 6, 2), ("statue_knight", 9, 3), ("chest", 12, 2), ("barrel", 5, 4), ("food_cache", 11, 4), ("coffin", 14, 1) })
+        { var it = cat.Find(id); if (it != null) b.PlaceItemFree(it, origin + new Vector3Int(dx, dy, 0)); }
+        Physics2D.SyncTransforms();
+        int frontiers = 0, floor = 0;
+        foreach (var spot in new[] { new Vector3Int(8, 3, 0), new Vector3Int(2, 1, 0), new Vector3Int(15, 4, 0) })
+        {
+            var map = new IntruderMap();
+            map.Observe(b.floorTilemap.GetCellCenterWorld(origin + spot), null);
+            int f = 0;
+            for (int dx = 0; dx < 17; dx++) for (int dy = 0; dy < 6; dy++) if (map.IsFrontier(origin + new Vector3Int(dx, dy, 0))) f++;
+            frontiers += f; floor = Mathf.Max(floor, map.Floor.Count);
+        }
+        return $"cases vues max {floor}, cases « à découvrir » restant dans la salle (3 points de vue) : {frontiers}";
+    }
+    public static string ExploreClutterCompare()
+    {
+        IntruderMap.SeeOverObjects = false;
+        string before = ExploreClutterOnly();
+        IntruderMap.SeeOverObjects = true;
+        return "avant : " + before + " | après : " + ExploreClutterOnly();
+    }
+    static string ExploreClutterOnly()
+    {
+        var b = DungeonBuilder.Instance;
+        var core = Object.FindFirstObjectByType<DungeonCore>();
+        var origin = b.floorTilemap.WorldToCell(core.transform.position) + new Vector3Int(-8, -10, 0);
+        int frontiers = 0, seen = 0;
+        foreach (var spot in new[] { new Vector3Int(8, 3, 0), new Vector3Int(2, 1, 0), new Vector3Int(15, 4, 0) })
+        {
+            var map = new IntruderMap();
+            map.Observe(b.floorTilemap.GetCellCenterWorld(origin + spot), null);
+            for (int dx = 0; dx < 17; dx++) for (int dy = 0; dy < 6; dy++)
+            {
+                var c = origin + new Vector3Int(dx, dy, 0);
+                if (map.Floor.Contains(c)) seen++;
+                if (map.IsFrontier(c)) frontiers++;
+            }
+        }
+        return $"cases vues {seen}, à découvrir {frontiers}";
+    }
+    /// <summary>Objets posés qui ont un collider solide (couche 6) sans être marqués « bloquants » pour la carte des intrus.</summary>
+    public static string SolidButNotBlocking()
+    {
+        var bad = new System.Collections.Generic.SortedSet<string>();
+        foreach (var it in DungeonCatalog.Get().items)
+        {
+            if (it.prefab == null || it.kind == ItemKind.Monster) continue;
+            bool solid = false;
+            foreach (var c in it.prefab.GetComponentsInChildren<Collider2D>(true)) if (!c.isTrigger && c.gameObject.layer == 6) solid = true;
+            if (solid && !PlacedObject.IsBlocking(it.id)) bad.Add(it.id);
+        }
+        return string.Join(", ", bad);
+    }
+    /// <summary>Compressés (ASTC) à gauche, non compressés à droite, pour comparer.</summary>
+    public static string AstcCompare()
+    {
+        string[] l = { "goblin_2", "orc_3", "spider_2" }, r = { "goblin_3", "orc_2", "spider_3" };
+        for (int i = 0; i < 3; i++) { var a = SpawnMon(l[i], new Vector2(-1.4f, 0.8f - i * 1.1f)); var b = SpawnMon(r[i], new Vector2(1.4f, 0.8f - i * 1.1f)); a?.SetBehavior(GobelinAI.GoblinBehavior.Stay); b?.SetBehavior(GobelinAI.GoblinBehavior.Stay); }
+        var p = Object.FindFirstObjectByType<DungeonCore>().transform.position;
+        return DevInspect.Shot(p.x, p.y - 0.3f, 2.2f, 1400, 1000, "astc");
+    }
+    public static string RainNow() { IslandEvents.Instance.Begin(IslandEvent.Rain, GameManager.Instance.CurrentDay + 1); return "pluie"; }
+    public static string OpenMainScene()
+    {
+        if (Application.isPlaying) return "arrêter le jeu d'abord";
+        UnityEditor.SceneManagement.EditorSceneManager.OpenScene("Assets/Scenes/SampleScene.unity");
+        return "scène : " + UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
     }
     public static string LayeringShot()
     {

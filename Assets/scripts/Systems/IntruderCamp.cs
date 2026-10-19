@@ -86,7 +86,7 @@ public class IntruderCamp : MonoBehaviour
         Part("Tente", PropArt.Get("tent"), new Vector2(-1.1f, 0.5f), false);
         Part("Tente", PropArt.Get("tent"), new Vector2(1.2f, 0.7f), true);
         var fire = Part("Feu de camp", PropArt.Get("campfire"), Vector2.zero, false);
-        var l = fire.AddComponent<Light2D>();
+        var l = fire.AddComponent<Light2D>(); Light2DCleanup.Attach(l);
         l.lightType = Light2D.LightType.Point;
         l.color = new Color(1f, 0.6f, 0.25f);
         l.intensity = 0.95f;

@@ -65,7 +65,7 @@ public static class Fx
         if (h > 0f) go.transform.localScale = Vector3.one * (height / h);
         if (light.HasValue)
         {
-            var l = go.AddComponent<Light2D>();
+            var l = go.AddComponent<Light2D>(); Light2DCleanup.Attach(l);
             l.lightType = Light2D.LightType.Point;
             l.color = light.Value;
             l.intensity = 0.9f;

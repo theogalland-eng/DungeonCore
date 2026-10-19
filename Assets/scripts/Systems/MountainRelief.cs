@@ -45,7 +45,7 @@ public class MountainRelief : MonoBehaviour
             var lgo = new GameObject("LueurCratere");
             lgo.transform.SetParent(transform, false);
             lgo.transform.position = craterWorld;
-            craterLight = lgo.AddComponent<Light2D>();
+            craterLight = lgo.AddComponent<Light2D>(); Light2DCleanup.Attach(craterLight);
             craterLight.lightType = Light2D.LightType.Point;
             craterLight.color = new Color(1f, 0.45f, 0.15f);
             craterLight.intensity = 1.4f;

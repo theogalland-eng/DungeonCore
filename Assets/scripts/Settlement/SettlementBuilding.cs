@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
@@ -146,7 +146,7 @@ public class SettlementBuilding : MonoBehaviour
             var lgo = new GameObject("Lueur");
             lgo.transform.SetParent(transform, false);
             lgo.transform.localPosition = new Vector3(0f, 0.4f, 0f);
-            fireLight = lgo.AddComponent<Light2D>();
+            fireLight = lgo.AddComponent<Light2D>(); Light2DCleanup.Attach(fireLight);
             fireLight.lightType = Light2D.LightType.Point;
             fireLight.color = new Color(1f, 0.6f, 0.3f);
             fireLight.intensity = 1.1f;

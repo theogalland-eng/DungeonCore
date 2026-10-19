@@ -37,6 +37,30 @@ public static class UIKit
     /// <summary>Cinzel (en-têtes, boutons du menu principal).</summary>
     public static TMP_FontAsset HeadFont => headFont != null ? headFont : (headFont = Resources.Load<TMP_FontAsset>("Fonts/Head SDF"));
 
+    private static readonly System.Collections.Generic.Dictionary<(Material, Color32, float), Material> outlined =
+        new System.Collections.Generic.Dictionary<(Material, Color32, float), Material>();
+
+    /// <summary>
+    /// Contour sur un texte SANS créer de matériau par texte : modifier outlineWidth / outlineColor d'un TextMeshPro
+    /// lui fabrique son propre matériau, jamais libéré (des centaines par minute avec les chiffres de dégâts).
+    /// Ici, un seul matériau partagé par couleur et épaisseur.
+    /// </summary>
+    public static void Outline(TMP_Text t, Color32 color, float width)
+    {
+        var baseMat = t.font != null ? t.font.material : t.fontSharedMaterial;
+        if (baseMat == null) return;
+        var key = (baseMat, color, width);
+        if (!outlined.TryGetValue(key, out var m) || m == null)
+        {
+            m = new Material(baseMat) { name = baseMat.name + " (contour)" };
+            m.EnableKeyword(ShaderUtilities.Keyword_Outline);
+            m.SetFloat(ShaderUtilities.ID_OutlineWidth, width);
+            m.SetColor(ShaderUtilities.ID_OutlineColor, color);
+            outlined[key] = m;
+        }
+        t.fontSharedMaterial = m;
+    }
+
     /// <summary>Titre en Cinzel Decorative avec un halo doré (matériau « Title Glow »).</summary>
     public static void StyleTitle(TextMeshProUGUI t)
     {

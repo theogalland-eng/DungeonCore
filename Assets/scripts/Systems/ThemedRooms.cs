@@ -339,8 +339,7 @@ public class ThemedRooms : MonoBehaviour
             previewLabel.alignment = TextAlignmentOptions.Center;
             previewLabel.rectTransform.sizeDelta = new Vector2(10f, 1.4f);
             previewLabel.sortingOrder = 220;
-            previewLabel.outlineWidth = 0.25f;
-            previewLabel.outlineColor = new Color32(10, 6, 16, 255);
+            UIKit.Outline(previewLabel, new Color32(10, 6, 16, 255), 0.25f);   // matériau partagé (pas un par texte)
             lg.transform.localScale = Vector3.one / 7f;
             lg.transform.localPosition = new Vector3(0f, 0.2f, 0f);
         }

@@ -721,7 +721,7 @@ public class SettlementManager : MonoBehaviour
             var glow = new GameObject("Lueur du Noyau");
             glow.transform.SetParent(b.transform, false);
             glow.transform.position = b.WorkSpot(0) + Vector3.up * 0.4f;
-            var l = glow.AddComponent<Light2D>();
+            var l = glow.AddComponent<Light2D>(); Light2DCleanup.Attach(l);
             l.lightType = Light2D.LightType.Point;
             l.color = new Color(0.55f, 0.25f, 1f);
             l.intensity = 1.3f;

@@ -28,7 +28,7 @@ public class CrawlerStairs : MonoBehaviour
         s.floor = floor;
         s.down = down;
         // une lueur froide monte des profondeurs (on repère la descente de loin)
-        var l = new GameObject("Lueur").AddComponent<Light2D>();
+        var l = new GameObject("Lueur").AddComponent<Light2D>(); Light2DCleanup.Attach(l);
         l.transform.SetParent(go.transform, false);
         l.lightType = Light2D.LightType.Point;
         l.color = down ? new Color(0.55f, 0.6f, 1f) : new Color(1f, 0.85f, 0.6f);

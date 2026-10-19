@@ -75,7 +75,7 @@ public class Projectile : MonoBehaviour
 
     private static void AddLight(GameObject go, Color c, float radius)
     {
-        var l = go.AddComponent<Light2D>();
+        var l = go.AddComponent<Light2D>(); Light2DCleanup.Attach(l);
         l.lightType = Light2D.LightType.Point;
         l.color = c;
         l.intensity = 0.9f;
