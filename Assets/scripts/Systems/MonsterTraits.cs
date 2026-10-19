@@ -98,6 +98,22 @@ public class MonsterTraits : MonoBehaviour
     [Tooltip("Souffle : seulement les intrus devant le monstre, dans un cône")]
     public bool splashCone;
 
+    [Header("Peau de pierre (gargouille)")]
+    [Tooltip("Dégâts subis en moins (0..1)")]
+    [Range(0f, 0.9f)] public float armor;
+    [Tooltip("En plus, figée en statue (à l'affût) : dégâts subis en moins")]
+    [Range(0f, 0.9f)] public float statueArmor;
+
+    [Header("Chant envoûtant (naga)")]
+    public float songRadius;
+    [Tooltip("Envoûtés : immobilisés un instant (secondes, 0 = attirés seulement)")]
+    public float songHold;
+    [Tooltip("Plus vive sur un étage inondé (multiplicateur de vitesse de poursuite)")]
+    public float waterSpeed = 1f;
+    private float nextSong;
+    private bool waterChecked;
+    public static int Songs;
+
     [Header("Nécromancie")]
     [Tooltip("Intrus tués relevés en squelettes en même temps (0 = aucun)")]
     public int raiseDead;
@@ -268,6 +284,40 @@ public class MonsterTraits : MonoBehaviour
         if (splashCone) Fx.Play("small_fire", (Vector3)(me + dir * 1.1f) + Vector3.up * 0.2f, 0.9f, 16f, 16);
     }
 
+    /// <summary>Dégâts subis réduits par la peau de pierre (et davantage figée en statue).</summary>
+    public float Incoming(float amount, bool still) => amount * (1f - Mathf.Clamp01(armor + (still ? statueArmor : 0f)));
+
+    /// <summary>Naga : son chant attire les intrus alentour (et la reine des abysses les fige un instant).</summary>
+    private void Song()
+    {
+        if (songRadius <= 0f || Time.time < nextSong) return;
+        bool anyone = false;
+        foreach (var a in AdventurerAI.All)
+        {
+            if (a == null || a.IsDead || !a.IsInsideDungeon || a.IsFighting) continue;
+            if (Vector2.Distance(a.transform.position, transform.position) > songRadius) continue;
+            if (!anyone) { anyone = true; Songs++; }
+            a.LifeGoTo(transform.position);
+            a.Slow(0.7f, 3f);
+            if (songHold > 0f) a.Hold(songHold);
+            a.Speak("Ce chant... d'où vient-il ?", new Color(0.6f, 0.95f, 1f));
+        }
+        nextSong = Time.time + (anyone ? 10f : 2f);
+        if (anyone)
+        {
+            FloatingText.Spawn(transform.position + Vector3.up * 1.0f, "Chant envoûtant", new Color(0.6f, 0.95f, 1f), 1f);
+            Fx.Play("shine", transform.position + Vector3.up * 0.5f, 1.4f, 14f, 8, new Color(0.5f, 0.9f, 1f, 0.7f));
+        }
+    }
+
+    /// <summary>Naga : plus vive sur un étage inondé.</summary>
+    private void Water()
+    {
+        if (waterChecked || waterSpeed <= 1f) return;
+        waterChecked = true;
+        if (MonsterHabitat.ThemeAt(transform.position) == "aqua") owner.chaseSpeed *= waterSpeed;
+    }
+
     /// <summary>Loup : plus fort entouré de sa meute.</summary>
     private void Pack()
     {
@@ -359,7 +409,7 @@ public class MonsterTraits : MonoBehaviour
 
     private void Update()
     {
-        if (owner != null && owner.IsAlive()) { SpinWebs(); Aura(); LureAsChest(); Rage(); PlantTotem(); HuntRanged(); Pack(); Howl(); }
+        if (owner != null && owner.IsAlive()) { SpinWebs(); Aura(); LureAsChest(); Rage(); PlantTotem(); HuntRanged(); Pack(); Howl(); Song(); Water(); }
         if (summonCount <= 0 || summonPrefab == null || owner == null || !owner.IsAlive()) return;
         minions.RemoveAll(m => m == null || !m.IsAlive());
         // La liche invoque quand un intrus est proche

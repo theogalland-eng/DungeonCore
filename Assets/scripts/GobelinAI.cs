@@ -1257,7 +1257,7 @@ public class GobelinAI : MonoBehaviour, IDamageable
 
     /// <summary>Déguisés en objets (mimiques) : toujours à l'affût dès qu'ils sont immobiles, sans se rendre transparents.</summary>
     private static readonly System.Collections.Generic.HashSet<string> Disguised =
-        new System.Collections.Generic.HashSet<string> { "mimic" };
+        new System.Collections.Generic.HashSet<string> { "mimic", "gargoyle" };
 
     private void UpdateAmbush()
     {
@@ -1454,6 +1454,8 @@ public class GobelinAI : MonoBehaviour, IDamageable
         amount *= ThemedRooms.DamageTakenMult(rb != null ? rb.position : (Vector2)transform.position);
         var variant = GetComponent<MonsterVariant>();
         if (variant != null) { amount = variant.Incoming(amount); if (amount <= 0f) return; }
+        if (traits == null) traits = GetComponent<MonsterTraits>();
+        if (traits != null) amount = traits.Incoming(amount, ambushing);   // peau de pierre (statue : plus encore)
         if (ambushing) { ambushing = false; RevealAmbush(); }
         currentHealth -= amount;
         outOfCombatTimer = 0f;

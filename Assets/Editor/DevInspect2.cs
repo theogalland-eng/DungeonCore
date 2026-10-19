@@ -1154,6 +1154,25 @@ public static class DevInspect3
         return CharacterImporter.ImportOnly("zombie_spitter_3", "zombie_spitter_2", "zombie_3", "zombie_2", "zombie_1",
             "rat_swarm_3", "rat_swarm_2", "rat_3", "rat_2", "rat_1", "salamander_3", "salamander_2", "salamander_1");
     }
+    public static string ImportSalvo6()
+    {
+        UnityEditor.AssetDatabase.Refresh();
+        return CharacterImporter.ImportOnly("naga_3", "naga_2", "naga_1", "gargoyle_3", "gargoyle_2", "gargoyle_1");
+    }
+    public static string Salvo6Setup()
+    {
+        for (int i = 0; i < 8; i++) PlayerLevel.Instance.AddXP(PlayerLevel.Instance.xpForNextLevel);
+        SpawnMon("naga_3", new Vector2(-1.2f, -1.2f));
+        SpawnMon("gargoyle_3", new Vector2(1.2f, -1.2f));
+        return "salve 6 en place";
+    }
+    public static string Salvo6State()
+    {
+        var sb = new System.Text.StringBuilder();
+        foreach (var g in GobelinAI.All) if (g != null) sb.Append($"[{g.gobelinName} pv={g.currentHealth:0}/{g.maxHealth:0} affût={g.IsAmbushing}] ");
+        sb.Append($" chants={MonsterTraits.Songs}");
+        return sb.ToString();
+    }
     public static string Salvo5Setup()
     {
         for (int i = 0; i < 8; i++) PlayerLevel.Instance.AddXP(PlayerLevel.Instance.xpForNextLevel);

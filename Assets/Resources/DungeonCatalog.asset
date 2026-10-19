@@ -288,6 +288,37 @@ MonoBehaviour:
     unlockLevel: 9
     prestige: 0
     upkeep: 0
+  - id: gargoyle_1
+    displayName: Gargouille
+    description: "Immobile sur son socle, on la prend pour une statue : elle frappe
+      par surprise et sa peau de pierre encaisse (bien plus encore fig\xE9e). Les
+      \xE9clats de la gargouille de cristal ralentissent. \xC9volue en Gargouille
+      de pierre puis Gargouille de cristal. Entretien : 8 mana/jour."
+    category: 1
+    kind: 1
+    tool: 0
+    icon: {fileID: 21300000, guid: 1650391583ee3aa498a91daf1cb90991, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 6375684089187345639, guid: f9a70915cdea21b42a4bd96cdd16016c, type: 3}
+    cost: 90
+    unlockLevel: 9
+    prestige: 0
+    upkeep: 0
+  - id: naga_1
+    displayName: Naga
+    description: "Son chant envo\xFBtant attire les intrus vers son trident ; plus
+      vive sur un \xE9tage inond\xE9. La reine des abysses fige ses proies d'un chant.
+      \xC9volue en Naga guerri\xE8re puis Reine des abysses. Entretien : 9 mana/jour."
+    category: 1
+    kind: 1
+    tool: 0
+    icon: {fileID: 21300000, guid: 68dabda7edbe63246a3e0b7ac7238d13, type: 3}
+    iconTint: {r: 1, g: 1, b: 1, a: 1}
+    prefab: {fileID: 8304871968151869066, guid: 81b705fe309c20c46a339ef0e95b8a98, type: 3}
+    cost: 85
+    unlockLevel: 10
+    prestige: 0
+    upkeep: 0
   - id: lizard_1
     displayName: "Homme-l\xE9zard"
     description: "Combattant aguerri, \xE0 l'aise dans les grottes inond\xE9es. \xC9volue

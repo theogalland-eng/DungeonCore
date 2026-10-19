@@ -945,6 +945,201 @@ def build_salamander(cid):
     print('ok', cid)
 
 
+# ─────────────────────────────────────────────
+# Nagas : buste humain sur une queue de serpent, trident
+# ─────────────────────────────────────────────
+
+NAGAS = {
+    'naga_1': dict(scale=2.8, scales=R('0e3a3a', '1a6660', '2e9a8a', '62ccb4'), skin=R('2a5a50', '4a8a78', '78b8a0', 'b4e4cc'),
+                   hair=R('0e1c3a', '1a3466', '2c54a0', '5a86d0'), eye=(255, 230, 90), outline=(8, 22, 26),
+                   metal=R('5a4a20', '9a8430', 'd8c050', 'fff0a0')),
+    'naga_2': dict(scale=3.1, scales=R('0a2e40', '144e6a', '24789a', '50a8c8'), skin=R('245048', '3e7a6a', '6aaa92', 'a4d8c0'),
+                   hair=R('2a0e3a', '4a1a66', '7030a0', 'a060d0'), eye=(255, 200, 80), outline=(6, 18, 26),
+                   metal=R('5a4a20', '9a8430', 'd8c050', 'fff0a0'), armor=True),
+    'naga_3': dict(scale=3.4, scales=R('140a3a', '261a6a', '3c30a0', '6a5ad0'), skin=R('283a5a', '42608a', '6c90ba', 'a8c8e8'),
+                   hair=R('0a2a3a', '145066', '2a8aa0', '6ac8d8'), eye=(120, 255, 240), outline=(8, 6, 26),
+                   metal=R('2a5a6a', '4a9ab0', '8ad8e8', 'e0ffff'), armor=True, crown=True, glow=True),
+}
+
+
+def naga_frame(spec, d, state, t, n):
+    s = spec['scale']
+    gx, gy = GFACE[d]
+    ang = math.atan2(-gx, gy)
+    sc = Scene()
+    ph = 2 * math.pi * t / n
+    wave, lunge, thrust, sink, sing = 0.25, 0.0, 0.0, 0.0, 0.0
+    if state in ('Walk', 'Run'):
+        wave = 0.7 if state == 'Walk' else 1.0
+    elif state == 'Attack':
+        thrust = [0.0, -0.4, -0.6, 1.0, 0.5, 0.0][t]
+        lunge = [0, -0.3, -0.4, 1.2, 0.5, 0][t] * s
+    elif state == 'Hurt':
+        lunge = -[1.0, 0.6, 0.3, 0][t] * s
+    elif state == 'Death':
+        sink = 3.2 * s * t / (n - 1)
+    # queue de serpent : anneaux posés au sol en S, du torse vers l'arrière
+    pts = []
+    for i in range(12):
+        u = i / 11
+        y = lunge - (0.4 + 5.2 * u) * s
+        x = math.sin(u * 5.0 - ph) * wave * 1.6 * s * (0.4 + u)
+        z = max(0.35 * s, (1.2 - 1.6 * u) * s) if u < 0.4 else 0.35 * s * (1 - u * 0.5)
+        pts.append((x, y, z))
+
+    def belly(local, lam, cols):
+        m = local[:, 2] < 0
+        cols[m] = shade_ramp(spec['skin'], lam[m])
+        bands = (np.abs(np.sin(local[:, 1] * 3.0)) > 0.9) & (local[:, 2] > 0)
+        cols[bands] = (cols[bands].astype(int) * 0.75).astype(np.uint8)
+    for i, (x, y, z) in enumerate(pts):
+        r = (1.15 - 0.85 * i / 11) * s
+        ellipsoid(sc, ang, (x, y, z), (r * 1.1, r * 1.1, r * 0.8), spec['scales'], belly)
+    # buste dressé
+    bz = 2.6 * s - sink
+    by = lunge + 0.3 * s
+    lean = 0.25 * thrust
+    ellipsoid(sc, ang, (0, by, bz), (1.45 * s, 1.0 * s, 1.7 * s), spec['skin'], pitch=lean)
+    if spec.get('armor'):
+        ellipsoid(sc, ang, (0, by + 0.15 * s, bz + 0.5 * s), (1.32 * s, 0.95 * s, 0.7 * s), spec['metal'], pitch=lean)
+    hz = bz + 2.0 * s
+    hy = by + 0.5 * s * lean
+    ellipsoid(sc, ang, (0, hy, hz), (1.0 * s, 0.95 * s, 1.0 * s), spec['skin'])
+    # chevelure / capuchon de cobra
+    ellipsoid(sc, ang, (0, hy - 0.45 * s, hz + 0.25 * s), (1.45 * s, 0.55 * s, 1.15 * s), spec['hair'])
+    for side in (-1, 1):
+        dot(sc, ang, (side * 0.35 * s, hy + 0.8 * s, hz + 0.1 * s), spec['eye'])
+    if spec.get('crown'):
+        for k, x in enumerate((-0.6, 0, 0.6)):
+            segment(sc, ang, (x * s, hy, hz + 0.8 * s), (x * 1.1 * s, hy - 0.1 * s, hz + (1.8 if k == 1 else 1.4) * s), spec['metal'], 0.5)
+    # bras et trident tenu à droite
+    for side in (-1, 1):
+        sh = np.array([side * 1.15 * s, by, bz + 0.9 * s])
+        if side == 1:
+            hand = np.array([1.5 * s, by + (1.2 + 1.8 * thrust) * s, bz + 0.2 * s])
+        else:
+            hand = np.array([-1.5 * s, by + 0.4 * s, bz - 0.6 * s])
+        segment(sc, ang, sh, hand, spec['skin'], 0.8)
+        if side == 1:
+            base = hand + np.array([0, -2.5 * s, -1.6 * s]) * (1 - 0.5 * max(0, thrust))
+            tip = hand + np.array([0, (2.8 + 1.5 * max(0, thrust)) * s, 1.2 * s * (1 - max(0, thrust))])
+            segment(sc, ang, base, tip, R('3a2a1a', '6a4a2a', '9a7040', 'c8a060'), 0.5)
+            for k in (-1, 0, 1):
+                segment(sc, ang, tip + np.array([k * 0.45 * s, 0, 0]), tip + np.array([k * 0.45 * s, 1.0 * s, 0.4 * s]), spec['metal'], 0.5)
+    if spec.get('glow') and state in ('Idle', 'Walk'):
+        for k in range(3):
+            a_ = ph + k * 2.1
+            dot(sc, ang, (math.cos(a_) * 2.6 * s, by + math.sin(a_) * 1.6 * s, hz + 0.8 * s + math.sin(a_ * 2) * s), (160, 255, 240))
+    return finish(sc, spec['outline'], 3.6 * s, ang)
+
+
+# ─────────────────────────────────────────────
+# Gargouilles : démon de pierre accroupi, ailes repliées (statue au repos)
+# ─────────────────────────────────────────────
+
+GARGOYLES = {
+    'gargoyle_1': dict(scale=2.8, stone=R('3a3a42', '5a5a64', '84848e', 'b4b4bc'), eye=(255, 140, 60), outline=(18, 18, 22),
+                       wing=R('2e2e36', '4a4a54', '6e6e78', '9a9aa4')),
+    'gargoyle_2': dict(scale=3.1, stone=R('2e2a26', '4e4842', '78706a', 'a8a098'), eye=(255, 90, 50), outline=(16, 14, 12),
+                       wing=R('26221e', '423c36', '645c54', '8c847a'), moss=True),
+    'gargoyle_3': dict(scale=3.4, stone=R('2a1a4a', '46307a', '6a52b0', 'a690e8'), eye=(120, 240, 255), outline=(14, 8, 26),
+                       wing=R('1e3a5a', '2e5e8a', '4a8ec0', '8ad0f0'), crystal=True),
+}
+
+
+def gargoyle_frame(spec, d, state, t, n):
+    s = spec['scale']
+    gx, gy = GFACE[d]
+    ang = math.atan2(-gx, gy)
+    sc = Scene()
+    ph = 2 * math.pi * t / n
+    crouch, wings_open, lunge, lift, sink, claw = 1.0, 0.0, 0.0, 0.0, 0.0, 0.0
+    if state == 'Idle':
+        crouch, wings_open = 1.0, 0.0                       # statue immobile : aucune animation
+    elif state in ('Walk', 'Run'):
+        crouch = 0.5
+        wings_open = 0.5 + 0.4 * math.sin(ph * (2 if state == 'Run' else 1))
+        lift = (0.6 if state == 'Walk' else 1.2) * s * abs(math.sin(ph))
+    elif state == 'Attack':
+        crouch = [1.0, 0.8, 0.3, 0.2, 0.5, 0.9][t]
+        wings_open = [0.1, 0.8, 1.0, 0.9, 0.5, 0.2][t]
+        lunge = [0, -0.3, 0.6, 2.0, 1.0, 0][t] * s
+        lift = [0, 0.5, 1.6, 0.4, 0.2, 0][t] * s
+        claw = [0, 0, 0.5, 1.0, 0.3, 0][t]
+    elif state == 'Hurt':
+        crouch = 0.6
+        lunge = -[1.0, 0.6, 0.3, 0][t] * s
+        wings_open = 0.3
+    elif state == 'Death':
+        k = t / (n - 1)
+        crouch = 1.0
+        sink = 1.6 * s * k
+
+    def pattern(local, lam, cols):
+        if spec.get('moss'):
+            m = (local[:, 2] > 0.3) & (np.sin(local[:, 0] * 3.1 + local[:, 1] * 2.3) > 0.75)
+            cols[m] = shade_ramp(R('1e3014', '34501e', '50762c', '78a040'), lam[m])
+        if spec.get('crystal'):
+            m = np.abs(np.sin(local[:, 0] * 2.0 + local[:, 2] * 3.0)) > 0.93
+            cols[m] = (np.minimum(255, cols[m].astype(int) + 70)).astype(np.uint8)
+        # fissures
+        m = np.abs(np.sin(local[:, 0] * 4.3 - local[:, 2] * 5.1)) > 0.985
+        cols[m] = (cols[m].astype(int) * 0.6).astype(np.uint8)
+    hz = (2.0 + 1.2 * (1 - crouch)) * s + lift - sink
+    body = (0, lunge, hz)
+    ellipsoid(sc, ang, body, (1.6 * s, 1.4 * s, 1.9 * s), spec['stone'], pattern, pitch=0.35 * crouch)
+    head = (0, lunge + (1.2 + 0.4 * crouch) * s, hz + (1.7 - 0.5 * crouch) * s)
+    ellipsoid(sc, ang, head, (1.0 * s, 1.0 * s, 0.9 * s), spec['stone'], pattern)
+    for side in (-1, 1):
+        segment(sc, ang, (head[0] + side * 0.6 * s, head[1] - 0.2 * s, head[2] + 0.6 * s),
+                (head[0] + side * 1.1 * s, head[1] - 0.9 * s, head[2] + 1.7 * s), spec['stone'], 0.8)        # cornes
+        eye_c = spec['eye'] if state != 'Idle' and state != 'Death' else tuple(int(c * 0.45) for c in spec['eye'])
+        dot(sc, ang, (head[0] + side * 0.4 * s, head[1] + 0.9 * s, head[2] + 0.15 * s), eye_c)
+    # pattes accroupies et bras griffus
+    for side in (-1, 1):
+        hip = np.array([side * 1.0 * s, lunge - 0.5 * s, hz - 1.2 * s])
+        foot = np.array([side * 1.3 * s, lunge + 0.4 * s, max(0, lift - sink)])
+        knee = (hip + foot) / 2 + np.array([side * 0.3 * s, 0.9 * s * crouch, 0.4 * s])
+        segment(sc, ang, hip, knee, spec['stone'], 0.9)
+        segment(sc, ang, knee, foot, spec['stone'], 0.8)
+        sh = np.array([side * 1.3 * s, lunge + 0.6 * s, hz + 0.6 * s])
+        hand = np.array([side * 1.1 * s, lunge + (1.4 + 1.6 * claw) * s, hz - (1.4 - 1.6 * claw) * s * crouch])
+        segment(sc, ang, sh, hand, spec['stone'], 0.8)
+    # ailes : repliées sur le dos (statue) ou déployées
+    for side in (-1, 1):
+        P = [np.array(v) * s for v in ((0.6, -0.6, 1.0), (2.6, -1.0, 2.8), (4.4, -1.8, 2.2), (3.4, -2.4, 0.6), (1.4, -1.8, 0.0))]
+        if wings_open < 0.3:
+            P = [np.array([v[0] * 0.35, v[1] - 0.3 * s, v[2] * 0.9]) for v in P]
+        tris = [(P[0], P[1], P[2]), (P[0], P[2], P[3]), (P[0], P[3], P[4])]
+        mem = np.concatenate([triangle_points(*t_) for t_ in tris])
+        mem[:, 0] *= side
+        mem = flap(mem, 0.6 * wings_open - 0.2, side) + np.array([0, lunge, hz])
+        Pw = rot(mem, ang)
+        r_ = np.hypot(mem[:, 0], mem[:, 1] - lunge) / (4.4 * s)
+        sc.splat(Pw, shade_ramp(spec['wing'], np.clip(0.35 + 0.55 * r_, 0, 1)), sc.new_id())
+    # socle de statue (au repos et à la mort : elle se fige)
+    if state in ('Idle', 'Death'):
+        P, N = box_points((3.6 * s, 3.2 * s, 0.8 * s))
+        P[:, 2] += 0.4 * s
+        def plinth(P_, N_, lam):
+            return shade_ramp(spec['stone'], lam * 0.8)
+        solid(sc, ang, P + np.array([0, lunge, 0]), N, plinth)
+    return finish(sc, spec['outline'], 3.6 * s, ang)
+
+
+CREATURE_ANIMS = {'Idle': 4, 'Walk': 6, 'Run': 6, 'Attack': 6, 'Hurt': 4, 'Death': 6}
+
+
+def build_with(fn, table):
+    def b(cid):
+        spec = table[cid]
+        for state, n in CREATURE_ANIMS.items():
+            rows = [[fn(spec, d, state, t, n) for t in range(n)] for d in DIRS]
+            save(rows, os.path.join(OUT, cid, f'{cid}_{state}.png'))
+        print('ok', cid)
+    return b
+
+
 FX_DIR = os.path.join(ROOT, 'Assets', 'Resources', 'FX')
 
 
@@ -966,7 +1161,8 @@ def build_projectiles(cid):
     print('ok', cid)
 
 
-BUILDERS = {**{k: build_spider for k in SPIDERS}, **{k: build_mimic for k in MIMICS}, **{k: build_bat for k in BATS}, 'war_totem': build_war_totem, **{k: build_wolf for k in WOLVES}, 'projectiles': build_projectiles, **{k: build_salamander for k in SALAMANDERS}}
+BUILDERS = {**{k: build_spider for k in SPIDERS}, **{k: build_mimic for k in MIMICS}, **{k: build_bat for k in BATS}, 'war_totem': build_war_totem, **{k: build_wolf for k in WOLVES}, 'projectiles': build_projectiles, **{k: build_salamander for k in SALAMANDERS},
+            **{k: build_with(naga_frame, NAGAS) for k in NAGAS}, **{k: build_with(gargoyle_frame, GARGOYLES) for k in GARGOYLES}}
 
 if __name__ == '__main__':
     for cid in sys.argv[1:] or list(BUILDERS):

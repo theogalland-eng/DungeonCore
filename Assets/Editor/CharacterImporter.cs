@@ -197,6 +197,24 @@ public static class CharacterImporter
                     var t = T(go); t.burnDps = 2 + 2 * s; t.burnSeconds = 3f;
                     t.splashMult = s == 3 ? 0.8f : 0.5f; t.splashCone = true;
                 } },
+            new Family { id = "naga", folder = "Naga", names = new[] { "Naga", "Naga guerrière", "Reine des abysses" },
+                hp = 90, dmg = 12, range = 1.5f, chase = 1.6f, cd = 1.0f, cost = 85, level = 10, upkeep = 9,
+                desc = "Son chant envoûtant attire les intrus vers son trident ; plus vive sur un étage inondé. La reine des abysses fige ses proies d'un chant.",
+                traits = (go, s) =>
+                {
+                    var t = T(go); t.songRadius = 4f + s * 0.5f; t.waterSpeed = 1.25f;
+                    if (s >= 2) t.armor = 0.15f;
+                    if (s == 3) t.songHold = 1.5f;
+                } },
+            new Family { id = "gargoyle", folder = "Gargoyle", names = new[] { "Gargouille", "Gargouille de pierre", "Gargouille de cristal" },
+                hp = 130, dmg = 15, range = 1.2f, chase = 1.7f, cd = 1.1f, cost = 90, level = 9, upkeep = 8,
+                desc = "Immobile sur son socle, on la prend pour une statue : elle frappe par surprise et sa peau de pierre encaisse (bien plus encore figée). Les éclats de la gargouille de cristal ralentissent.",
+                traits = (go, s) =>
+                {
+                    go.GetComponent<GobelinAI>().patrolSpeed = 0f;
+                    var t = T(go); t.armor = s == 1 ? 0.2f : s == 2 ? 0.3f : 0.35f; t.statueArmor = 0.4f;
+                    if (s == 3) { t.slowMult = 0.7f; t.slowSeconds = 1.5f; }
+                } },
             new Family { id = "mimic", folder = "Mimic", names = new[] { "Coffre mordeur", "Mimique", "Mimique royale" },
                 hp = 120, dmg = 18, range = 1.2f, chase = 1.5f, cd = 1.2f, cost = 80, level = 6, upkeep = 6,
                 desc = "Ne se cache que dans une salle du trésor : immobile, il passe pour un coffre et mord par surprise. La Mimique attire les curieux, la Mimique royale les engloutit.",

@@ -263,3 +263,9 @@ Mise en ligne du projet sur GitHub (ce dépôt), avec cette documentation.
 - 🐀 **Nuée de rats → Grande nuée** : le sprite devient toute une nuée (3 puis 5 rats réduits, chacun à son rythme) ; ses morsures touchent aussi les intrus **autour de sa cible**, et la grande nuée lâche **trois rats** au combat.
 - 🦎 **Nouvelle famille : les salamandres** (natives de la Fournaise), dessinées pour le projet (corps ondulant, pattes écartées, taches lumineuses, braises) : *Salamandre*, *Salamandre ardente*, *Dragonnet de lave* (ailes et cornes). Elles **soufflent le feu** sur tous les intrus devant elles (cône, brûlure).
 - 🐛 Les voies de rôle prennent la taille d'image de leur famille (les rats sont en 128 px).
+
+### Nouvelles voies et familles — salve 6 (dernière)
+
+- 🔱 **Nouvelle famille : les nagas** (natives du Sanctuaire englouti) : buste dressé sur une queue de serpent qui ondule, trident : *Naga*, *Naga guerrière* (cuirasse), *Reine des abysses* (couronne, lueurs). Leur **chant envoûtant** attire les intrus qui passent vers leur trident (« Ce chant... d'où vient-il ? ») ; la reine les **fige** un instant. Plus vives sur un étage inondé.
+- 🗿 **Nouvelle famille : les gargouilles** (natives de la Forteresse et du Temple de cristal) : immobiles sur leur **socle**, ailes repliées, on les prend pour des **statues** ; elles frappent par surprise et leur **peau de pierre** encaisse (20 à 35 % de dégâts en moins, +40 % figées). *Gargouille*, *Gargouille de pierre* (mousse), *Gargouille de cristal* (ses éclats ralentissent).
+- ✅ Les 17 voies et familles prévues sont faites : 10 voies de rôle (gobelin archer et chaman, squelette mage et archer, orc berserker et chaman, gnoll chasseur, homme-lézard sarbacane, zombie cracheur, nuée de rats) et 7 familles (araignées, mimiques, chauves-souris, loups de givre, salamandres, nagas, gargouilles).
