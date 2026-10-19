@@ -256,3 +256,10 @@ Mise en ligne du projet sur GitHub (ce dépôt), avec cette documentation.
 - 🗡️ **Gnoll chasseur → Traqueur à la lance** : javelot tenu debout, ramené au-dessus de l'épaule puis lancé (projectile dessiné pour le projet) ; il **achève les blessés** (dégâts doublés, puis ×2,5, sous 40 % de PV).
 - 🎯 **Homme-lézard sarbacane → Maître-venin** : sarbacane de roseau portée à la bouche, **dards empoisonnés** de loin ; le maître-venin a un poison bien plus violent, qui ralentit.
 - 🐺 **Nouvelle famille : les loups de givre** (natifs de la Caverne gelée), quadrupèdes dessinés pour le projet (trot en diagonale, tête basse à l'attaque, éclats de givre) : *Louveteau des glaces*, *Loup de givre*, *Alpha blanc*. **Chasse en meute** (+10 % de dégâts par loup proche, 3 au plus), morsure glacée ; le loup de givre **hurle** au combat (intrus ralentis de 40 %, 55 % pour l'alpha) et l'alpha **galvanise la meute**.
+
+### Nouvelles voies et familles — salve 5
+
+- 🧪 **Zombie cracheur → Goule acide** : bave verte, boule d'acide qui gonfle devant la bouche puis part en gouttes ; l'acide **ronge l'armure** : l'intrus touché subit +25 % de dégâts pendant 5 s (+40 % pour la goule).
+- 🐀 **Nuée de rats → Grande nuée** : le sprite devient toute une nuée (3 puis 5 rats réduits, chacun à son rythme) ; ses morsures touchent aussi les intrus **autour de sa cible**, et la grande nuée lâche **trois rats** au combat.
+- 🦎 **Nouvelle famille : les salamandres** (natives de la Fournaise), dessinées pour le projet (corps ondulant, pattes écartées, taches lumineuses, braises) : *Salamandre*, *Salamandre ardente*, *Dragonnet de lave* (ailes et cornes). Elles **soufflent le feu** sur tous les intrus devant elles (cône, brûlure).
+- 🐛 Les voies de rôle prennent la taille d'image de leur famille (les rats sont en 128 px).

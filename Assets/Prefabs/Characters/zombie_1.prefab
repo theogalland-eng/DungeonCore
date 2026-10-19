@@ -267,7 +267,12 @@ MonoBehaviour:
   familyId: zombie
   familyName: Zombie
   stage: 1
+  role: 
+  pathDesc: 
+  portrait: {fileID: 0}
   nextStage: {fileID: 3994554080383563068, guid: 58d50ed5e4ac91b479c1ef94b62bfaf2, type: 3}
+  branches:
+  - {fileID: 3615335384637618347, guid: 5d8dda8cd4ed02941af3e06bac97adb6, type: 3}
   xpToEvolve: 60
   evolveCost: 72
   evolveLevelRequired: 8

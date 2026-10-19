@@ -269,7 +269,8 @@ MonoBehaviour:
   familyName: Goule
   stage: 2
   role: 
-  pathDesc: 
+  pathDesc: "Plus robuste et plus fort, il garde sa fa\xE7on de combattre. Tr\xE8s
+    r\xE9sistant mais lent. Un mur de chair."
   portrait: {fileID: 21300000, guid: 040a2add742d5b44ab22bce56259ee10, type: 3}
   nextStage: {fileID: 2804604953317152850, guid: 681a4d4f322b9124aa4698016b7dcf47, type: 3}
   branches: []
@@ -304,6 +305,26 @@ MonoBehaviour:
   projectileFx: 
   webCount: 0
   webSprite: {fileID: 0}
+  healAuraPct: 0
+  buffAuraMult: 1
+  pierceMult: 0
+  lureAsChest: 0
+  swallowSeconds: 0
+  berserk: 0
+  totemFrames: []
+  totemMult: 1
+  totemHealPct: 0
+  totemSeconds: 15
+  preferRanged: 0
+  executeMult: 0
+  packBonus: 0
+  howlSlow: 0
+  howlBuff: 1
+  corrodeMult: 1
+  corrodeSeconds: 5
+  splashMult: 0
+  splashRadius: 1.1
+  splashCone: 0
   raiseDead: 0
   raisePrefab: {fileID: 0}
   summonPrefab: {fileID: 0}

@@ -1148,6 +1148,20 @@ public static class DevInspect3
         }
         return $"garde-manger posé, {n} monstres affamés (le 2e tient la position)";
     }
+    public static string ImportSalvo5()
+    {
+        UnityEditor.AssetDatabase.Refresh();
+        return CharacterImporter.ImportOnly("zombie_spitter_3", "zombie_spitter_2", "zombie_3", "zombie_2", "zombie_1",
+            "rat_swarm_3", "rat_swarm_2", "rat_3", "rat_2", "rat_1", "salamander_3", "salamander_2", "salamander_1");
+    }
+    public static string Salvo5Setup()
+    {
+        for (int i = 0; i < 8; i++) PlayerLevel.Instance.AddXP(PlayerLevel.Instance.xpForNextLevel);
+        SpawnMon("zombie_spitter_3", new Vector2(-1.4f, 0.6f));
+        SpawnMon("rat_swarm_3", new Vector2(0f, -1.4f));
+        SpawnMon("salamander_3", new Vector2(1.4f, -0.6f));
+        return "salve 5 en place";
+    }
     /// <summary>Nouvelles familles / voies de rôle : importe les prefabs (deux passes : la reine référence l'araignée du stade 1).</summary>
     public static string ImportNewMonsters()
     {
@@ -1241,7 +1255,7 @@ public static class DevInspect3
             var tgt = g.MissionTarget != null ? g.MissionTarget.GetComponent<AdventurerAI>() : null;
             sb.Append($"[{g.gobelinName} pv={g.currentHealth:0}/{g.maxHealth:0} cd={g.attackCooldown:0.00} cible={(tgt != null ? tgt.role.ToString() : "-")}] ");
         }
-        sb.Append($" totems={Object.FindObjectsByType<WarTotem>(FindObjectsSortMode.None).Length} achevés={MonsterTraits.Executes} hurlements={MonsterTraits.Howls} transpercés={MonsterTraits.Pierces}");
+        sb.Append($" totems={Object.FindObjectsByType<WarTotem>(FindObjectsSortMode.None).Length} achevés={MonsterTraits.Executes} hurlements={MonsterTraits.Howls} transpercés={MonsterTraits.Pierces} rongés={MonsterTraits.Corrodes} éclaboussés={MonsterTraits.Splashes}");
         return sb.ToString();
     }
     public static string Salvo4Setup()

@@ -59,6 +59,14 @@ public class AdventurerCombat : MonoBehaviour, IDamageable
     /// <summary>Voix (Voices) : -1 à déterminer, 0 homme, 1 femme.</summary>
     [System.NonSerialized] public int voice = -1;
 
+    // armure rongée par l'acide (goule) : dégâts subis majorés un moment
+    private float corrodeMult = 1f, corrodeUntil;
+    public void Corrode(float mult, float seconds)
+    {
+        if (Time.time >= corrodeUntil || mult > corrodeMult) corrodeMult = mult;
+        corrodeUntil = Time.time + seconds;
+    }
+
     public void TakeDamage(float amount)
     {
         if (currentHealth <= 0f) return;
@@ -73,7 +81,7 @@ public class AdventurerCombat : MonoBehaviour, IDamageable
             return;
         }
 
-        amount *= damageTakenMult;
+        amount *= damageTakenMult * (Time.time < corrodeUntil ? corrodeMult : 1f);
         currentHealth -= amount;
         if (currentHealth > 0f) Voices.Human(this, "hurt", 0.45f);
         if (GetComponent<CrawlerPlayer>() != null) Haptics.Pulse();

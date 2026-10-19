@@ -88,6 +88,17 @@ ROLES = {
     'lizard_blowgun_3': dict(base='lizard_3', weapon='blowgun',
         body=[(190, 230, 0.3, 0.2, R('163010', '28541a', '429028', '7ccc44'))],
         head=[(190, 230, 0.3, 0.2, R('163010', '28541a', '429028', '7ccc44'))]),
+    'zombie_spitter_2': dict(base='zombie_2', weapon='spit',
+        body=[(5, 40, 0.3, 0.15, R('2a3010', '4a5a1a', '72882c', 'a4bc4a'))], head=[]),
+    'zombie_spitter_3': dict(base='zombie_3', weapon='spit',
+        body=[(5, 40, 0.3, 0.15, R('2a3010', '4a5a1a', '72882c', 'a4bc4a'))],
+        head=[(190, 230, 0.2, 0.2, R('1a3a20', '2e6234', '4c9a4a', '8ad06a'))]),
+    'rat_swarm_2': dict(base='rat_2', weapon='keep', swarm=3, swarm_scale=0.62,
+        body=[(0, 60, 0.1, 0.1, R('1e1612', '3a2c22', '5a4636', '806650'))],
+        head=[(0, 60, 0.1, 0.1, R('1e1612', '3a2c22', '5a4636', '806650'), 0.6)]),
+    'rat_swarm_3': dict(base='rat_3', weapon='keep', swarm=5, swarm_scale=0.55,
+        body=[(0, 60, 0.1, 0.1, R('140e0e', '2a1e1c', '44302c', '664a40'))],
+        head=[(0, 60, 0.1, 0.1, R('140e0e', '2a1e1c', '44302c', '664a40'), 0.6)]),
     'skeleton_mage_2': dict(base='skeleton_2', weapon='staff', orb=R('2a7a3a', '5fe07a', 'd8ffe0'),
         body=[(190, 260, 0.2, 0.1, R('1e1036', '3a2066', '5e3a9a', '8c66cc'))],
         head=[(190, 260, 0.2, 0.1, R('1e1036', '3a2066', '5e3a9a', '8c66cc'))],
@@ -311,6 +322,28 @@ def draw_blowgun(ink, d, frame, draw):
             ink.put(end[0] + fx * 2 + math.cos(a) * 1.5, end[1] + fy * 2 + math.sin(a) * 1.5, (220, 236, 200))
 
 
+def draw_spit(ink, d, frame, draw):
+    """Crachat d'acide : une boule verte gonfle devant la bouche, puis part en gouttes. Au repos : bave qui coule."""
+    fx, fy = FACE[d]
+    tx0, tx1, tcx, top, bot = torso(frame)
+    h = bot - top
+    mx, my = tcx + fx * 3, top + h * 0.36 + fy * 1
+    acid = [(60, 110, 20), (120, 200, 40), (200, 250, 110)]
+    if draw is None:
+        if fy > -0.5:                                       # bave visible de face et de profil
+            ink.put(mx, my + 2, acid[1]); ink.put(mx, my + 3, acid[0])
+        return
+    if draw > 0.05:
+        r = 0.8 + 1.6 * draw
+        cx, cy = mx + fx * (1 + 2 * draw), my + fy * (1 + 2 * draw)
+        ink.disc(cx, cy, r, acid[0])
+        ink.disc(cx - 0.3, cy - 0.3, max(0.5, r - 0.8), acid[1])
+        ink.put(cx - 0.6, cy - 0.6, acid[2])
+    else:
+        for k in range(3):                                  # gouttes projetées vers la cible
+            ink.put(mx + fx * (5 + 2 * k), my + fy * (5 + 2 * k) + (k % 2), acid[1 + k % 2])
+
+
 def draw_staff(ink, d, frame, raise_, orb, skull=False):
     """Bâton tenu à côté du corps ; raise_ ∈ [0, 1] : le bâton bascule vers la cible, l'orbe flamboie."""
     fx, fy = FACE[d]
@@ -469,6 +502,8 @@ def weapon_ink(role, d, body, phase):
         draw_bow(ink, d, body, phase, role.get('bow', 5), role.get('wood'))
     elif role['weapon'] == 'staff':
         draw_staff(ink, d, body, phase, role['orb'], role.get('skull', False))
+    elif role['weapon'] == 'spit':
+        draw_spit(ink, d, body, phase)
     elif role['weapon'] == 'javelin':
         draw_javelin(ink, d, body, phase)
     elif role['weapon'] == 'blowgun':
@@ -532,6 +567,32 @@ ATTACK_PHASES = [0.25, 0.6, 1.0, 1.0, 0.0, 0.0]
 REST = None
 
 
+SWARM_SPOTS = {3: [(-0.30, 0.10), (0.30, 0.06), (0.0, -0.16)],
+               5: [(-0.34, 0.12), (0.34, 0.10), (0.0, -0.18), (-0.16, 0.26), (0.18, 0.28)]}
+
+
+def swarmify(row, count, scale):
+    """Une nuée : chaque image devient un groupe de `count` rats réduits, chacun à une image différente du cycle."""
+    n = len(row)
+    F = row[0].width
+    out = []
+    for k in range(n):
+        img = Image.new('RGBA', (F, F))
+        spots = sorted(SWARM_SPOTS[count], key=lambda p: p[1])          # les plus éloignés d'abord
+        for i, (ox, oy) in enumerate(spots):
+            src = row[(k + i * 2) % n]
+            bb = src.getbbox()
+            if bb is None:
+                continue
+            piece = src.crop(bb)
+            piece = piece.resize((max(1, int(piece.width * scale)), max(1, int(piece.height * scale))), Image.NEAREST)
+            cx = F / 2 + ox * F * 0.42
+            fy = bb[3] + oy * F * 0.42 - (bb[3] - F * 0.6) * (1 - scale)
+            img.alpha_composite(piece, (int(cx - piece.width / 2), int(fy - piece.height)))
+        out.append(img)
+    return out
+
+
 def build(rid):
     role = ROLES[rid]
     ch = M8.CHARACTERS[role['base']]
@@ -572,6 +633,8 @@ def build(rid):
                     wpn = weapon_ink(role, d, body, ph) if state not in ('Hurt', 'Death') else None
                     hat = hat_for(role, layers, d, k, body) if state != 'Death' else None
                     row.append(assemble(sh, body, wpn, back, hat, quiver_layer(role, d, body) if state != 'Death' else None))
+            if role.get('swarm'):
+                row = swarmify(row, role['swarm'], role.get('swarm_scale', 0.62))
             rows.append(row)
         M8.save(rows, os.path.join(OUT, rid, f'{rid}_{state}.png'))
         report.append(f'{state}:{len(rows[0])}')

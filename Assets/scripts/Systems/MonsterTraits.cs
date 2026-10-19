@@ -71,7 +71,7 @@ public class MonsterTraits : MonoBehaviour
     private float nextRetarget;
 
     /// <summary>Compteurs de pouvoirs déclenchés (tests et chroniques).</summary>
-    public static int Executes, Howls, Pierces;
+    public static int Executes, Howls, Pierces, Corrodes, Splashes;
 
     [Header("Achever les blessés (gnoll chasseur)")]
     [Tooltip("Dégâts en plus contre un intrus sous 40 % de ses PV (fraction)")]
@@ -85,6 +85,18 @@ public class MonsterTraits : MonoBehaviour
     [Tooltip("Le hurlement galvanise aussi la meute")]
     public float howlBuff = 1f;
     private float nextPack, nextHowl;
+
+    [Header("Acide (goule)")]
+    [Tooltip("Ronge l'armure : l'intrus touché subit plus de dégâts (multiplicateur) pendant corrodeSeconds")]
+    public float corrodeMult = 1f;
+    public float corrodeSeconds = 5f;
+
+    [Header("Éclaboussure (nuée, souffle)")]
+    [Tooltip("Dégâts infligés aux autres intrus autour de la cible (fraction)")]
+    public float splashMult;
+    public float splashRadius = 1.1f;
+    [Tooltip("Souffle : seulement les intrus devant le monstre, dans un cône")]
+    public bool splashCone;
 
     [Header("Nécromancie")]
     [Tooltip("Intrus tués relevés en squelettes en même temps (0 = aucun)")]
@@ -124,6 +136,12 @@ public class MonsterTraits : MonoBehaviour
         if (burnDps > 0f && burnSeconds > 0f) DotEffect.Apply(tc.gameObject, burnDps, burnSeconds, new Color(1f, 0.55f, 0.2f));
         if (poisonDps > 0f && poisonSeconds > 0f) DotEffect.Apply(tc.gameObject, poisonDps, poisonSeconds, new Color(0.55f, 1f, 0.35f));
         if (pierceMult > 0f) Pierce(tc.transform.position, damage * pierceMult);
+        if (corrodeMult > 1f)
+        {
+            var ac = tc.GetComponent<AdventurerCombat>();
+            if (ac != null) { ac.Corrode(corrodeMult, corrodeSeconds); Corrodes++; }
+        }
+        if (splashMult > 0f) Splash(tc, damage * splashMult);
         if (executeMult > 0f && target.IsAlive())
         {
             var ac = tc.GetComponent<AdventurerCombat>();
@@ -228,6 +246,26 @@ public class MonsterTraits : MonoBehaviour
             if (d < bd) { bd = d; best = a; }
         }
         if (best != null) owner.Retarget(best.transform);
+    }
+
+    /// <summary>Nuée (morsures tout autour de la cible) ou souffle (cône devant le monstre).</summary>
+    private void Splash(Component main, float dmg)
+    {
+        Vector2 me = transform.position, at = main.transform.position;
+        Vector2 dir = (at - me).normalized;
+        Vector2 c = splashCone ? me : at;
+        float r = splashCone ? (owner.attackRange + 1.2f) : splashRadius;
+        foreach (var h in Physics2D.OverlapCircleAll(c, r, 1 << 7))
+        {
+            if (h.transform == main.transform) continue;
+            var d = h.GetComponent<IDamageable>();
+            if (d == null || !d.IsAlive()) continue;
+            if (splashCone && Vector2.Angle(dir, (Vector2)h.transform.position - me) > 40f) continue;
+            d.TakeDamage(dmg);
+            Splashes++;
+            if (burnDps > 0f && burnSeconds > 0f) DotEffect.Apply(h.gameObject, burnDps, burnSeconds, new Color(1f, 0.55f, 0.2f));
+        }
+        if (splashCone) Fx.Play("small_fire", (Vector3)(me + dir * 1.1f) + Vector3.up * 0.2f, 0.9f, 16f, 16);
     }
 
     /// <summary>Loup : plus fort entouré de sa meute.</summary>

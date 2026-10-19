@@ -820,6 +820,131 @@ def build_wolf(cid):
     print('ok', cid)
 
 
+# ─────────────────────────────────────────────
+# Salamandres : lézards de feu au ras du sol (le dragonnet a des ailes et des cornes)
+# ─────────────────────────────────────────────
+
+SALAMANDERS = {
+    'salamander_1': dict(scale=1.6, skin=R('5a1408', '9a2a0e', 'd4521a', 'f48a34'), belly=R('8a5a10', 'c89020', 'f0c040', 'fff080'),
+                         spots=(255, 220, 90), eye=(255, 250, 180), outline=(30, 8, 4)),
+    'salamander_2': dict(scale=1.9, skin=R('3a0a06', '701808', 'b4300c', 'e8601c'), belly=R('8a4a08', 'c87a18', 'f0b030', 'ffe070'),
+                         spots=(255, 240, 120), eye=(255, 255, 200), outline=(24, 6, 4), glow=True),
+    'salamander_3': dict(scale=2.2, skin=R('260608', '501010', '8a1c14', 'c83a20'), belly=R('7a3a08', 'b46a14', 'e8a028', 'ffd860'),
+                         spots=(255, 190, 60), eye=(255, 230, 120), outline=(18, 4, 4), glow=True, wings=True, horns=True,
+                         wing=R('3a0a0c', '6a1414', 'a42a1a', 'd85a2a')),
+}
+
+
+def salamander_frame(spec, d, state, t, n):
+    s = spec['scale']
+    gx, gy = GFACE[d]
+    ang = math.atan2(-gx, gy)
+    sc = Scene()
+    ph = 2 * math.pi * t / n
+    h = 1.6 * s
+    sway, lunge, head_up, jaw, sink, breath = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+    stride = 0.0
+    if state == 'Idle':
+        sway = 0.15 * math.sin(ph)
+    elif state in ('Walk', 'Run'):
+        stride = (1.2 if state == 'Walk' else 1.9) * s
+        sway = (0.35 if state == 'Walk' else 0.5) * math.sin(ph)
+    elif state == 'Attack':
+        k = [0.2, 0.7, 1.0, 1.0, 0.5, 0.1][t]
+        head_up = [0, 0.6, 0.9, 0.2, 0.1, 0][t] * s
+        lunge = [0, -0.4, -0.2, 1.2, 0.6, 0][t] * s
+        jaw = k
+        breath = [0, 0, 0.4, 1.0, 0.6, 0][t]
+    elif state == 'Hurt':
+        lunge = -[1.0, 0.6, 0.3, 0][t] * s
+        sway = 0.4 * [1, -1, 0.5, 0][t]
+    elif state == 'Death':
+        k = t / (n - 1)
+        sink = 1.2 * s * k
+        sway = 0.6 * k
+    # colonne vertébrale ondulante : une chaîne de segments du museau à la queue
+    spine = []
+    for i in range(11):
+        u = i / 10                      # 0 = tête, 1 = bout de la queue
+        y = lunge + (3.6 - 10.5 * u) * s
+        x = math.sin(u * 3.2 + ph) * sway * 2.0 * s * u + (math.sin(u * 3.2) * sway * s if state == 'Death' else 0)
+        z = h - sink + (head_up * (1 - u * 3) if u < 0.34 else 0) - (0.9 * s * max(0, u - 0.55))
+        spine.append((x, y, max(0.3, z)))
+    pat_spots = np.array(spec['spots'], np.uint8)
+
+    def spots(local, lam, cols):
+        m = (local[:, 2] > 0.1) & (np.sin(local[:, 1] * 2.1) * np.sin(local[:, 0] * 2.7) > 0.72)
+        cols[m] = pat_spots
+
+    def belly_pat(local, lam, cols):
+        m = local[:, 2] < -0.25 * s
+        cols[m] = shade_ramp(spec['belly'], lam[m])
+        spots(local, lam, cols)
+    # corps : grosses perles qui s'amincissent vers la queue
+    for i, (x, y, z) in enumerate(spine[1:], 1):
+        u = i / 10
+        r = (1.55 - 1.3 * u) * s if u > 0.25 else 1.35 * s
+        ellipsoid(sc, ang, (x, y, z), (r * 1.15, r * 1.1, r * 0.75), spec['skin'], belly_pat)
+    hx, hy, hz = spine[0]
+    ellipsoid(sc, ang, (hx, hy + 0.4 * s, hz + 0.2 * s), (1.15 * s, 1.5 * s, 0.75 * s), spec['skin'], spots, pitch=-0.25 * jaw)
+    for side in (-1, 1):
+        dot(sc, ang, (hx + side * 0.75 * s, hy + 0.7 * s, hz + 0.75 * s), spec['eye'], size=1 if s > 1.5 else 0)
+    if jaw > 0.3:
+        segment(sc, ang, (hx - 0.6 * s, hy + 1.5 * s, hz - 0.3 * s), (hx + 0.6 * s, hy + 1.5 * s, hz - 0.3 * s),
+                [(120, 30, 10), (220, 90, 20), (255, 180, 60), (255, 240, 160)], 0.6)
+    if breath > 0:
+        # souffle de feu : gerbe de flammes devant la gueule
+        for k in range(int(10 * breath)):
+            dist = (1.6 + k * 0.55) * s
+            spread = (k * 0.22) * s
+            for j in (-1, 0, 1):
+                c = [(255, 250, 200), (255, 210, 80), (255, 140, 30), (220, 60, 20)][min(3, k // 3)]
+                dot(sc, ang, (hx + j * spread * 0.6 + math.sin(k * 1.7 + t) * 0.3 * s, hy + 1.5 * s + dist, hz + 0.2 * s - k * 0.05 * s), c)
+    if spec.get('horns'):
+        for side in (-1, 1):
+            segment(sc, ang, (hx + side * 0.7 * s, hy - 0.2 * s, hz + 0.5 * s), (hx + side * 1.0 * s, hy - 1.2 * s, hz + 1.6 * s),
+                    R('6a5a40', 'a89870', 'e0d4b0', 'fff8e0'), 0.6)
+    # pattes écartées (lézard) : diagonales opposées
+    for i, (side, idx) in enumerate(((-1, 2), (1, 2), (-1, 5), (1, 5))):
+        x, y, z = spine[idx]
+        gph = ph + (0 if i in (0, 3) else math.pi)
+        hip = np.array([x + side * 1.1 * s, y, z - 0.2 * s])
+        foot = np.array([x + side * 2.5 * s, y + stride * math.sin(gph) + (0.6 if idx == 2 else -0.4) * s,
+                         max(0.0, 0.8 * s * math.cos(gph)) if stride else 0.0])
+        knee = (hip + foot) / 2 + np.array([side * 0.5 * s, 0, 0.6 * s])
+        segment(sc, ang, hip, knee, spec['skin'], 0.9)
+        segment(sc, ang, knee, foot, spec['skin'], 0.7)
+    if spec.get('wings') and state != 'Death':
+        wf = 0.5 + 0.35 * math.sin(ph * (2 if state == 'Run' else 1))
+        x, y, z = spine[2]
+        for side in (-1, 1):
+            P = [np.array(v) * s for v in ((0.6, 0.3, 0.4), (2.8, 0.2, 2.4), (5.0, -1.2, 2.6), (3.6, -2.4, 1.2), (1.6, -2.2, 0.6))]
+            tris = [(P[0], P[1], P[2]), (P[0], P[2], P[3]), (P[0], P[3], P[4])]
+            mem = np.concatenate([triangle_points(*t_) for t_ in tris])
+            mem[:, 0] *= side
+            mem = flap(mem, wf - 0.3, side) + np.array([x, y, z + 0.6 * s])
+            Pw = rot(mem, ang)
+            r_ = np.hypot(mem[:, 0] - x, mem[:, 1] - y) / (5 * s)
+            sc.splat(Pw, shade_ramp(spec['wing'], np.clip(0.3 + 0.6 * r_, 0, 1)), sc.new_id())
+    if spec.get('glow') and state in ('Idle', 'Walk', 'Run'):
+        for k in range(3):
+            a_ = ph + k * 2.1
+            dot(sc, ang, (math.cos(a_) * 2.5 * s, spine[4][1] + math.sin(a_) * 2 * s, h + 2.0 * s + ((t + k) % 3) * 0.7 * s),
+                (255, 190 - 40 * ((t + k) % 3), 60))
+    return finish(sc, spec['outline'], 4.0 * s, ang)
+
+
+SAL_ANIMS = {'Idle': 4, 'Walk': 6, 'Run': 6, 'Attack': 6, 'Hurt': 4, 'Death': 6}
+
+
+def build_salamander(cid):
+    spec = SALAMANDERS[cid]
+    for state, n in SAL_ANIMS.items():
+        rows = [[salamander_frame(spec, d, state, t, n) for t in range(n)] for d in DIRS]
+        save(rows, os.path.join(OUT, cid, f'{cid}_{state}.png'))
+    print('ok', cid)
+
+
 FX_DIR = os.path.join(ROOT, 'Assets', 'Resources', 'FX')
 
 
@@ -841,7 +966,7 @@ def build_projectiles(cid):
     print('ok', cid)
 
 
-BUILDERS = {**{k: build_spider for k in SPIDERS}, **{k: build_mimic for k in MIMICS}, **{k: build_bat for k in BATS}, 'war_totem': build_war_totem, **{k: build_wolf for k in WOLVES}, 'projectiles': build_projectiles}
+BUILDERS = {**{k: build_spider for k in SPIDERS}, **{k: build_mimic for k in MIMICS}, **{k: build_bat for k in BATS}, 'war_totem': build_war_totem, **{k: build_wolf for k in WOLVES}, 'projectiles': build_projectiles, **{k: build_salamander for k in SALAMANDERS}}
 
 if __name__ == '__main__':
     for cid in sys.argv[1:] or list(BUILDERS):

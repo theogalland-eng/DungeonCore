@@ -267,7 +267,12 @@ MonoBehaviour:
   familyId: rat
   familyName: "Rat g\xE9ant"
   stage: 1
+  role: 
+  pathDesc: 
+  portrait: {fileID: 0}
   nextStage: {fileID: 6106639263105537209, guid: c85d88d2117ea9d4e880dac21380dd96, type: 3}
+  branches:
+  - {fileID: 4199092690964189243, guid: d74e6087785d84d4cb1ccbb3b858c0d7, type: 3}
   xpToEvolve: 60
   evolveCost: 24
   evolveLevelRequired: 3

@@ -189,6 +189,14 @@ public static class CharacterImporter
                     if (s >= 2) t.howlSlow = s == 2 ? 0.4f : 0.55f;
                     if (s == 3) t.howlBuff = 1.25f;
                 } },
+            new Family { id = "salamander", folder = "Salamander", names = new[] { "Salamandre", "Salamandre ardente", "Dragonnet de lave" },
+                hp = 70, dmg = 9, range = 1.8f, chase = 1.5f, cd = 1.2f, cost = 60, level = 7, upkeep = 6,
+                desc = "Souffle du feu sur tout ce qui se tient devant elle (brûlure) et traverse la lave sans dommage. Le dragonnet de lave a des ailes et un souffle redoutable.",
+                traits = (go, s) =>
+                {
+                    var t = T(go); t.burnDps = 2 + 2 * s; t.burnSeconds = 3f;
+                    t.splashMult = s == 3 ? 0.8f : 0.5f; t.splashCone = true;
+                } },
             new Family { id = "mimic", folder = "Mimic", names = new[] { "Coffre mordeur", "Mimique", "Mimique royale" },
                 hp = 120, dmg = 18, range = 1.2f, chase = 1.5f, cd = 1.2f, cost = 80, level = 6, upkeep = 6,
                 desc = "Ne se cache que dans une salle du trésor : immobile, il passe pour un coffre et mord par surprise. La Mimique attire les curieux, la Mimique royale les engloutit.",
@@ -255,6 +263,22 @@ public static class CharacterImporter
                 var t = T(go); t.projectileFx = "dart"; t.poisonDps = s == 3 ? 8f : 4f; t.poisonSeconds = 5f;
                 if (s == 3) { t.slowMult = 0.75f; t.slowSeconds = 2f; }
             } },
+        new Branch { family = "zombie", role = "spitter", names = new[] { "Zombie cracheur", "Goule acide" },
+            hp = 0.85f, dmg = 0.8f, range = 3.2f, cd = 1.5f,
+            desc = "Crache de l'acide qui ronge l'armure : l'intrus touché subit 25 % de dégâts en plus pendant 5 s (40 % pour la goule acide).",
+            traits = (go, s) =>
+            {
+                var t = T(go); t.projectileColor = new Color(0.55f, 1f, 0.2f); t.poisonDps = 2f; t.poisonSeconds = 3f;
+                t.corrodeMult = s == 3 ? 1.4f : 1.25f; t.corrodeSeconds = 5f;
+            } },
+        new Branch { family = "rat", role = "swarm", names = new[] { "Nuée de rats", "Grande nuée" },
+            hp = 1.4f, dmg = 0.8f, chase = 1.05f,
+            desc = "Toute une nuée : ses morsures touchent aussi les intrus autour de sa cible. La grande nuée lâche en plus trois rats au combat.",
+            traits = (go, s) =>
+            {
+                var t = T(go); t.splashMult = 0.6f; t.splashRadius = 1.2f;
+                if (s == 3) { t.summonPrefab = Prefab("rat_1"); t.summonCount = 3; t.summonCooldown = 16f; t.summonLifetime = 35f; t.summonName = "Rat de la nuée"; }
+            } },
         new Branch { family = "skeleton", role = "archer", names = new[] { "Squelette archer", "Archer d'ossements" },
             hp = 0.85f, dmg = 0.95f, range = 4.5f, cd = 1.2f,
             desc = "Tire des flèches d'os qui transpercent : l'intrus suivant sur la trajectoire est touché aussi. L'archer d'ossements tire plus loin et plus fort.",
@@ -288,7 +312,7 @@ public static class CharacterImporter
                 if (f8 == null) { Debug.LogWarning($"[CharacterImporter] planches absentes : {id} (Tools~/make_monster_roles.py)"); continue; }
                 yield return new Spec
                 {
-                    id = id, displayName = br.names[s - 2], kind = Kind.Monster, frame = 64, files = f8, dirs8 = true,
+                    id = id, displayName = br.names[s - 2], kind = Kind.Monster, frame = fa.frame, files = f8, dirs8 = true,
                     configure = go =>
                     {
                         float range = br.range > 0f ? br.range : fa.range;

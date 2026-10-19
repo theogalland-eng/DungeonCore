@@ -304,6 +304,26 @@ MonoBehaviour:
   projectileFx: 
   webCount: 0
   webSprite: {fileID: 0}
+  healAuraPct: 0
+  buffAuraMult: 1
+  pierceMult: 0
+  lureAsChest: 0
+  swallowSeconds: 0
+  berserk: 0
+  totemFrames: []
+  totemMult: 1
+  totemHealPct: 0
+  totemSeconds: 15
+  preferRanged: 0
+  executeMult: 0
+  packBonus: 0
+  howlSlow: 0
+  howlBuff: 1
+  corrodeMult: 1
+  corrodeSeconds: 5
+  splashMult: 0
+  splashRadius: 1.1
+  splashCone: 0
   raiseDead: 0
   raisePrefab: {fileID: 0}
   summonPrefab: {fileID: 0}
