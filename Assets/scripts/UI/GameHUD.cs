@@ -463,7 +463,7 @@ public class GameHUD : MonoBehaviour
         bool paused = b != null && b.DigPaused;
         if (!force && n == lastDigCount && paused == lastDigPaused) return;
         lastDigCount = n; lastDigPaused = paused;
-        digPanel.gameObject.SetActive(n > 0 && !CrawlerMode.Active);
+        digPanel.gameObject.SetActive(false);   // désormais dans le panneau de construction (SidePanel), pendant une attaque
         if (n <= 0) return;
         digLabel.text = paused ? $"<color=#FFC266>Creusement suspendu</color> · {n} case(s)" : $"Creusement en cours · {n} case(s)";
         UIKit.SetLabel(digPauseBtn, paused ? "Reprendre" : "Suspendre");
@@ -621,6 +621,9 @@ public class GameHUD : MonoBehaviour
     private TextMeshProUGUI bossBarName;
 
     /// <summary>Jauge du boss d'étage nommé engagé dans un combat (mode Donjon).</summary>
+    private CrawlerBoss bossWatched;
+    private float bossLastHp = -1f, bossHitUntil;
+
     private void UpdateBossBar()
     {
         if (bossBar == null)
@@ -642,8 +645,26 @@ public class GameHUD : MonoBehaviour
                 m.gameObject.AddComponent<Image>().color = new Color(1f, 0.9f, 0.7f, 0.7f);
             }
         }
-        var b = CrawlerMode.Active ? null : CrawlerBoss.Fighting();
-        bool show = b != null && (MainMenu.Instance == null || !MainMenu.Instance.InHome);
+        CrawlerBoss b = null;
+        bool selected = false;
+        if (!CrawlerMode.Active)
+        {
+            var sel = MonsterSelector.Instance;
+            if (sel != null)
+                foreach (var g in sel.SelectedGoblins)
+                {
+                    var cb = g != null ? g.GetComponent<CrawlerBoss>() : null;
+                    if (cb != null && cb.Ai != null && cb.Ai.IsAlive()) { b = cb; selected = true; break; }
+                }
+            if (b == null) b = CrawlerBoss.Fighting();
+        }
+        if (b != null)
+        {
+            if (b != bossWatched) { bossWatched = b; bossLastHp = b.Health01; }
+            if (b.Health01 < bossLastHp - 0.001f) bossHitUntil = Time.time + 4f;   // il vient d'être frappé
+            bossLastHp = b.Health01;
+        }
+        bool show = b != null && (selected || b.Ai.InCombat || Time.time < bossHitUntil) && (MainMenu.Instance == null || !MainMenu.Instance.InHome);
         if (bossBar.gameObject.activeSelf != show) bossBar.gameObject.SetActive(show);
         if (!show) return;
         bossBarName.text = $"{b.Title}  <size=75%><color=#C8BFA8>phase {b.Phase}/3</color></size>";

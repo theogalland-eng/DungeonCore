@@ -191,22 +191,24 @@ public class IslandEvents : MonoBehaviour
         // Pluie (tempête)
         // sous la montagne (vue donjon), on n'aperçoit la pluie qu'à peine
         var reliefV = MountainRelief.Instance;
-        float roof = reliefV != null && reliefV.DungeonView ? 0.3f : 1f;
+        // pluie et brume : seulement quand on regarde dehors (rien sous la montagne ni dans les étages du dessous)
+        var layersV = DungeonLayers.Instance;
+        float roof = (reliefV != null && reliefV.DungeonView) || (layersV != null && layersV.CurrentView > 0) ? 0f : 1f;
         bool ash = Current == IslandEvent.Eruption;
         float rainA = (Current == IslandEvent.Storm ? weather : Current == IslandEvent.Rain ? weather * 0.6f : ash ? weather * 0.5f : 0f) * roof;
         UpdateRain(rainA, ash, c, w, h);
 
         // Brume (brouillard, un peu pendant la tempête)
         morningFogA = Mathf.MoveTowards(morningFogA, MorningFog && !home ? 1f : 0f, Time.unscaledDeltaTime / 4f);
-        float fogA = (Current == IslandEvent.Fog ? weather * 0.5f : Current == IslandEvent.Storm ? weather * 0.15f : 0f) * (roof < 1f ? 0.6f : 1f);
-        fogA = Mathf.Max(fogA, morningFogA * 0.28f * (roof < 1f ? 0.4f : 1f));
+        float fogA = (Current == IslandEvent.Fog ? weather * 0.3f : Current == IslandEvent.Storm ? weather * 0.1f : 0f) * roof;
+        fogA = Mathf.Max(fogA, morningFogA * 0.18f * roof);
         fogSr.enabled = fogA > 0.01f;
         if (fogSr.enabled)
         {
             float t = Time.time * 0.03f;
             fogSr.transform.position = new Vector3(c.x + Mathf.Sin(t) * w * 0.15f, c.y + Mathf.Cos(t * 0.8f) * h * 0.1f, 0f);
             fogSr.transform.localScale = new Vector3(w * 3.2f, h * 3.2f, 1f);   // une nappe douce qui couvre l'écran
-            fogSr.color = new Color(0.82f, 0.84f, 0.88f, Mathf.Min(0.75f, fogA * 1.8f));
+            fogSr.color = new Color(0.82f, 0.84f, 0.88f, Mathf.Min(0.35f, fogA));   // on doit encore y voir
         }
 
         // Éclairs, secousses, geysers

@@ -1202,6 +1202,40 @@ public static class DevInspect3
         return placed != null ? "garde-manger posé" : "pose impossible";
     }
     public static string ChronicleTail() { var l = new System.Collections.Generic.List<string>(); Chronicle.Capture(l); return string.Join(" | ", l.Skip(System.Math.Max(0, l.Count - 8))); }
+    public static string ImportStairsArt() { TrapArt.ImportAll(); CatalogBuilder.BuildCatalog(); var c = DungeonCatalog.Get(); return $"descente={c.stairsDownSprite?.name} montée={c.stairsUpSprite?.name}"; }
+    public static string TapDown() => TapStairs(0);
+    public static string TapUp() => TapStairs(1);
+    /// <summary>Simule un toucher sur l'escalier de descente puis sur celui de montée.</summary>
+    public static string TapStairs(int which)
+    {
+        DungeonStairs s = null;
+        foreach (var st in DungeonStairs.All) if (st != null && st.goesDown == (which == 0)) s = st;
+        if (s == null) return "pas d'escalier";
+        MonsterSelector.Instance.DeselectAll();
+        typeof(MonsterSelector).GetMethod("HandleTap", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(MonsterSelector.Instance, new object[] { (Vector2)s.transform.position });
+        var p = s.partner.transform.position;
+        return $"vue {DungeonLayers.Instance.CurrentView} | " + DevInspect.Shot(p.x, p.y, 3f, 1200, 800, which == 0 ? "stairs_up_view" : "stairs_down_view");
+    }
+    public static string ImportMimics() { UnityEditor.AssetDatabase.Refresh(); return CharacterImporter.ImportOnly("mimic_3", "mimic_2", "mimic_1"); }
+    public static string MimicVsChest()
+    {
+        var b = DungeonBuilder.Instance; var cat = DungeonCatalog.Get();
+        var core = Object.FindFirstObjectByType<DungeonCore>();
+        var L = DungeonLayers.Instance;
+        var cc = b.floorTilemap.WorldToCell(core.transform.position) + new Vector3Int(-4, -8, 0);
+        for (int dx = 0; dx < 9; dx++) for (int dy = 0; dy < 3; dy++) L.CarveCell(cc + new Vector3Int(dx, dy, 0));
+        DungeonTerritory.Instance?.Recompute();
+        b.PlaceItemFree(cat.Find("chest"), cc + new Vector3Int(1, 1, 0));
+        b.PlaceItemFree(cat.Find("chest_royal"), cc + new Vector3Int(5, 1, 0));
+        foreach (var (id, dx) in new[] { ("mimic_1", 3), ("mimic_3", 7) })
+        {
+            Vector2 w = b.floorTilemap.GetCellCenterWorld(cc + new Vector3Int(dx, 1, 0));
+            var g = MonsterSpawner.Instance.SpawnFree(CharacterImporter.Prefab(id), w, w, id);
+            g?.SetBehavior(GobelinAI.GoblinBehavior.Stay);
+        }
+        var p = b.floorTilemap.GetCellCenterWorld(cc + new Vector3Int(4, 1, 0));
+        return DevInspect.Shot(p.x, p.y, 2.2f, 1200, 700, "mimics");
+    }
     public static string OpenMainScene()
     {
         if (Application.isPlaying) return "arrêter le jeu d'abord";

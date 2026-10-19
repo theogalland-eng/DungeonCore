@@ -215,9 +215,14 @@ public class SidePanel : MonoBehaviour
     // ── Attaque en cours : bandeau rouge, la construction est verrouillée ──
     private RectTransform attackBanner;
 
+    private RectTransform digBox;
+    private TextMeshProUGUI digText;
+    private Button digPause;
+
     private void UpdateAttackBanner()
     {
-        bool attack = DungeonBuilder.UnderAttack;
+        // les étages se consultent toujours pendant une attaque (suivre le combat d'un étage à l'autre)
+        bool attack = DungeonBuilder.UnderAttack && currentTab != CatalogCategory.Layer;
         if (attackBanner == null)
         {
             if (!attack || container == null) return;
@@ -225,11 +230,42 @@ public class SidePanel : MonoBehaviour
             attackBanner.anchorMin = new Vector2(0f, 0f); attackBanner.anchorMax = new Vector2(1f, 1f);
             attackBanner.offsetMin = new Vector2(8f, 8f); attackBanner.offsetMax = new Vector2(-8f, -70f);
             UIKit.Image(attackBanner, new Color(0.25f, 0.03f, 0.05f, 0.82f), true, true);   // bloque aussi les clics
-            var t = UIKit.Label(attackBanner, "<b>LE DONJON EST ATTAQUÉ</b>\n\n<size=80%>Impossible de bâtir, poser ou invoquer tant qu'il reste des intrus.\nVos monstres, eux, peuvent toujours recevoir des ordres.</size>", 26, new Color(1f, 0.82f, 0.78f));
+            var t = UIKit.Label(attackBanner, "<b>LE DONJON EST ATTAQUÉ</b>\n\n<size=80%>Impossible de bâtir, poser ou invoquer tant qu'il reste des intrus.\nVos monstres, eux, peuvent toujours recevoir des ordres.\nL'onglet Étages reste ouvert.</size>", 26, new Color(1f, 0.82f, 0.78f));
             UIKit.Stretch(t.rectTransform, 24, 24, 0, 0);
+            t.rectTransform.anchorMin = new Vector2(0f, 0.55f);
+            // creusements en attente : suspendre ou tout annuler, au milieu de la surcouche
+            digBox = UIKit.Place(UIKit.Rect("Creusements", attackBanner), new Vector2(0.5f, 0.5f), new Vector2(0f, -40f), new Vector2(560f, 150f));
+            UIKit.Image(digBox, new Color(0.12f, 0.02f, 0.03f, 0.9f));
+            UIKit.Frame(digBox);
+            digText = UIKit.LabelAt(digBox, "", 22, new Color(1f, 0.85f, 0.75f), new Vector2(0f, -12f), new Vector2(540f, 40f), TextAlignmentOptions.Top, new Vector2(0.5f, 1f));
+            digPause = UIKit.BtnAt(digBox, "Suspendre", () =>
+            {
+                var b = DungeonBuilder.Instance; if (b == null) return;
+                b.DigPaused = !b.DigPaused;
+                GameHUD.Toast(b.DigPaused ? "Creusement suspendu" : "Creusement repris", GameHUD.InfoColor);
+                RefreshDigBox();
+            }, new Vector2(0.5f, 0f), new Vector2(-140f, 18f), new Vector2(250f, 62f), 22);
+            UIKit.BtnAt(digBox, "Tout annuler", () =>
+            {
+                var b = DungeonBuilder.Instance; if (b == null) return;
+                int n = b.QueuedDigCount;
+                b.ClearDigQueue(); b.DigPaused = false;
+                GameHUD.Toast($"{n} creusement(s) annulé(s)", GameHUD.InfoColor);
+                RefreshDigBox();
+            }, new Vector2(0.5f, 0f), new Vector2(140f, 18f), new Vector2(250f, 62f), 22, UIKit.Danger);
         }
         attackBanner.gameObject.SetActive(attack);
-        if (attack) attackBanner.SetAsLastSibling();
+        if (attack) { attackBanner.SetAsLastSibling(); RefreshDigBox(); }
+    }
+
+    private void RefreshDigBox()
+    {
+        var b = DungeonBuilder.Instance;
+        int n = b != null ? b.QueuedDigCount : 0;
+        digBox.gameObject.SetActive(n > 0);
+        if (n <= 0) return;
+        digText.text = b.DigPaused ? $"Creusement suspendu · {n} case(s) en attente" : $"Creusement en cours · {n} case(s) en attente";
+        UIKit.SetLabel(digPause, b.DigPaused ? "Reprendre" : "Suspendre");
     }
 
     private string Signature()

@@ -290,3 +290,11 @@ Mise en ligne du projet sur GitHub (ce dépôt), avec cette documentation.
 - 📦 **Textures compressées sur Android** (ASTC 4×4 : 8 bits par pixel au lieu de 32) : la mémoire des sprites est divisée par 4, sans perte visible sur le pixel art.
 - ⛏️ **Creusements en attente maîtrisables** : dès que des cases sont marquées, un bandeau sous la date indique « Creusement en cours · N case(s) » avec **Suspendre / Reprendre** (les marques restent, rien n'avance ni ne coûte — pratique quand des intrus entrent) et **Tout annuler**.
 - 🍖 **Garde-manger plus utile** : les monstres y vont dès 40 de faim (au lieu de 55) en l'annonçant (« Je vais manger ! »), et il contient 10 portions par jour (au lieu de 4) puisqu'il nourrit à la fois les monstres et les intrus appâtés.
+
+### Retours du téléphone : étages, boss, météo, escaliers
+
+- 🪜 **Escaliers redessinés et cliquables** : une vraie paire — une trémie de pierre dont les marches s'enfoncent dans le noir à l'étage du haut, une volée de marches qui grimpe vers une ouverture éclairée dans la paroi à l'étage du bas (adossée au mur, triée avec lui). Toucher un escalier (sans monstre sélectionné) emmène à l'étage où il mène, centré sur l'escalier d'arrivée ; avec des monstres sélectionnés, c'est toujours un ordre de déplacement.
+- 🔱 **Pendant une attaque**, l'onglet Étages reste utilisable (la surcouche rouge ne couvre plus que les onglets de construction) ; les **creusements en attente** se suspendent ou s'annulent **au milieu de cette surcouche** (le bandeau en haut de l'écran disparaît).
+- 👑 **Barre du boss d'étage** : affichée seulement quand il combat, qu'on le sélectionne ou qu'il vient d'être frappé (elle restait à l'écran dès qu'il avait perdu un PV).
+- 🌧️ **Météo seulement dehors** : plus de pluie ni de brume en vue du donjon ni dans les étages du dessous ; le brouillard est nettement moins dense.
+- 🧰 **Mimiques à la taille des coffres** (elles faisaient un tiers d'un coffre posé).

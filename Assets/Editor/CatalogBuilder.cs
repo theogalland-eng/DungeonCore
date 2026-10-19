@@ -710,8 +710,9 @@ public static class CatalogBuilder
             th.stoneTint = Color.white;
         }
 
-        cat.stairsDownSprite = AF("stairs_down").FirstOrDefault() ?? PL("stairs_down") ?? dungeon.GetValueOrDefault("dungeon_tiles_311");
-        cat.stairsUpSprite = AF("stairs_up").FirstOrDefault() ?? PL("stairs_up") ?? dungeon.GetValueOrDefault("dungeon_tiles_82");
+        // paire dessinée pour le projet (Tools~/make_creatures.py stairs) : trémie qui descend / volée qui monte vers la paroi
+        cat.stairsDownSprite = TrapArt.Frames("stairs_down").FirstOrDefault() ?? AF("stairs_down").FirstOrDefault() ?? PL("stairs_down") ?? dungeon.GetValueOrDefault("dungeon_tiles_311");
+        cat.stairsUpSprite = TrapArt.Frames("stairs_up").FirstOrDefault() ?? AF("stairs_up").FirstOrDefault() ?? PL("stairs_up") ?? dungeon.GetValueOrDefault("dungeon_tiles_82");
         cat.boatSprites.Clear();
         foreach (var b in new[] { "boat_small", "boat_medium", "boat_large" }) cat.boatSprites.Add(PL(b));
 

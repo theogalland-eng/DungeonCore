@@ -202,6 +202,18 @@ public class MonsterSelector : MonoBehaviour
             return;
         }
 
+        // un escalier touché (sans monstre sélectionné) : on passe à l'étage où il mène
+        var stairs = DungeonStairs.At(worldPos, 0.6f);
+        if (stairs != null && selectedAnchor == null && DungeonLayers.Instance != null)
+        {
+            var to = stairs.partner;
+            int layer = DungeonLayers.Instance.IndexAt(to.transform.position);
+            DungeonLayers.Instance.SetView(layer);
+            CameraController.Instance?.CenterOn(to.transform.position);
+            GameHUD.Toast(stairs.goesDown ? $"Descente : {DungeonLayers.Instance.layers[layer].name}" : $"Montée : {DungeonLayers.Instance.layers[layer].name}", GameHUD.InfoColor);
+            return;
+        }
+
         if (selectedAnchor != null)
         {
             if (DungeonTerritory.Instance == null || DungeonTerritory.Instance.IsInside(worldPos))

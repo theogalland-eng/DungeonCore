@@ -267,7 +267,8 @@ public class DungeonLayers : MonoBehaviour
         var sr = go.AddComponent<SpriteRenderer>();
         sr.sprite = down ? catalog.stairsDownSprite : catalog.stairsUpSprite;
         if (sr.sprite == null) { sr.sprite = SpriteUtil.Square; sr.color = down ? new Color(0.1f, 0.1f, 0.1f) : new Color(0.6f, 0.5f, 0.4f); }
-        sr.sortingOrder = 1;
+        // la descente est une trémie dans le sol ; la montée s'adosse à la paroi : triée avec les murs et les personnages
+        sr.sortingOrder = down ? 1 : WallOcclusion.SortingOrder;
         var s = go.AddComponent<DungeonStairs>();
         s.goesDown = down;
         s.layerIndex = layer;

@@ -379,13 +379,13 @@ def solid(scene, ang, P, N, base_cols, pid=None):
 
 
 MIMICS = {
-    'mimic_1': dict(scale=1.25, wood=R('3a2212', '5e3a1e', '8a5a30', 'b07a44'), band=R('2a2a30', '4a4a54', '7a7a86', 'b0b0bc'),
+    'mimic_1': dict(scale=3.2, wood=R('3a2212', '5e3a1e', '8a5a30', 'b07a44'), band=R('2a2a30', '4a4a54', '7a7a86', 'b0b0bc'),
                     lock=R('6a4a10', 'a8801e', 'e0b840', 'fff0a0'), mouth=(46, 8, 14), tongue=R('5a0e1a', '9a1e2e', 'd04050', 'f08090'),
                     eye=(255, 220, 90), outline=(22, 12, 8)),
-    'mimic_2': dict(scale=1.5, wood=R('2a160e', '4a2616', '723c22', '9a5832'), band=R('22222a', '3e3e4a', '6a6a78', 'a0a0b0'),
+    'mimic_2': dict(scale=3.4, wood=R('2a160e', '4a2616', '723c22', '9a5832'), band=R('22222a', '3e3e4a', '6a6a78', 'a0a0b0'),
                     lock=R('6a4a10', 'a8801e', 'e0b840', 'fff0a0'), mouth=(30, 4, 14), tongue=R('3e0a3a', '74185e', 'b03a8a', 'e080c0'),
                     eye=(160, 255, 120), outline=(16, 8, 6), teeth_big=True),
-    'mimic_3': dict(scale=1.8, wood=R('3a0a10', '6a1420', '9a2430', 'c84448'), band=R('6a4a10', 'a8801e', 'e0b840', 'fff0a0'),
+    'mimic_3': dict(scale=3.7, wood=R('3a0a10', '6a1420', '9a2430', 'c84448'), band=R('6a4a10', 'a8801e', 'e0b840', 'fff0a0'),
                     lock=R('1a3a6a', '2a6ab0', '58a8f0', 'c0e8ff'), mouth=(20, 2, 10), tongue=R('3e0a3a', '74185e', 'b03a8a', 'e080c0'),
                     eye=(255, 80, 60), outline=(18, 6, 6), teeth_big=True, crown=True, gems=True),
 }
@@ -1140,6 +1140,83 @@ def build_with(fn, table):
     return b
 
 
+def build_stairs(cid):
+    """Paire d'escaliers d'étage (16 px par case, vue plongeante) :
+    - descente (étage du haut) : une trémie bordée de pierre, des marches qui s'enfoncent vers le fond, de plus en plus sombres ;
+    - montée (étage du bas) : une volée de marches qui grimpe vers une ouverture dans la paroi, éclairée d'en haut (16×24)."""
+    stone = [(38, 34, 44), (66, 60, 74), (98, 92, 106), (138, 132, 146), (178, 172, 184)]
+    OUT_C = (16, 12, 20)
+
+    def outline(a):
+        m = a[:, :, 3] > 0
+        ring = np.zeros_like(m)
+        for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            ring |= np.roll(np.roll(m, dy, 0), dx, 1)
+        ring &= ~m
+        a[ring] = OUT_C + (255,)
+        return a
+
+    def put(a, x, y, c):
+        if 0 <= y < a.shape[0] and 0 <= x < a.shape[1]:
+            a[y, x] = tuple(c) + (255,)
+
+    # ── descente : 16×16
+    d = np.zeros((16, 16, 4), np.uint8)
+    for y in range(1, 15):
+        for x in range(1, 15):
+            put(d, x, y, stone[2] if (x in (1, 14) or y in (1, 14)) else stone[1])
+    for x in range(1, 15):
+        put(d, x, 1, stone[4]); put(d, x, 14, stone[0])            # rebord éclairé en haut, ombré en bas
+    for y in range(1, 15):
+        put(d, 1, y, stone[3]); put(d, 14, y, stone[1])
+    # marches : du bas (près de nous) vers le haut (au fond, dans le noir)
+    steps = [(12, 13, 3), (10, 11, 2), (8, 9, 2), (6, 7, 1), (4, 5, 1)]
+    shades = [stone[4], stone[3], stone[2], (86, 80, 96), (58, 52, 66)]
+    for (ylo, yhi, inset), sh in zip(steps, shades):
+        for x in range(3 + inset - 1, 13 - inset + 1):
+            put(d, x, ylo, sh)                                      # nez de marche éclairé
+            put(d, x, yhi, tuple(max(0, int(c * 0.45)) for c in sh))   # contremarche dans l'ombre
+    for y in range(2, 4):
+        for x in range(3, 13):
+            put(d, x, y, (10, 8, 14))                               # le fond, noir
+    put(d, 2, 12, (90, 70, 50)); put(d, 13, 12, (90, 70, 50))       # anneaux de fer
+    d = outline(d)
+
+    # ── montée : 16×24 (la case + 8 px de paroi au-dessus)
+    u = np.zeros((24, 16, 4), np.uint8)
+    # ouverture dans la paroi, lumière chaude venue d'en haut
+    for y in range(1, 10):
+        for x in range(3, 13):
+            r = ((x - 7.5) / 5.0) ** 2 + ((y - 9.5) / 8.5) ** 2
+            if r <= 1.0:
+                put(u, x, y, (60, 44, 34) if y < 4 else (34, 26, 24))
+    for y in range(2, 6):
+        for x in range(5, 11):
+            if ((x - 7.5) / 3.0) ** 2 + ((y - 5) / 3.2) ** 2 <= 1.0:
+                put(u, x, y, (230, 170, 90) if y < 4 else (170, 110, 60))
+    # arc de pierre autour de l'ouverture
+    for y in range(0, 11):
+        for x in range(1, 15):
+            r = ((x - 7.5) / 6.5) ** 2 + ((y - 9.5) / 9.5) ** 2
+            if 0.72 < r <= 1.0:
+                put(u, x, y, stone[3] if x < 8 else stone[2])
+    # marches qui montent vers l'ouverture : larges en bas, étroites en haut
+    for i, y in enumerate(range(22, 9, -2)):
+        half = 7 - i * 0.55
+        x0, x1 = int(round(8 - half)), int(round(8 + half)) - 1
+        top = stone[4] if i < 3 else stone[3]
+        for x in range(x0, x1 + 1):
+            put(u, x, y - 1, top)                                   # nez de marche éclairé
+            put(u, x, y, stone[1] if i < 4 else stone[0])           # contremarche
+        put(u, x0, y - 1, stone[2]); put(u, x1, y, stone[0])
+    u = outline(u)
+
+    os.makedirs(TRAPS_DIR, exist_ok=True)
+    Image.fromarray(d).save(os.path.join(TRAPS_DIR, 'stairs_down_16x16.png'))
+    Image.fromarray(u).save(os.path.join(TRAPS_DIR, 'stairs_up_16x24.png'))
+    print('ok', cid)
+
+
 FX_DIR = os.path.join(ROOT, 'Assets', 'Resources', 'FX')
 
 
@@ -1161,7 +1238,7 @@ def build_projectiles(cid):
     print('ok', cid)
 
 
-BUILDERS = {**{k: build_spider for k in SPIDERS}, **{k: build_mimic for k in MIMICS}, **{k: build_bat for k in BATS}, 'war_totem': build_war_totem, **{k: build_wolf for k in WOLVES}, 'projectiles': build_projectiles, **{k: build_salamander for k in SALAMANDERS},
+BUILDERS = {**{k: build_spider for k in SPIDERS}, **{k: build_mimic for k in MIMICS}, **{k: build_bat for k in BATS}, 'war_totem': build_war_totem, **{k: build_wolf for k in WOLVES}, 'projectiles': build_projectiles, 'stairs': build_stairs, **{k: build_salamander for k in SALAMANDERS},
             **{k: build_with(naga_frame, NAGAS) for k in NAGAS}, **{k: build_with(gargoyle_frame, GARGOYLES) for k in GARGOYLES}}
 
 if __name__ == '__main__':
