@@ -1864,5 +1864,13 @@ public static class DevInspect3
         return DevInspect.Shot(r.center.x, r.center.y - 0.5f, r.height * 0.62f, 1600, 1000, "interior_" + InteriorSystem.Instance.CurrentId);
     }
     public static string ExitInterior() { InteriorSystem.Instance.ExitPhysical(); return "sortie"; }
+    public static string ColonyStage4() { SettlementManager.Instance.BuildInstantly(4); return "stade " + SettlementManager.Instance.stage; }
+    public static string CountLogs()
+    {
+        var logs = Object.FindObjectsByType<SpriteRenderer>(FindObjectsSortMode.None).Where(r => r.name == "Rondin").ToList();
+        var parents = logs.GroupBy(r => r.transform.parent != null ? r.transform.parent.name : "-").Select(g => g.Key + " x" + g.Count());
+        var b = SettlementManager.Instance.Buildings;
+        return $"rondins={logs.Count} ({string.Join(", ", parents.Take(12))}) | bâtiments={b.Count} finis={b.Count(x => x.IsComplete)}";
+    }
 }
 #endif
