@@ -303,3 +303,8 @@ Mise en ligne du projet sur GitHub (ce dépôt), avec cette documentation.
 
 - 📐 **Taille de l'interface** (Options) : elle agrandissait tout le canevas, ce qui faisait déborder la colonne du menu et chevaucher les panneaux du haut (dessinés pour 1920×1080). Désormais chaque bloc grandit depuis son coin (`HudScaler`) en gardant la disposition de son groupe ; l'échelle de la rangée du haut est plafonnée pour que la carte du Noyau, le calendrier et la menace tiennent côte à côte ; le panneau de construction garde la hauteur de l'écran ; les fenêtres centrées suivent la taille choisie sans jamais dépasser l'écran (`FitToScreen`) ; les boutons du menu principal se réorganisent selon la place.
 - 📱 **Taille par défaut selon l'écran réel** : sur téléphone, l'interface démarre plus grande (110 à 130 % selon la hauteur physique de l'écran) pour que les textes restent lisibles.
+
+### Mode Aventurier : brouillard de guerre et vue rapprochée
+
+- 🌑 **Brouillard de guerre** sous la montagne (`CrawlerFog`) : on ne voit que la salle où se tient le héros, ses murs et le début de ses sorties ; dans un couloir, quelques cases autour de soi. Les salles déjà visitées restent assombries, le reste de l'étage est noir (monstres et barres de vie compris). L'étage redevient inconnu à chaque nouvelle descente.
+- 🎥 **Vue rapprochée** dans le donjon (caméra plus proche qu'avant) et **calée sur la salle** courante tant qu'on y est, à la manière d'un Zelda ; elle suit librement le héros dans les couloirs.

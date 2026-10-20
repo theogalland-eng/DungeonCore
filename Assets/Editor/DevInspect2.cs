@@ -102,6 +102,17 @@ public static class DevInspect3
     public static string Floor8() { CrawlerMode.Instance.GoToFloor(8, true); return "8"; }
     public static string Floor10() { CrawlerMode.Instance.GoToFloor(10, true); return "10"; }
     public static string Floor2() { CrawlerMode.Instance.GoToFloor(2, false); return "2 from below"; }
+    public static int fogRoom;
+    /// <summary>Téléporte le héros au centre de la salle suivante de l'étage (test du brouillard de guerre).</summary>
+    public static string FogNextRoom()
+    {
+        var c = CrawlerMode.Instance;
+        var f = c.FloorData(Mathf.Max(1, c.floor));
+        fogRoom = (fogRoom + 1) % f.rooms.Count;
+        var p = f.rooms[fogRoom].Center;
+        c.Player.transform.position = p; c.Player.GetComponent<Rigidbody2D>().position = p;
+        return $"room {fogRoom}/{f.rooms.Count} rect={f.rooms[fogRoom].rect} cur={CrawlerFog.Instance?.CurrentRoom} cam={Camera.main.orthographicSize:0.0}";
+    }
     /// <summary>Mode Noyau : creuse un couloir sous le cristal, y pose les trois portes et un escalier, puis photographie.</summary>
     public static string DoorShowcase()
     {

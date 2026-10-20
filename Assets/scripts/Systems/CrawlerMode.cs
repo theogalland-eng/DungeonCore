@@ -337,7 +337,17 @@ public class CrawlerMode : MonoBehaviour
         {
             if (CameraController.Instance != null) CameraController.Instance.cinematic = true;
             Vector3 target = new Vector3(pp.x, pp.y, cam.transform.position.z);
-            float size = indoors ? 4.3f : fl > 0 ? 5.5f : 6.5f;
+            float size = indoors ? 4.3f : fl > 0 ? 4f : 6.5f;      // sous la montagne : vue rapprochée
+            var room = fl > 0 && CrawlerFog.Instance != null ? CrawlerFog.Instance.CurrentRoom : null;
+            if (room.HasValue)
+            {
+                // une salle à la fois : la caméra se cale sur la salle (murs compris) tant qu'on y est
+                var r = room.Value;
+                float hw = size * cam.aspect, hh = size;
+                float cx = r.x + r.width * 0.5f, cy = r.y + r.height * 0.5f;
+                target.x = r.width + 2 > hw * 2f ? Mathf.Clamp(target.x, r.xMin - 1 + hw, r.xMax + 1 - hw) : cx;
+                target.y = r.height + 2 > hh * 2f ? Mathf.Clamp(target.y, r.yMin - 1 + hh, r.yMax + 1 - hh) : cy;
+            }
             if (indoors)
             {
                 // la caméra reste dans la pièce
@@ -369,7 +379,50 @@ public class CrawlerMode : MonoBehaviour
             }
         }
         if (checkpointCircle != null) checkpointCircle.SetActive(Checkpoint() > 1);
+        UpdateFog(indoors ? 0 : fl, pp);
         UpdateHud();
+    }
+
+    private int fogFloor = -1;
+
+    /// <summary>Brouillard de guerre : sous la montagne, seule la salle du héros est visible.</summary>
+    private void UpdateFog(int fl, Vector2 pp)
+    {
+        var fog = CrawlerFog.Ensure();
+        if (fog == null) return;
+        if (fl <= 0 || !floors.TryGetValue(fl, out var f))
+        {
+            if (fogFloor != -1) { fog.Hide(); fogFloor = -1; }
+            return;
+        }
+        // nouvel étage, ou étage recréé (même numéro, nouvelles salles)
+        if (fogFloor != fl || fogData != f)
+        {
+            fogFloor = fl;
+            fogData = f;
+            fog.SetFloor(f, FogArea(f));
+        }
+        fog.Tick(pp);
+    }
+
+    private CrawlerDungeon.Floor fogData;
+
+    /// <summary>Zone couverte : les salles de l'étage et une large marge, dans les limites de sa couche.</summary>
+    private static RectInt FogArea(CrawlerDungeon.Floor f)
+    {
+        int x0 = int.MaxValue, y0 = int.MaxValue, x1 = int.MinValue, y1 = int.MinValue;
+        foreach (var r in f.rooms) { x0 = Mathf.Min(x0, r.rect.xMin); y0 = Mathf.Min(y0, r.rect.yMin); x1 = Mathf.Max(x1, r.rect.xMax); y1 = Mathf.Max(y1, r.rect.yMax); }
+        const int M = 14;
+        var a = new RectInt(x0 - M, y0 - M, x1 - x0 + 2 * M, y1 - y0 + 2 * M);
+        var layers = DungeonLayers.Instance;
+        if (layers != null && layers.layers.Count > f.region)
+        {
+            var lb = layers.layers[f.region].cellBounds;
+            int ax = Mathf.Max(a.xMin, lb.xMin), ay = Mathf.Max(a.yMin, lb.yMin);
+            int bx = Mathf.Min(a.xMax, lb.xMax), by = Mathf.Min(a.yMax, lb.yMax);
+            if (bx > ax && by > ay) a = new RectInt(ax, ay, bx - ax, by - ay);
+        }
+        return a;
     }
 
     /// <summary>Étage d'une position (0 : dehors, en ville ou à l'intérieur d'un bâtiment).</summary>
