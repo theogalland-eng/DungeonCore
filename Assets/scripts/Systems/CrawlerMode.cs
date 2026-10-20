@@ -197,7 +197,7 @@ public class CrawlerMode : MonoBehaviour
         if (sm == null || sm.Site == null) return;
         bool cine = GameSettings.Cinematics;
         GameSettings.Cinematics = false;
-        sm.BuildInstantly(5);
+        sm.BuildInstantly(SettlementPlan.FinalStage);
         GameSettings.Cinematics = cine;
     }
 

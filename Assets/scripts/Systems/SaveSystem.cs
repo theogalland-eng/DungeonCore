@@ -319,32 +319,33 @@ public class SaveSystem : MonoBehaviour
     private static Vector3Int Cell(List<int> flat, int i) => new Vector3Int(flat[i], flat[i + 1], 0);
 
     /// <summary>
-    /// Sauvegardes d'avant l'agrandissement de l'île (version 1) : les étages souterrains étaient 52 cases plus haut
-    /// (sous la surface, qui finissait en y = -76). Tout ce qui s'y trouvait descend de 52 cases.
+    /// Sauvegardes d'avant les agrandissements de l'île vers le sud : les étages souterrains étaient plus haut.
+    /// Version 1 : la surface finissait en y = -76, tout descend de 70 cases. Version 2 (île prolongée une première
+    /// fois, surface jusqu'à y = -128) : tout ce qui était dessous descend de 18 cases.
     /// </summary>
     private static void MigrateV2(SaveData d)
     {
-        const int Shift = 52, OldBottom = -76;
+        int shift = d.version < 2 ? 70 : 18, oldBottom = d.version < 2 ? -76 : -128;
         void Flat(List<int> l, int stride)
         {
             if (l == null) return;
-            for (int i = 0; i + 1 < l.Count; i += stride) if (l[i + 1] < OldBottom) l[i + 1] -= Shift;
+            for (int i = 0; i + 1 < l.Count; i += stride) if (l[i + 1] < oldBottom) l[i + 1] -= shift;
         }
         Flat(d.territory, 2);
         Flat(d.placedWalls, 2);
         Flat(d.guildMap, 2);
         Flat(d.trails, 4);
-        foreach (var l in d.layers) if (l.connected && l.stairsY < OldBottom) l.stairsY -= Shift;
-        foreach (var o in d.objects) if (o.y < OldBottom) o.y -= Shift;
-        foreach (var m in d.monsters) { if (m.y < OldBottom) m.y -= Shift; if (m.ay < OldBottom) m.ay -= Shift; }
-        if (d.coreY < OldBottom) d.coreY -= Shift;
-        if (d.guildCoreKnown && d.guildCoreY < OldBottom) d.guildCoreY -= Shift;
-        d.version = 2;
+        foreach (var l in d.layers) if (l.connected && l.stairsY < oldBottom) l.stairsY -= shift;
+        foreach (var o in d.objects) if (o.y < oldBottom) o.y -= shift;
+        foreach (var m in d.monsters) { if (m.y < oldBottom) m.y -= shift; if (m.ay < oldBottom) m.ay -= shift; }
+        if (d.coreY < oldBottom) d.coreY -= shift;
+        if (d.guildCoreKnown && d.guildCoreY < oldBottom) d.guildCoreY -= shift;
+        d.version = 3;
     }
 
     public void Apply(SaveData d)
     {
-        if (d.version < 2) MigrateV2(d);
+        if (d.version < 3) MigrateV2(d);
         playSeconds = d.playSeconds;
         GameDifficulty.Current = d.difficulty < 0 ? Difficulty.Facile : (Difficulty)Mathf.Clamp(d.difficulty, 0, 3);
         var gm = GameManager.Instance;

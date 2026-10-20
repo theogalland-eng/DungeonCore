@@ -276,6 +276,30 @@ def style_paved(c):
     c.put(rim, hexc('#4a4550'))
 
 
+def style_brick(c):
+    """Rues de la cité fortifiée : briques chaudes en appareil décalé (accordées aux cours des packs de la ville),
+    bordure de pierre, quelques briques usées où la terre reparaît."""
+    s = c.s(1.0)
+    vis = c.m & (s > 1.6)
+    drop_shadow(c, vis, 70)
+    X, Y = c.f['X'].astype(int), c.f['Y'].astype(int)
+    row = Y // 3
+    off = (row % 2) * 3
+    col = ((X + off) % P) // 6
+    mortar = (Y % 3 == 2) | ((X + off) % 6 == 5)
+    h = (row * 7 + col * 13 + (row * col) % 5) % 9
+    brick = vis & ~mortar
+    worn = brick & (c.f['tex2'] > 0.8) & (h < 3)
+    fill(c, brick & ~worn, (h / 9.0) * 0.7 + c.f['grain'] * 0.3, ['#a9805a', '#bb9268', '#c49a6c', '#c49a6c', '#d0a978'])
+    top = np.zeros_like(mortar); top[1:, :] = mortar[:-1, :]
+    c.put(brick & ~worn & top & (c.f['grain'] > 0.35), hexc('#dcbf92'))
+    c.put(worn, hexc('#7d6a48'))
+    c.put(vis & mortar, hexc('#8a6a4c'))
+    rim = vis & (s < 2.8)
+    c.put(rim & c.lit, hexc('#b8a088'))
+    c.put(rim & ~c.lit, hexc('#7a6650'))
+
+
 def build(name, style, fields):
     sheet = Image.new('RGBA', (T * len(MASKS), T * 9))
     for py in range(3):
@@ -566,9 +590,11 @@ def main():
         'edge': noise(10, 11, 2), 'tex': noise(5, 12, 3), 'tex2': noise(8, 13, 2),
         'grain': grain(14), 'foam': noise(4, 15, 2),
         'cell_id': cid.astype(float), 'cell_border': cb,
+        'X': np.mgrid[0:P, 0:P][1].astype(float), 'Y': np.mgrid[0:P, 0:P][0].astype(float),
     }
     styles = {'sand': style_sand, 'rock': style_rock, 'grass': style_grass, 'jungle': style_jungle,
-              'lava': style_lava, 'snow': style_snow, 'trampled': style_trampled, 'dirt': style_dirt, 'paved': style_paved}
+              'lava': style_lava, 'snow': style_snow, 'trampled': style_trampled, 'dirt': style_dirt, 'paved': style_paved,
+              'brick': style_brick}
     water()
     cliff()
     decors()

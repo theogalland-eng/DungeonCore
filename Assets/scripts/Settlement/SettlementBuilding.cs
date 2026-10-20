@@ -18,6 +18,8 @@ public class SettlementBuilding : MonoBehaviour
     public int buildersPresent;
 
     private SpriteRenderer main;
+    private StampVisual stampVisual;
+    public StampVisual StampVisual => stampVisual;
     private readonly List<GameObject> scaffold = new List<GameObject>();
     private Sprite[] frames;
     private float animT;
@@ -36,6 +38,14 @@ public class SettlementBuilding : MonoBehaviour
         var b = go.AddComponent<SettlementBuilding>();
         b.def = def;
         b.rect = rect;
+        // tampon : la scène est centrée sur sa parcelle ; le bâtiment se tient au seuil de sa porte
+        var st = SettlementArt.Get()?.GetStamp(def.stamp);
+        if (st != null)
+        {
+            var bl = new Vector3(rect.x + (rect.width - st.size.x) * 0.5f, rect.y, 0f);
+            go.transform.position = bl + (Vector3)st.door + new Vector3(0f, 0.3f, 0f);
+            b.stampVisual = StampVisual.Create(st, go.transform, bl, true);
+        }
         b.Build(instant);
         return b;
     }
@@ -43,6 +53,15 @@ public class SettlementBuilding : MonoBehaviour
     private void Build(bool instant)
     {
         var art = SettlementArt.Get();
+        if (stampVisual != null)
+        {
+            if (instant) { Complete(); return; }
+            stampVisual.SetColliders(false);
+            AddScaffold(art);
+            SetGhost();
+            HealthBar.Attach(transform, () => IsComplete ? 1f : progress, new Color(0.95f, 0.75f, 0.3f));
+            return;
+        }
         frames = art != null ? art.Frames(def.sprite) : null;
         var visual = new GameObject("Sprite");
         visual.transform.SetParent(transform, false);
@@ -68,18 +87,21 @@ public class SettlementBuilding : MonoBehaviour
         if (instant) { Complete(); return; }
 
         // Chantier : cadre de rondins + silhouette
-        var logH = art != null ? art.Sprite("log_h") : null;
-        var logV = art != null ? art.Sprite("log_v") : null;
-        if (logH != null && logV != null && rect.width > 0)
-        {
-            float x0 = rect.x, x1 = rect.xMax, y0 = rect.y, y1 = rect.yMax;
-            AddLog(logH, new Vector3((x0 + x1) * 0.5f, y0 + 0.1f), new Vector3(rect.width / logH.bounds.size.x, 1, 1));
-            AddLog(logH, new Vector3((x0 + x1) * 0.5f, y1 - 0.2f), new Vector3(rect.width / logH.bounds.size.x, 1, 1));
-            AddLog(logV, new Vector3(x0 + 0.15f, (y0 + y1) * 0.5f), new Vector3(1, rect.height / logV.bounds.size.y, 1));
-            AddLog(logV, new Vector3(x1 - 0.15f, (y0 + y1) * 0.5f), new Vector3(1, rect.height / logV.bounds.size.y, 1));
-        }
+        AddScaffold(art);
         SetGhost();
         HealthBar.Attach(transform, () => IsComplete ? 1f : progress, new Color(0.95f, 0.75f, 0.3f));
+    }
+
+    private void AddScaffold(SettlementArt art)
+    {
+        var logH = art != null ? art.Sprite("log_h") : null;
+        var logV = art != null ? art.Sprite("log_v") : null;
+        if (logH == null || logV == null || rect.width <= 0) return;
+        float x0 = rect.x, x1 = rect.xMax, y0 = rect.y, y1 = rect.yMax;
+        AddLog(logH, new Vector3((x0 + x1) * 0.5f, y0 + 0.1f), new Vector3(rect.width / logH.bounds.size.x, 1, 1));
+        AddLog(logH, new Vector3((x0 + x1) * 0.5f, y1 - 0.2f), new Vector3(rect.width / logH.bounds.size.x, 1, 1));
+        AddLog(logV, new Vector3(x0 + 0.15f, (y0 + y1) * 0.5f), new Vector3(1, rect.height / logV.bounds.size.y, 1));
+        AddLog(logV, new Vector3(x1 - 0.15f, (y0 + y1) * 0.5f), new Vector3(1, rect.height / logV.bounds.size.y, 1));
     }
 
     private void AddLog(Sprite s, Vector3 worldPos, Vector3 scale)
@@ -96,6 +118,7 @@ public class SettlementBuilding : MonoBehaviour
 
     private void SetGhost()
     {
+        if (stampVisual != null) { stampVisual.SetAlpha(Mathf.Lerp(0.18f, 0.6f, progress)); return; }
         if (main == null) return;
         var art = SettlementArt.Get();
         // Maisons : murs sans toit à mi-chantier
@@ -132,7 +155,14 @@ public class SettlementBuilding : MonoBehaviour
             main.color = Color.white;
             if (frames != null && frames.Length > 0) main.sprite = frames[0];
         }
-        if (rect.width > 0 && def.id != "field_1" && def.id != "field_2")
+        if (stampVisual != null)
+        {
+            // collisions au pied de chaque morceau (bâtiment, clôtures, arbres...) : les chemins les contournent
+            stampVisual.SetAlpha(1f);
+            stampVisual.SetColliders(true);
+            AstarPath.active?.UpdateGraphs(new Bounds(Center, new Vector3(rect.width + 2, rect.height + 2, 1)), 0.1f);
+        }
+        else if (rect.width > 0 && def.id != "field_1" && def.id != "field_2")
         {
             // Collision au sol (le bas du bâtiment) : les chemins le contournent
             var col = gameObject.AddComponent<BoxCollider2D>();

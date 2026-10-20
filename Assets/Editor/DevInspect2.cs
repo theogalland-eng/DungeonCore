@@ -337,8 +337,14 @@ public static class DevInspect3
     public static string BushBehind() { sortProp = "Bush"; sortDy = 0.15f; return SortShot(); }
     public static string TreeFront() { sortProp = "Tree"; sortDy = -0.2f; return SortShot(); }
     public static string TreeBehind() { sortProp = "Tree"; sortDy = 0.2f; return SortShot(); }
-    public static string IslandShot() => DevInspect.Shot(0f, -26f, 96f, 2400, 1600, "island");
-    public static string CityShot() => DevInspect.Shot(28f, -79f, 18f, 2000, 1250, "city");
+    public static string IslandShot() => DevInspect.Shot(0f, -36f, 106f, 2400, 1600, "island");
+    public static string CityNorthShot() => DevInspect.Shot(26f, -73f, 11f, 2000, 1250, "city_n");
+    public static string CityMidShot() => DevInspect.Shot(26f, -86f, 11f, 2000, 1250, "city_m");
+    public static string CitySouthShot() => DevInspect.Shot(26f, -99f, 11f, 2000, 1250, "city_s");
+    public static string ManorShot() => DevInspect.Shot(73f, -87f, 9f, 1600, 1000, "manor");
+    public static string FarmShot() => DevInspect.Shot(57f, 0f, 10f, 1600, 1000, "farm");
+    public static string HeroPlotShot() => DevInspect.Shot(-12f, -55f, 9f, 1600, 1000, "hero");
+    public static string CityShot() => DevInspect.Shot(26f, -84f, 26f, 2400, 1500, "city");
     public static string PortShot() => DevInspect.Shot(-28f, -68f, 16f, 1600, 1000, "port");
     public static string CampPlanShot() => DevInspect.Shot(18f, -24f, 16f, 1600, 1000, "camp");
     public static string SouthCoastShot() => DevInspect.Shot(26f, -100f, 22f, 1600, 1000, "southcoast");

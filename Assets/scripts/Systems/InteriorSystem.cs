@@ -200,8 +200,12 @@ public class InteriorSystem : MonoBehaviour
         foreach (var b in colony.Buildings)
         {
             if (b == null || !b.IsComplete || !HasInterior(b.def.id)) continue;
-            var sr = b.GetComponentInChildren<SpriteRenderer>();
-            if (sr == null || !sr.bounds.Contains(new Vector3(world.x, world.y, sr.bounds.center.z))) continue;
+            if (b.StampVisual != null) { if (!b.StampVisual.Contains(world)) continue; }
+            else
+            {
+                var sr = b.GetComponentInChildren<SpriteRenderer>();
+                if (sr == null || !sr.bounds.Contains(new Vector3(world.x, world.y, sr.bounds.center.z))) continue;
+            }
             Enter(b.def.id);
             return;
         }

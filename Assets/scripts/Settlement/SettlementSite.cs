@@ -40,6 +40,13 @@ public class SettlementSite : MonoBehaviour
     public List<PlanMark> planMarks = new List<PlanMark>();
     [Tooltip("Enceinte de la cité (cases)")]
     public RectInt cityRect;
+    [Tooltip("Rues de la cité : en terre, pavées de briques quand la cité se fortifie")]
+    public List<Vector3Int> cityStreets = new List<Vector3Int>();
+    [Tooltip("Tracé de l'enceinte (palissade puis remparts), portes exclues")]
+    public List<Vector3Int> cityWall = new List<Vector3Int>();
+    [Tooltip("Portes de l'enceinte : nord (donjon), ouest (port), est (manoir et fermes)")]
+    public List<Vector3Int> cityGates = new List<Vector3Int>();
+    public UnityEngine.Tilemaps.TileBase streetDirt, streetBrick;
 
     public Vector3 CellCenter(Vector3Int c) => new Vector3(c.x + 0.5f, c.y + 0.5f, 0f);
     public Vector3 LandingWorld => CellCenter(landing);

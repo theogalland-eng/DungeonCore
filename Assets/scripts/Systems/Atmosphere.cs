@@ -259,7 +259,7 @@ public class Atmosphere : MonoBehaviour
             l.intensity = 0f;
             lanterns.Add(l);
             // fumée de cheminée sur les maisons assez hautes (une sur deux environ)
-            var sr = b.GetComponentInChildren<SpriteRenderer>();
+            var sr = b.StampVisual == null ? b.GetComponentInChildren<SpriteRenderer>() : null;   // les tampons ont leur propre fumée
             if (sr != null && sr.bounds.size.y > 2.2f && (Hash(Vector3Int.RoundToInt(b.transform.position)) & 1) == 0)
             {
                 var bb = sr.bounds;

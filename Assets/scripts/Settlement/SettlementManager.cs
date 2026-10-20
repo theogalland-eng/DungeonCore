@@ -89,7 +89,8 @@ public class SettlementManager : MonoBehaviour
     private readonly HashSet<Vector3Int> reservedRocks = new HashSet<Vector3Int>();
     private readonly List<Vector2> felled = new List<Vector2>();
     private readonly List<Vector3Int> mined = new List<Vector3Int>();
-    private Tilemap sol, blocked, decor, trunks;
+    private Tilemap sol, blocked, decor, trunks, routes;
+    private bool streetsPaved;
     private Transform root;
     private int expeditionsSeen;
     private float arrivalTimer;
@@ -118,6 +119,7 @@ public class SettlementManager : MonoBehaviour
             else if (tm.name == "NoPathfinding") blocked = tm;
             else if (tm.name == "Decor") decor = tm;
             else if (tm.name == "trees_trunk") trunks = tm;
+            else if (tm.name == "Routes") routes = tm;
         }
         WidenPier();
         root = new GameObject("Colonie").transform;
@@ -192,11 +194,12 @@ public class SettlementManager : MonoBehaviour
         }
         foreach (var b in buildings)
         {
-            for (int k = 0; k < 12; k++) { var t = TreeInRect(b.rect); if (t == null) break; FellTree(t); }
+            for (int k = 0; k < 80; k++) { var t = TreeInRect(b.rect); if (t == null) break; FellTree(t); }
             // parvis dégagé : aucun arbre (ni souche) devant la porte
             for (int k = 0; k < 16; k++) { var t = TreeInRect(Apron(b.rect)); if (t == null) break; FellTree(t); t.gameObject.SetActive(false); }
             if (!b.IsComplete) b.Complete();
         }
+        RefreshCityLook();
         wood += 200; stone += 100; food += 120;
         OnChanged?.Invoke();
     }
@@ -216,6 +219,7 @@ public class SettlementManager : MonoBehaviour
     {
         stage++;
         CreateSites(stage);
+        RefreshCityLook();
         GameHUD.Toast($"La colonie humaine devient : {StageName}", GameHUD.WarningColor);
         Chronicle.Add($"La colonie humaine devient : {StageName}.");
         StoryManager.Instance?.OnSettlementStage(stage, StageName);
@@ -237,6 +241,23 @@ public class SettlementManager : MonoBehaviour
             buildings.Add(b);
             if (def.id == "pier") b.transform.position = Site.LandingWorld;
         }
+    }
+
+    /// <summary>
+    /// Allure de la cité selon le stade : rues de terre, puis pavées de briques quand la cité se fortifie.
+    /// </summary>
+    public void RefreshCityLook()
+    {
+        if (Site == null || routes == null || Site.cityStreets == null) return;
+        bool paved = stage >= SettlementPlan.FortifiedStage && !Outpost;
+        if (paved == streetsPaved) return;
+        var tile = paved ? Site.streetBrick : Site.streetDirt;
+        if (tile == null) return;
+        streetsPaved = paved;
+        var cells = Site.cityStreets.ToArray();
+        var tiles = new TileBase[cells.Length];
+        for (int i = 0; i < tiles.Length; i++) tiles[i] = tile;
+        routes.SetTiles(cells, tiles);
     }
 
     public void OnBuildingComplete(SettlementBuilding b)
@@ -852,6 +873,7 @@ public class SettlementManager : MonoBehaviour
                 b.Work(0f);   // silhouette du chantier selon l'avancement
             }
         }
+        RefreshCityLook();
         if (s.settlers != null && s.settlers.Count > 0) foreach (var st in s.settlers) SpawnSettler(null, st);
         else for (int i = 0; i < s.population; i++) SpawnSettler(i == 0 ? "settler_fisher" : null);
         arrivalTimer = 95f;

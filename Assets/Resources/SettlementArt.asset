@@ -271,6 +271,2680 @@ MonoBehaviour:
   - name: tent_white_full
     frames:
     - {fileID: 21300000, guid: 75e24f06b483c454c9ef3553183597b0, type: 3}
+  - name: town_1
+    frames:
+    - {fileID: 21300000, guid: 7520fe95382f26a44a31eb3ac342481e, type: 3}
+  - name: town_2
+    frames:
+    - {fileID: 21300000, guid: b4ede39df8452e64ebc07ca205239a95, type: 3}
+  - name: town_3
+    frames:
+    - {fileID: 21300000, guid: ff83798c572bf334788468f03d423a24, type: 3}
+  - name: town_4
+    frames:
+    - {fileID: 21300000, guid: d2f05d18a0dde884f83b0d5bb0f224b0, type: 3}
+  stamps:
+  - id: chapel
+    size: {x: 11.5, y: 8}
+    door: {x: 5.75, y: 3.5}
+    ground: {fileID: 21300000, guid: b29c7d790f9042348b86664785c00c5c, type: 3}
+    pieces:
+    - frames:
+      - {fileID: 21300000, guid: 7e1868ed06e262747998b1d26d460f15, type: 3}
+      pos: {x: 0.75, y: 6}
+      size: {x: 1.5, y: 2}
+      fps: 0
+      solid: 1
+      kind: tree
+    - frames:
+      - {fileID: 21300000, guid: 7f590731ca2d26f4c80c7a8a584e9c60, type: 3}
+      pos: {x: 5.25, y: 6}
+      size: {x: 4.5, y: 2}
+      fps: 0
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: de7b62707c1d60a4aab4e8f44362a83b, type: 3}
+      pos: {x: 9.25, y: 3.5}
+      size: {x: 3.5, y: 4.5}
+      fps: 0
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: 9a49e9952de18034a830e5e8c8216b45, type: 3}
+      pos: {x: 8, y: 6}
+      size: {x: 3, y: 2}
+      fps: 0
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: 526d10468ce39bc478499a0f1f980e09, type: 3}
+      pos: {x: 5.75, y: 3.5}
+      size: {x: 3.5, y: 4.5}
+      fps: 0
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: 89e6ce0ca176c7d4e92df277bf474b68, type: 3}
+      pos: {x: 1.75, y: 1.5}
+      size: {x: 3.5, y: 6}
+      fps: 0
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: 35eb95b5016eed348b8baac56d0fe5e6, type: 3}
+      pos: {x: 10.5, y: 4.5}
+      size: {x: 2, y: 2.5}
+      fps: 0
+      solid: 1
+      kind: tree
+    - frames:
+      - {fileID: 21300000, guid: 7dc36be16b406ad43a2fd5aae6d5d70a, type: 3}
+      pos: {x: 0.5, y: 4.5}
+      size: {x: 1, y: 2}
+      fps: 0
+      solid: 1
+      kind: tree
+    - frames:
+      - {fileID: 21300000, guid: 1990a1418f3f5e647ad8747ff3e5bd49, type: 3}
+      pos: {x: 3.75, y: 5}
+      size: {x: 1.5, y: 1.5}
+      fps: 0
+      solid: 1
+      kind: tree
+    - frames:
+      - {fileID: 21300000, guid: 172b37bc0c110f04d86de1aa72e4e5b8, type: 3}
+      pos: {x: 8, y: 5}
+      size: {x: 1, y: 1}
+      fps: 0
+      solid: 1
+      kind: tree
+    - frames:
+      - {fileID: 21300000, guid: ccc32e16f82c89e48803f97ae24ab77e, type: 3}
+      pos: {x: 3.25, y: 4.5}
+      size: {x: 1.5, y: 1.5}
+      fps: 0
+      solid: 1
+      kind: tree
+    - frames:
+      - {fileID: 21300000, guid: 72a1c84623c8c924da65c29a7a6dbfec, type: 3}
+      pos: {x: 0.5, y: 4}
+      size: {x: 1, y: 1.5}
+      fps: 0
+      solid: 1
+      kind: tree
+    - frames:
+      - {fileID: 21300000, guid: fe22a91ef88ed6f4cbd186662dd69e4e, type: 3}
+      pos: {x: 3, y: 2.5}
+      size: {x: 1, y: 1.5}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: 93c6dd39f35eaac489f8bc718f358544, type: 3}
+      pos: {x: 7, y: 3}
+      size: {x: 1, y: 1}
+      fps: 0
+      solid: 1
+      kind: tree
+    - frames:
+      - {fileID: 21300000, guid: a1c6f58fc3d8fe3469777b24cce5d1ae, type: 3}
+      pos: {x: 8.75, y: 1}
+      size: {x: 2.5, y: 2.5}
+      fps: 0
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: 06d83dd20f3ff834fbcc03d51d5dfd94, type: 3}
+      pos: {x: 7, y: 2.5}
+      size: {x: 1, y: 1}
+      fps: 0
+      solid: 1
+      kind: tree
+    - frames:
+      - {fileID: 21300000, guid: 65ce594c9103afd41b114a464bfa1395, type: 3}
+      pos: {x: 10, y: 1.5}
+      size: {x: 2, y: 2}
+      fps: 0
+      solid: 1
+      kind: tree
+    - frames:
+      - {fileID: 21300000, guid: 8d9582cd66c5d1f409ed7ecc8f4e9cf6, type: 3}
+      pos: {x: 5, y: 3}
+      size: {x: 1, y: 0.5}
+      fps: 0
+      solid: 0
+      kind: tree
+    - frames:
+      - {fileID: 21300000, guid: 2f4aa11ef61164046b39a88b8b1320dc, type: 3}
+      pos: {x: 4, y: 2.5}
+      size: {x: 1, y: 1}
+      fps: 0
+      solid: 1
+      kind: tree
+    - frames:
+      - {fileID: 21300000, guid: fbc78a79cdade44419fb5effb79f7721, type: 3}
+      pos: {x: 0.5, y: 1}
+      size: {x: 1, y: 1}
+      fps: 0
+      solid: 1
+      kind: tree
+    - frames:
+      - {fileID: 21300000, guid: 1c9ef3d4662d16040b53152c378bc373, type: 3}
+      pos: {x: 3.5, y: 1}
+      size: {x: 1, y: 1}
+      fps: 0
+      solid: 1
+      kind: tree
+    - frames:
+      - {fileID: 21300000, guid: 9c7ef7b57bf10734faef820ce14e51e1, type: 3}
+      pos: {x: 4.25, y: 1}
+      size: {x: 1.5, y: 1}
+      fps: 0
+      solid: 1
+      kind: tree
+    - frames:
+      - {fileID: 21300000, guid: 8558f2b239bd1da468fb9519dd633ac7, type: 3}
+      pos: {x: 8, y: 0}
+      size: {x: 2, y: 1.5}
+      fps: 0
+      solid: 1
+      kind: tree
+    - frames:
+      - {fileID: 21300000, guid: 646647d75a623ff40bc8697e6f9f802e, type: 3}
+      pos: {x: 1.5, y: 0.5}
+      size: {x: 1, y: 1}
+      fps: 0
+      solid: 1
+      kind: tree
+    - frames:
+      - {fileID: 21300000, guid: 47290a124d65b324ea93af3871310cea, type: 3}
+      pos: {x: 6.25, y: 1}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 0
+      kind: prop
+  - id: farm
+    size: {x: 22, y: 16}
+    door: {x: 17.25, y: 11}
+    ground: {fileID: 21300000, guid: b3adb4eeacbd5d14cb7ea19e41613acc, type: 3}
+    pieces:
+    - frames:
+      - {fileID: 21300000, guid: 8da9968abbf0c584e900fb01daaf3c77, type: 3}
+      pos: {x: 13.75, y: 12}
+      size: {x: 4.5, y: 3.5}
+      fps: 0
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: f1048481a24252449b11989cea023bd0, type: 3}
+      pos: {x: 1.75, y: 13}
+      size: {x: 2.5, y: 2.5}
+      fps: 0
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 1105887642540266009, guid: ff7239491dbba5a49848a31bc3c5207f, type: 3}
+      - {fileID: -7828827179602616220, guid: ff7239491dbba5a49848a31bc3c5207f, type: 3}
+      - {fileID: 5859284871053671887, guid: ff7239491dbba5a49848a31bc3c5207f, type: 3}
+      - {fileID: -1544635955515720503, guid: ff7239491dbba5a49848a31bc3c5207f, type: 3}
+      - {fileID: 531026241039043104, guid: ff7239491dbba5a49848a31bc3c5207f, type: 3}
+      - {fileID: 5067360309572280688, guid: ff7239491dbba5a49848a31bc3c5207f, type: 3}
+      pos: {x: 4.25, y: 10}
+      size: {x: 4.5, y: 5.5}
+      fps: 6.67
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: 9814cdd7f1a7aa848aa5fc7e9a124d48, type: 3}
+      pos: {x: 8.5, y: 13.5}
+      size: {x: 3, y: 2}
+      fps: 0
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: f3d9d0bca6bf14c48998e9cf905871bf, type: 3}
+      pos: {x: 20, y: 13}
+      size: {x: 2, y: 2.5}
+      fps: 0
+      solid: 1
+      kind: tree
+    - frames:
+      - {fileID: 21300000, guid: 0336c5311253d934e95e877ab8621bf6, type: 3}
+      pos: {x: 6.75, y: 14}
+      size: {x: 1.5, y: 1}
+      fps: 0
+      solid: 1
+      kind: tree
+    - frames:
+      - {fileID: 3218022232134318213, guid: 0ce060cb2e2907847876f91dc770bc31, type: 3}
+      - {fileID: 5468138657427803630, guid: 0ce060cb2e2907847876f91dc770bc31, type: 3}
+      - {fileID: 7706461782571873684, guid: 0ce060cb2e2907847876f91dc770bc31, type: 3}
+      - {fileID: 3975547117761018632, guid: 0ce060cb2e2907847876f91dc770bc31, type: 3}
+      - {fileID: -8459379647394919468, guid: 0ce060cb2e2907847876f91dc770bc31, type: 3}
+      - {fileID: 7817217850430337410, guid: 0ce060cb2e2907847876f91dc770bc31, type: 3}
+      - {fileID: -890217893493125747, guid: 0ce060cb2e2907847876f91dc770bc31, type: 3}
+      - {fileID: 1632866830986733887, guid: 0ce060cb2e2907847876f91dc770bc31, type: 3}
+      - {fileID: -4106589101377592900, guid: 0ce060cb2e2907847876f91dc770bc31, type: 3}
+      - {fileID: -7320201884194926682, guid: 0ce060cb2e2907847876f91dc770bc31, type: 3}
+      - {fileID: -8244447134346187806, guid: 0ce060cb2e2907847876f91dc770bc31, type: 3}
+      - {fileID: 6570090542242321902, guid: 0ce060cb2e2907847876f91dc770bc31, type: 3}
+      pos: {x: 17.5, y: 11}
+      size: {x: 4, y: 4}
+      fps: 6.67
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: fd889797be3534744963412becb73911, type: 3}
+      pos: {x: 3.25, y: 14}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 0
+      kind: tree
+    - frames:
+      - {fileID: 21300000, guid: 2f254894ca0269a44b2ba85257a1ec07, type: 3}
+      pos: {x: 18.75, y: 14}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 0
+      kind: tree
+    - frames:
+      - {fileID: 7123420857543306512, guid: d6e64fb968a8c8c45af8fce015774152, type: 3}
+      - {fileID: 4883449170173062431, guid: d6e64fb968a8c8c45af8fce015774152, type: 3}
+      - {fileID: 213693433506711953, guid: d6e64fb968a8c8c45af8fce015774152, type: 3}
+      - {fileID: 1474527816976028686, guid: d6e64fb968a8c8c45af8fce015774152, type: 3}
+      - {fileID: 3223107679639761997, guid: d6e64fb968a8c8c45af8fce015774152, type: 3}
+      - {fileID: -1680587862585622509, guid: d6e64fb968a8c8c45af8fce015774152, type: 3}
+      - {fileID: 2007249065836377520, guid: d6e64fb968a8c8c45af8fce015774152, type: 3}
+      - {fileID: -8773130742550163555, guid: d6e64fb968a8c8c45af8fce015774152, type: 3}
+      - {fileID: 8729808958898940387, guid: d6e64fb968a8c8c45af8fce015774152, type: 3}
+      - {fileID: -6739201557941771421, guid: d6e64fb968a8c8c45af8fce015774152, type: 3}
+      - {fileID: -8901442315481406833, guid: d6e64fb968a8c8c45af8fce015774152, type: 3}
+      - {fileID: -2977201602610554039, guid: d6e64fb968a8c8c45af8fce015774152, type: 3}
+      pos: {x: 7, y: 11.5}
+      size: {x: 3, y: 2.5}
+      fps: 6.67
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 1268678810635633904, guid: 587333bbf9cfd7b4d9fca4b09d043b7a, type: 3}
+      - {fileID: -6888582525529892194, guid: 587333bbf9cfd7b4d9fca4b09d043b7a, type: 3}
+      - {fileID: -44379598027579057, guid: 587333bbf9cfd7b4d9fca4b09d043b7a, type: 3}
+      - {fileID: -2098714049506607949, guid: 587333bbf9cfd7b4d9fca4b09d043b7a, type: 3}
+      - {fileID: -2589188386398629926, guid: 587333bbf9cfd7b4d9fca4b09d043b7a, type: 3}
+      - {fileID: 7309728387892012282, guid: 587333bbf9cfd7b4d9fca4b09d043b7a, type: 3}
+      - {fileID: 4976348295134552684, guid: 587333bbf9cfd7b4d9fca4b09d043b7a, type: 3}
+      - {fileID: -4288405929266304672, guid: 587333bbf9cfd7b4d9fca4b09d043b7a, type: 3}
+      - {fileID: -427308533084010359, guid: 587333bbf9cfd7b4d9fca4b09d043b7a, type: 3}
+      - {fileID: 4945661651501682062, guid: 587333bbf9cfd7b4d9fca4b09d043b7a, type: 3}
+      - {fileID: 8553469328053324959, guid: 587333bbf9cfd7b4d9fca4b09d043b7a, type: 3}
+      - {fileID: -8808104155489902659, guid: 587333bbf9cfd7b4d9fca4b09d043b7a, type: 3}
+      pos: {x: 4.25, y: 9.5}
+      size: {x: 2.5, y: 4.5}
+      fps: 6.67
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: eb907e70515bee04f8b5077f9203933f, type: 3}
+      pos: {x: 9.5, y: 12}
+      size: {x: 2, y: 1.5}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: 6689226525a1b924889116d92e815491, type: 3}
+      pos: {x: 20.5, y: 12}
+      size: {x: 1, y: 1}
+      fps: 0
+      solid: 1
+      kind: tree
+    - frames:
+      - {fileID: 21300000, guid: 0d2f6f00c0390ef499a48e28c69e3e85, type: 3}
+      pos: {x: 1.75, y: 12.5}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 0
+      kind: tree
+    - frames:
+      - {fileID: 21300000, guid: 40e228b6f9cd7dd4e98ea3bd9b03b8f2, type: 3}
+      pos: {x: 13.5, y: 10.5}
+      size: {x: 4, y: 2.5}
+      fps: 0
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: 36079937f1086a64398f03a5448b3264, type: 3}
+      pos: {x: 1.75, y: 11}
+      size: {x: 1.5, y: 1.5}
+      fps: 0
+      solid: 1
+      kind: tree
+    - frames:
+      - {fileID: -5256902829936580883, guid: 667ffd2bcdc329f449928e9895e510ad, type: 3}
+      - {fileID: -7177275572052688166, guid: 667ffd2bcdc329f449928e9895e510ad, type: 3}
+      - {fileID: -1520193415584566887, guid: 667ffd2bcdc329f449928e9895e510ad, type: 3}
+      - {fileID: 2342663166301854734, guid: 667ffd2bcdc329f449928e9895e510ad, type: 3}
+      - {fileID: -4616976173331678508, guid: 667ffd2bcdc329f449928e9895e510ad, type: 3}
+      - {fileID: -5054155163698819235, guid: 667ffd2bcdc329f449928e9895e510ad, type: 3}
+      - {fileID: 6184557153167513180, guid: 667ffd2bcdc329f449928e9895e510ad, type: 3}
+      - {fileID: -3027417423059572640, guid: 667ffd2bcdc329f449928e9895e510ad, type: 3}
+      - {fileID: -8157852408516432333, guid: 667ffd2bcdc329f449928e9895e510ad, type: 3}
+      - {fileID: -6159615189014686783, guid: 667ffd2bcdc329f449928e9895e510ad, type: 3}
+      - {fileID: 445306109129473943, guid: 667ffd2bcdc329f449928e9895e510ad, type: 3}
+      - {fileID: 7733737734532178264, guid: 667ffd2bcdc329f449928e9895e510ad, type: 3}
+      pos: {x: 7, y: 11}
+      size: {x: 3, y: 1.5}
+      fps: 6.67
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: b2702f98d106b834185def78c3f1f5e9, type: 3}
+      pos: {x: 9.5, y: 11}
+      size: {x: 2, y: 1.5}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: 69bd4966856735f41b911b1961bcb0d0, type: 3}
+      pos: {x: 20.5, y: 9.5}
+      size: {x: 2, y: 2.5}
+      fps: 0
+      solid: 1
+      kind: tree
+    - frames:
+      - {fileID: 21300000, guid: 3c711df869838dc4ca5c363a010dc9b6, type: 3}
+      pos: {x: 17.5, y: 10.5}
+      size: {x: 2, y: 1}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: d8d765fb52bb9bd4daa06f441e84e880, type: 3}
+      pos: {x: 1.75, y: 9}
+      size: {x: 1.5, y: 2}
+      fps: 0
+      solid: 1
+      kind: tree
+    - frames:
+      - {fileID: 21300000, guid: 4f202b1d79545f1448cf9115ec1583bf, type: 3}
+      pos: {x: 14, y: 8.5}
+      size: {x: 4, y: 2.5}
+      fps: 0
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: 36befb6821454c94f8fef5df7e8d4d0d, type: 3}
+      pos: {x: 6.5, y: 9}
+      size: {x: 1, y: 1.5}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: f97e1397d444b25438e71b125ea1ae6f, type: 3}
+      pos: {x: 8, y: 9}
+      size: {x: 1, y: 1.5}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: 03aac84b37cc092448abe3dbf403cd28, type: 3}
+      pos: {x: 9.5, y: 9}
+      size: {x: 1, y: 1.5}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: 3f6b94f3b722e4943b8186042ef55512, type: 3}
+      pos: {x: 11, y: 9}
+      size: {x: 1, y: 1.5}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: ad575b7b477371f4ab55a3c29de9593f, type: 3}
+      pos: {x: 18.25, y: 8}
+      size: {x: 2.5, y: 2.5}
+      fps: 0
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: c5c6ee78a6856604ebd17814d21cb570, type: 3}
+      pos: {x: 21.75, y: 9.5}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 0
+      kind: tree
+    - frames:
+      - {fileID: 21300000, guid: 2c4a24e63813aa943b296db8b18bb088, type: 3}
+      pos: {x: 6.5, y: 8}
+      size: {x: 1, y: 1.5}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: 7ee7977acc1d9554da439ed5fdefdcdc, type: 3}
+      pos: {x: 8, y: 8}
+      size: {x: 1, y: 1.5}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: a814867ed6c7cd7488f950b3eb56659b, type: 3}
+      pos: {x: 9.5, y: 8}
+      size: {x: 1, y: 1.5}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: 225cbea223aa7904584a2b52f1ad3994, type: 3}
+      pos: {x: 11, y: 8}
+      size: {x: 1, y: 1.5}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: 0369db8e5c97b244a8304188558dd065, type: 3}
+      pos: {x: 14, y: 7}
+      size: {x: 4, y: 2.5}
+      fps: 0
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: aba6696a4ece6be4f8d74d2e9fd9da58, type: 3}
+      pos: {x: 3.75, y: 7.5}
+      size: {x: 2.5, y: 1.5}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 8957586790010978818, guid: cfb17849f19859546b3a1171ad989866, type: 3}
+      - {fileID: 6863583122541163699, guid: cfb17849f19859546b3a1171ad989866, type: 3}
+      - {fileID: -9118571716596109501, guid: cfb17849f19859546b3a1171ad989866, type: 3}
+      - {fileID: 6171618963474837129, guid: cfb17849f19859546b3a1171ad989866, type: 3}
+      pos: {x: 18.5, y: 7.5}
+      size: {x: 1, y: 1}
+      fps: 6.67
+      solid: 0
+      kind: character
+    - frames:
+      - {fileID: 21300000, guid: 0cf857300569ee4448988dbcd516a863, type: 3}
+      pos: {x: 8.5, y: 7}
+      size: {x: 5, y: 1}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: -5824580797571791577, guid: e9c8542cc638a2941974ab7ae3927117, type: 3}
+      - {fileID: 143095247235531884, guid: e9c8542cc638a2941974ab7ae3927117, type: 3}
+      - {fileID: -4137564077075365501, guid: e9c8542cc638a2941974ab7ae3927117, type: 3}
+      - {fileID: -6171037098195230454, guid: e9c8542cc638a2941974ab7ae3927117, type: 3}
+      pos: {x: 3.75, y: 6.5}
+      size: {x: 2.5, y: 1.5}
+      fps: 6.67
+      solid: 0
+      kind: character
+    - frames:
+      - {fileID: -1745066954109426088, guid: 97dfbb45e4311fd4fa7ea4a551d2acd5, type: 3}
+      - {fileID: 3437757266279004135, guid: 97dfbb45e4311fd4fa7ea4a551d2acd5, type: 3}
+      - {fileID: -6089312005604540295, guid: 97dfbb45e4311fd4fa7ea4a551d2acd5, type: 3}
+      - {fileID: 4505930699349710560, guid: 97dfbb45e4311fd4fa7ea4a551d2acd5, type: 3}
+      pos: {x: 17.5, y: 7}
+      size: {x: 2, y: 1}
+      fps: 6.67
+      solid: 0
+      kind: character
+    - frames:
+      - {fileID: 21300000, guid: 50a5b10b66b0c9a458b736817757a4dd, type: 3}
+      pos: {x: 18.5, y: 4.5}
+      size: {x: 4, y: 3}
+      fps: 0
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: a9f395e662d8b6140b00054a689c1f32, type: 3}
+      pos: {x: 8.5, y: 6}
+      size: {x: 5, y: 1}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: 9463e4d74180d7a44a7621c21d36b244, type: 3}
+      pos: {x: 11, y: 4.5}
+      size: {x: 4, y: 2.5}
+      fps: 0
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: 677648595a5e8514f82fae3c5ea261a8, type: 3}
+      pos: {x: 3, y: 6}
+      size: {x: 1, y: 1}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: 505a4a16ab8c730459ce7270ac02c172, type: 3}
+      pos: {x: 5, y: 6}
+      size: {x: 1, y: 1}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: d1f5799b2079732469ebaa28e67b022b, type: 3}
+      pos: {x: 16.75, y: 6.5}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: 75edd32bdad39ab49802c98b147d012d, type: 3}
+      pos: {x: 19.25, y: 6.5}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: f747c4495af4f9349b094d52cad9645d, type: 3}
+      pos: {x: 2.75, y: 6}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: 01d1ff9fd1cb6244c835d11cadd65e67, type: 3}
+      pos: {x: 4.75, y: 6}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 9223268666508187010, guid: a3e27f944608da246aeb488131b52245, type: 3}
+      - {fileID: -5981656890792291358, guid: a3e27f944608da246aeb488131b52245, type: 3}
+      - {fileID: 851368353701208652, guid: a3e27f944608da246aeb488131b52245, type: 3}
+      - {fileID: 3569884669925759918, guid: a3e27f944608da246aeb488131b52245, type: 3}
+      - {fileID: 5313630250885274780, guid: a3e27f944608da246aeb488131b52245, type: 3}
+      - {fileID: 3456452615575736495, guid: a3e27f944608da246aeb488131b52245, type: 3}
+      - {fileID: 7715519987865345247, guid: a3e27f944608da246aeb488131b52245, type: 3}
+      - {fileID: 8015361701471943991, guid: a3e27f944608da246aeb488131b52245, type: 3}
+      - {fileID: 7186687917293952259, guid: a3e27f944608da246aeb488131b52245, type: 3}
+      - {fileID: 3587179122339295085, guid: a3e27f944608da246aeb488131b52245, type: 3}
+      - {fileID: -2977426664605782076, guid: a3e27f944608da246aeb488131b52245, type: 3}
+      - {fileID: -5772963011956565418, guid: a3e27f944608da246aeb488131b52245, type: 3}
+      pos: {x: 7, y: 4}
+      size: {x: 2, y: 2}
+      fps: 6.67
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: d66ce70779fd7764b8132a5a26ac58cf, type: 3}
+      pos: {x: 13.75, y: 5}
+      size: {x: 0.5, y: 1}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: 0b774c7fcb2f9594fab46c650bd91409, type: 3}
+      pos: {x: 14.75, y: 5}
+      size: {x: 0.5, y: 1}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: ef90f1896b57e8743b4dcd142e7dbdd8, type: 3}
+      pos: {x: 15.75, y: 5}
+      size: {x: 0.5, y: 1}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: 795c400bed8b9da48bec5024cb581a9f, type: 3}
+      pos: {x: 13.75, y: 4.5}
+      size: {x: 0.5, y: 1}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: d6013bb70b1b5bb4e93aadc9607262d5, type: 3}
+      pos: {x: 14.75, y: 4.5}
+      size: {x: 0.5, y: 1}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: f78850176deeff04d8c64e3834536489, type: 3}
+      pos: {x: 15.75, y: 4.5}
+      size: {x: 0.5, y: 1}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: 5eb17504af286bc4eb311673805baf84, type: 3}
+      pos: {x: 11, y: 3}
+      size: {x: 4, y: 2.5}
+      fps: 0
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: e93e0be4ba1814342bdd7f0b496977d6, type: 3}
+      pos: {x: 18.5, y: 3}
+      size: {x: 4, y: 2.5}
+      fps: 0
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: -285872960529120323, guid: d31ed3a95861c3d46bae3b1f52d8a9ba, type: 3}
+      - {fileID: -3760631351714668205, guid: d31ed3a95861c3d46bae3b1f52d8a9ba, type: 3}
+      - {fileID: 1463981604209699712, guid: d31ed3a95861c3d46bae3b1f52d8a9ba, type: 3}
+      - {fileID: 101201065211704969, guid: d31ed3a95861c3d46bae3b1f52d8a9ba, type: 3}
+      - {fileID: 7974439448545605031, guid: d31ed3a95861c3d46bae3b1f52d8a9ba, type: 3}
+      - {fileID: 858565753303242948, guid: d31ed3a95861c3d46bae3b1f52d8a9ba, type: 3}
+      pos: {x: 7.5, y: 3}
+      size: {x: 3, y: 2.5}
+      fps: 6.67
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: 1d6bfbcbe43e9974694940a695a634ef, type: 3}
+      pos: {x: 13.75, y: 3.5}
+      size: {x: 0.5, y: 1}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: 259d65fe6a1181b4aad4bcaf308af719, type: 3}
+      pos: {x: 14.75, y: 3.5}
+      size: {x: 0.5, y: 1}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: 2ec8975f42f497c4792facb3030c5434, type: 3}
+      pos: {x: 15.75, y: 3.5}
+      size: {x: 0.5, y: 1}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: ec216d219bc66f341b333408c332b825, type: 3}
+      pos: {x: 13.75, y: 3}
+      size: {x: 0.5, y: 1}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: 11ea334d57fe06f4dbc71311e337ccaa, type: 3}
+      pos: {x: 14.75, y: 3}
+      size: {x: 0.5, y: 1}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: 60ae4606ffe52654bb5cceb85bee8e13, type: 3}
+      pos: {x: 15.75, y: 3}
+      size: {x: 0.5, y: 1}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: 882df5ee63310154da47ad94f1e36d93, type: 3}
+      pos: {x: 19.5, y: 1.5}
+      size: {x: 3, y: 2.5}
+      fps: 0
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: cec4562dc091ddd438cb7d2281d15e80, type: 3}
+      pos: {x: 6.25, y: 3}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: 33625ab78c6fd3041932eb700e82e062, type: 3}
+      pos: {x: 8, y: 3}
+      size: {x: 1, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: f4997d38bcd0cff4a845cad6544430a9, type: 3}
+      pos: {x: 13, y: 1.5}
+      size: {x: 2, y: 1.5}
+      fps: 0
+      solid: 1
+      kind: tree
+    - frames:
+      - {fileID: 21300000, guid: f27a675055ae5f24892d60c78d7798f9, type: 3}
+      pos: {x: 1.5, y: 2}
+      size: {x: 1, y: 1}
+      fps: 0
+      solid: 1
+      kind: tree
+    - frames:
+      - {fileID: 21300000, guid: 9071c2b8e437c2742bd18428a44e1a13, type: 3}
+      pos: {x: 5.5, y: 0.5}
+      size: {x: 5, y: 2.5}
+      fps: 0
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: f3cb606334b54114e8fc497a89a82c03, type: 3}
+      pos: {x: 10.25, y: 0.5}
+      size: {x: 3.5, y: 2.5}
+      fps: 0
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: 5690e0ec65314964c8aa690d2035afbb, type: 3}
+      pos: {x: 16.75, y: 1}
+      size: {x: 1.5, y: 2}
+      fps: 0
+      solid: 1
+      kind: tree
+    - frames:
+      - {fileID: 21300000, guid: bf7679a359fbfa743af07358c120a4f8, type: 3}
+      pos: {x: 2.5, y: 1.5}
+      size: {x: 1, y: 1}
+      fps: 0
+      solid: 1
+      kind: tree
+    - frames:
+      - {fileID: 21300000, guid: 38aa2507aba7e7b4ca2451cff5754614, type: 3}
+      pos: {x: 15.25, y: 1.5}
+      size: {x: 1.5, y: 1}
+      fps: 0
+      solid: 1
+      kind: tree
+    - frames:
+      - {fileID: 21300000, guid: 489f33740f6ff5649b4b455cc365b5f9, type: 3}
+      pos: {x: 8.25, y: 2}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 0
+      kind: tree
+    - frames:
+      - {fileID: 21300000, guid: c9828167d4c58354ead414744f74fc1f, type: 3}
+      pos: {x: 14.25, y: 1}
+      size: {x: 1.5, y: 1.5}
+      fps: 0
+      solid: 1
+      kind: tree
+    - frames:
+      - {fileID: 21300000, guid: 669c8425e3231a745a7a600438299b0f, type: 3}
+      pos: {x: 17.75, y: 1.5}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 0
+      kind: tree
+  - id: forge
+    size: {x: 10, y: 7}
+    door: {x: 3.75, y: 1}
+    ground: {fileID: 21300000, guid: 2a9aa25107361934f965f314935455e3, type: 3}
+    pieces:
+    - frames:
+      - {fileID: -8901783803567061608, guid: 23c6a5ce1330f514cb1a251c18b2d05a, type: 3}
+      - {fileID: 4588231799292692062, guid: 23c6a5ce1330f514cb1a251c18b2d05a, type: 3}
+      - {fileID: -1321735175532445434, guid: 23c6a5ce1330f514cb1a251c18b2d05a, type: 3}
+      - {fileID: 9057981079326656536, guid: 23c6a5ce1330f514cb1a251c18b2d05a, type: 3}
+      - {fileID: -8137082167045377857, guid: 23c6a5ce1330f514cb1a251c18b2d05a, type: 3}
+      - {fileID: 2690352486898823556, guid: 23c6a5ce1330f514cb1a251c18b2d05a, type: 3}
+      - {fileID: -5395671652242324040, guid: 23c6a5ce1330f514cb1a251c18b2d05a, type: 3}
+      - {fileID: 8696486926240592748, guid: 23c6a5ce1330f514cb1a251c18b2d05a, type: 3}
+      - {fileID: -7785219558235637700, guid: 23c6a5ce1330f514cb1a251c18b2d05a, type: 3}
+      - {fileID: 4146380016810604923, guid: 23c6a5ce1330f514cb1a251c18b2d05a, type: 3}
+      - {fileID: -2328012400663133886, guid: 23c6a5ce1330f514cb1a251c18b2d05a, type: 3}
+      - {fileID: -2175815054052008314, guid: 23c6a5ce1330f514cb1a251c18b2d05a, type: 3}
+      pos: {x: 5.25, y: 1}
+      size: {x: 4.5, y: 6}
+      fps: 6.67
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: 13af3f4368e4c2140b4edbc66366b26f, type: 3}
+      pos: {x: 2.75, y: 1}
+      size: {x: 1.5, y: 3}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 1216352206574196681, guid: a2852cfef59cd464484624e099edde72, type: 3}
+      - {fileID: 7724231949478854216, guid: a2852cfef59cd464484624e099edde72, type: 3}
+      - {fileID: 6789139985427064734, guid: a2852cfef59cd464484624e099edde72, type: 3}
+      - {fileID: -6754114472591473757, guid: a2852cfef59cd464484624e099edde72, type: 3}
+      - {fileID: 4508945804323353038, guid: a2852cfef59cd464484624e099edde72, type: 3}
+      - {fileID: -325988391446412802, guid: a2852cfef59cd464484624e099edde72, type: 3}
+      - {fileID: 8909920482594141946, guid: a2852cfef59cd464484624e099edde72, type: 3}
+      - {fileID: -6886910224446545019, guid: a2852cfef59cd464484624e099edde72, type: 3}
+      - {fileID: 2719191654951883881, guid: a2852cfef59cd464484624e099edde72, type: 3}
+      - {fileID: 4936731929282868796, guid: a2852cfef59cd464484624e099edde72, type: 3}
+      - {fileID: -6968973608535451923, guid: a2852cfef59cd464484624e099edde72, type: 3}
+      - {fileID: 1027959863866868115, guid: a2852cfef59cd464484624e099edde72, type: 3}
+      pos: {x: 7.25, y: 0.5}
+      size: {x: 2.5, y: 3}
+      fps: 6.67
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: 860a9ce79117a634180ae736aeb5ea42, type: 3}
+      pos: {x: 5.5, y: 0.5}
+      size: {x: 2, y: 1}
+      fps: 0
+      solid: 1
+      kind: prop
+  - id: glass
+    size: {x: 11, y: 6.5}
+    door: {x: 5.25, y: 2.5}
+    ground: {fileID: 21300000, guid: f534a7deea6bad945937476e456267ca, type: 3}
+    pieces:
+    - frames:
+      - {fileID: 21300000, guid: e89183862b4ef6146bbdf4b5c5069b74, type: 3}
+      pos: {x: 5.25, y: 2.5}
+      size: {x: 4.5, y: 4}
+      fps: 0
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: 2353dde2c9cf44349a95d1bb5c371440, type: 3}
+      pos: {x: 7.5, y: 1.5}
+      size: {x: 2, y: 2.5}
+      fps: 0
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 474273901588062503, guid: 9100aa2547057ec46bbddf4941d5651d, type: 3}
+      - {fileID: 2649803378416659486, guid: 9100aa2547057ec46bbddf4941d5651d, type: 3}
+      - {fileID: 8465983496312203917, guid: 9100aa2547057ec46bbddf4941d5651d, type: 3}
+      - {fileID: 665580808859326769, guid: 9100aa2547057ec46bbddf4941d5651d, type: 3}
+      - {fileID: 7853499478936292554, guid: 9100aa2547057ec46bbddf4941d5651d, type: 3}
+      - {fileID: 6082768113875614942, guid: 9100aa2547057ec46bbddf4941d5651d, type: 3}
+      - {fileID: 7670578779995169091, guid: 9100aa2547057ec46bbddf4941d5651d, type: 3}
+      - {fileID: 190338699043976998, guid: 9100aa2547057ec46bbddf4941d5651d, type: 3}
+      - {fileID: 5534268256430942138, guid: 9100aa2547057ec46bbddf4941d5651d, type: 3}
+      - {fileID: 2709751350167291532, guid: 9100aa2547057ec46bbddf4941d5651d, type: 3}
+      - {fileID: 640022981674381179, guid: 9100aa2547057ec46bbddf4941d5651d, type: 3}
+      - {fileID: -8104801094237236511, guid: 9100aa2547057ec46bbddf4941d5651d, type: 3}
+      pos: {x: 5, y: 1.5}
+      size: {x: 4, y: 2.5}
+      fps: 6.67
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: 7e46d10f0ae39dd4a8ca9d8344741c62, type: 3}
+      pos: {x: 3.25, y: 1.5}
+      size: {x: 1.5, y: 2}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: 7ce9d0bc83aa32c429de11985db9653e, type: 3}
+      pos: {x: 3.75, y: 1}
+      size: {x: 0.5, y: 1.5}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: a32d7acefdc71cf4283cf088b5c280d0, type: 3}
+      pos: {x: 6.75, y: 0.5}
+      size: {x: 1.5, y: 1.5}
+      fps: 0
+      solid: 1
+      kind: prop
+  - id: guild
+    size: {x: 10, y: 6.5}
+    door: {x: 4.75, y: 1}
+    ground: {fileID: 21300000, guid: cb4d6a0d2824dfa4fa106dcd801f6b1c, type: 3}
+    pieces:
+    - frames:
+      - {fileID: -511430754100006985, guid: 169b2f9247f9d9e49bbfcd2c45dd9a9d, type: 3}
+      - {fileID: 8095463165296550539, guid: 169b2f9247f9d9e49bbfcd2c45dd9a9d, type: 3}
+      - {fileID: -5184838434927781270, guid: 169b2f9247f9d9e49bbfcd2c45dd9a9d, type: 3}
+      - {fileID: 7985617765387827379, guid: 169b2f9247f9d9e49bbfcd2c45dd9a9d, type: 3}
+      - {fileID: -4128605923551619107, guid: 169b2f9247f9d9e49bbfcd2c45dd9a9d, type: 3}
+      - {fileID: -510324212409457151, guid: 169b2f9247f9d9e49bbfcd2c45dd9a9d, type: 3}
+      - {fileID: -2274127993710422074, guid: 169b2f9247f9d9e49bbfcd2c45dd9a9d, type: 3}
+      - {fileID: 1212576702298290408, guid: 169b2f9247f9d9e49bbfcd2c45dd9a9d, type: 3}
+      - {fileID: -783321389443413773, guid: 169b2f9247f9d9e49bbfcd2c45dd9a9d, type: 3}
+      - {fileID: -7688931073818502919, guid: 169b2f9247f9d9e49bbfcd2c45dd9a9d, type: 3}
+      - {fileID: -4461120401432986996, guid: 169b2f9247f9d9e49bbfcd2c45dd9a9d, type: 3}
+      - {fileID: -6353684208827530756, guid: 169b2f9247f9d9e49bbfcd2c45dd9a9d, type: 3}
+      pos: {x: 5, y: 1}
+      size: {x: 5, y: 4.5}
+      fps: 6.67
+      solid: 1
+      kind: building
+  - id: hero_home
+    size: {x: 13.5, y: 10}
+    door: {x: 6.5, y: 5.5}
+    ground: {fileID: 21300000, guid: 907fe2e15ca781847ab99c2e3ec29e30, type: 3}
+    pieces:
+    - frames:
+      - {fileID: 21300000, guid: cf878712c19ef4b40980b5a4a220b357, type: 3}
+      pos: {x: 11, y: 5.5}
+      size: {x: 5, y: 4}
+      fps: 0
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: 6ded9345b562ccb4995fa4d5df55c97b, type: 3}
+      pos: {x: 3.25, y: 7.5}
+      size: {x: 2.5, y: 2}
+      fps: 0
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: -6080578688530440949, guid: 83bf40430fb99ad4d8294b6a36793b88, type: 3}
+      - {fileID: -6538490495403421671, guid: 83bf40430fb99ad4d8294b6a36793b88, type: 3}
+      - {fileID: 3279486194129921030, guid: 83bf40430fb99ad4d8294b6a36793b88, type: 3}
+      - {fileID: -5660807666481829606, guid: 83bf40430fb99ad4d8294b6a36793b88, type: 3}
+      - {fileID: -6353146684585155718, guid: 83bf40430fb99ad4d8294b6a36793b88, type: 3}
+      - {fileID: 6663009676091038555, guid: 83bf40430fb99ad4d8294b6a36793b88, type: 3}
+      pos: {x: 6.5, y: 5.5}
+      size: {x: 5, y: 4}
+      fps: 6.67
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 3035575287004626884, guid: ae76bf9cc238d0541af049515c1a795f, type: 3}
+      - {fileID: -412584859505808782, guid: ae76bf9cc238d0541af049515c1a795f, type: 3}
+      - {fileID: -5195108808904831961, guid: ae76bf9cc238d0541af049515c1a795f, type: 3}
+      - {fileID: 7294829578020603283, guid: ae76bf9cc238d0541af049515c1a795f, type: 3}
+      - {fileID: -5567385518555309018, guid: ae76bf9cc238d0541af049515c1a795f, type: 3}
+      - {fileID: -1445097946098146246, guid: ae76bf9cc238d0541af049515c1a795f, type: 3}
+      - {fileID: -5002561668145087492, guid: ae76bf9cc238d0541af049515c1a795f, type: 3}
+      - {fileID: 5840915331970177302, guid: ae76bf9cc238d0541af049515c1a795f, type: 3}
+      - {fileID: 9215789706205480591, guid: ae76bf9cc238d0541af049515c1a795f, type: 3}
+      - {fileID: -8629419861785932470, guid: ae76bf9cc238d0541af049515c1a795f, type: 3}
+      - {fileID: -5507769730942946053, guid: ae76bf9cc238d0541af049515c1a795f, type: 3}
+      - {fileID: -3382925345754147605, guid: ae76bf9cc238d0541af049515c1a795f, type: 3}
+      - {fileID: -641141509453988550, guid: ae76bf9cc238d0541af049515c1a795f, type: 3}
+      - {fileID: 5964892986609391046, guid: ae76bf9cc238d0541af049515c1a795f, type: 3}
+      - {fileID: -7259462879872921909, guid: ae76bf9cc238d0541af049515c1a795f, type: 3}
+      - {fileID: 8617637202336036137, guid: ae76bf9cc238d0541af049515c1a795f, type: 3}
+      - {fileID: 1954292068210164442, guid: ae76bf9cc238d0541af049515c1a795f, type: 3}
+      - {fileID: -4486279959122487014, guid: ae76bf9cc238d0541af049515c1a795f, type: 3}
+      - {fileID: 4137352400899552404, guid: ae76bf9cc238d0541af049515c1a795f, type: 3}
+      - {fileID: -433813309379145002, guid: ae76bf9cc238d0541af049515c1a795f, type: 3}
+      - {fileID: -351217145213443162, guid: ae76bf9cc238d0541af049515c1a795f, type: 3}
+      - {fileID: 6022869482219932857, guid: ae76bf9cc238d0541af049515c1a795f, type: 3}
+      - {fileID: -6523750244529514344, guid: ae76bf9cc238d0541af049515c1a795f, type: 3}
+      - {fileID: 7343502768350843498, guid: ae76bf9cc238d0541af049515c1a795f, type: 3}
+      pos: {x: 1.25, y: 6}
+      size: {x: 2.5, y: 3.5}
+      fps: 6.67
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: 52d14e4ac1d77da4e82579065901085a, type: 3}
+      pos: {x: 8.75, y: 8}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 0
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: a7051b54f7fdd9a4483362c01c8848d3, type: 3}
+      pos: {x: 3, y: 7}
+      size: {x: 1, y: 1}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: 98364f813bfd07c4a912f61a88c8e887, type: 3}
+      pos: {x: 13.25, y: 7.5}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 0
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: 4200538c3d2d8fc408e2fa3117725e94, type: 3}
+      pos: {x: 6.5, y: 7}
+      size: {x: 7, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: -6089588016101668697, guid: 64aac601e6ad2b34d8cf733f2a9a0eb9, type: 3}
+      - {fileID: -74580222297384116, guid: 64aac601e6ad2b34d8cf733f2a9a0eb9, type: 3}
+      - {fileID: 641632289893072096, guid: 64aac601e6ad2b34d8cf733f2a9a0eb9, type: 3}
+      - {fileID: -1229536738105675393, guid: 64aac601e6ad2b34d8cf733f2a9a0eb9, type: 3}
+      - {fileID: -1579189975863896225, guid: 64aac601e6ad2b34d8cf733f2a9a0eb9, type: 3}
+      - {fileID: -2441589089134869637, guid: 64aac601e6ad2b34d8cf733f2a9a0eb9, type: 3}
+      pos: {x: 6.5, y: 5}
+      size: {x: 4, y: 2.5}
+      fps: 1.67
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: e41d3aee569c0834d92dbd69f069e957, type: 3}
+      pos: {x: 2.25, y: 3.5}
+      size: {x: 2.5, y: 3.5}
+      fps: 0
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: 3e595a77b0c1dfb489870e522de6e663, type: 3}
+      pos: {x: 3.25, y: 6.5}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: e92bce12fc62703449f2dbec71a62def, type: 3}
+      pos: {x: 9.75, y: 6.5}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: 284061e54bf4f9548987d6d171f7bcc5, type: 3}
+      pos: {x: 3.25, y: 6}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: b7af6cdff6852ff439b5a03a77c503d4, type: 3}
+      pos: {x: 9.75, y: 6}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: aa788048ef6430043a3323b4ff0d5f84, type: 3}
+      pos: {x: 0.5, y: 5.5}
+      size: {x: 1, y: 1}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: -9211974417433524208, guid: 8617e15e378d3f04eb0d4fa11f932f9d, type: 3}
+      - {fileID: -6805820948364230432, guid: 8617e15e378d3f04eb0d4fa11f932f9d, type: 3}
+      - {fileID: -7723075863356116748, guid: 8617e15e378d3f04eb0d4fa11f932f9d, type: 3}
+      - {fileID: 2370061452737325014, guid: 8617e15e378d3f04eb0d4fa11f932f9d, type: 3}
+      - {fileID: 5154919030061954714, guid: 8617e15e378d3f04eb0d4fa11f932f9d, type: 3}
+      - {fileID: -5133064166305299328, guid: 8617e15e378d3f04eb0d4fa11f932f9d, type: 3}
+      - {fileID: 2444512559462664555, guid: 8617e15e378d3f04eb0d4fa11f932f9d, type: 3}
+      - {fileID: -8576530779446766945, guid: 8617e15e378d3f04eb0d4fa11f932f9d, type: 3}
+      - {fileID: -1392629275712769070, guid: 8617e15e378d3f04eb0d4fa11f932f9d, type: 3}
+      - {fileID: -3831886476221358808, guid: 8617e15e378d3f04eb0d4fa11f932f9d, type: 3}
+      - {fileID: 1294979851854737358, guid: 8617e15e378d3f04eb0d4fa11f932f9d, type: 3}
+      - {fileID: 8357812992875336724, guid: 8617e15e378d3f04eb0d4fa11f932f9d, type: 3}
+      - {fileID: -2415937156147574885, guid: 8617e15e378d3f04eb0d4fa11f932f9d, type: 3}
+      - {fileID: -8128980514560766981, guid: 8617e15e378d3f04eb0d4fa11f932f9d, type: 3}
+      - {fileID: 567567135812252055, guid: 8617e15e378d3f04eb0d4fa11f932f9d, type: 3}
+      - {fileID: 4074679006150859906, guid: 8617e15e378d3f04eb0d4fa11f932f9d, type: 3}
+      - {fileID: 5422528626160000443, guid: 8617e15e378d3f04eb0d4fa11f932f9d, type: 3}
+      - {fileID: 6300173017350923821, guid: 8617e15e378d3f04eb0d4fa11f932f9d, type: 3}
+      - {fileID: 2240035502412912125, guid: 8617e15e378d3f04eb0d4fa11f932f9d, type: 3}
+      - {fileID: -5156347556849997677, guid: 8617e15e378d3f04eb0d4fa11f932f9d, type: 3}
+      - {fileID: -1017449718110452402, guid: 8617e15e378d3f04eb0d4fa11f932f9d, type: 3}
+      - {fileID: -6807924272607878189, guid: 8617e15e378d3f04eb0d4fa11f932f9d, type: 3}
+      - {fileID: -5294727004661097025, guid: 8617e15e378d3f04eb0d4fa11f932f9d, type: 3}
+      - {fileID: 6811156952346176167, guid: 8617e15e378d3f04eb0d4fa11f932f9d, type: 3}
+      pos: {x: 13, y: 4}
+      size: {x: 1, y: 2.5}
+      fps: 6.67
+      solid: 1
+      kind: tree
+    - frames:
+      - {fileID: 21300000, guid: c81768a87fd320f4b86aa45cb6da1e26, type: 3}
+      pos: {x: 11, y: 3.5}
+      size: {x: 2, y: 2.5}
+      fps: 0
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: c7cde6cdebe131645bf623e4d4727bb6, type: 3}
+      pos: {x: 3.25, y: 5.5}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: 54ba9e51dc9bedf4193d04f93b145083, type: 3}
+      pos: {x: 9.75, y: 5.5}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: 4dc42d3a745fbc145af34efdae1c1b75, type: 3}
+      pos: {x: 8.75, y: 4}
+      size: {x: 1.5, y: 2}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 4913881885601642674, guid: 6d4cc2b00dea18745974b0575d7d2cf3, type: 3}
+      - {fileID: 8773687436998022378, guid: 6d4cc2b00dea18745974b0575d7d2cf3, type: 3}
+      - {fileID: 6499883340547267780, guid: 6d4cc2b00dea18745974b0575d7d2cf3, type: 3}
+      - {fileID: 3906173543355138182, guid: 6d4cc2b00dea18745974b0575d7d2cf3, type: 3}
+      - {fileID: 1890325519029227200, guid: 6d4cc2b00dea18745974b0575d7d2cf3, type: 3}
+      - {fileID: -4392551054206810004, guid: 6d4cc2b00dea18745974b0575d7d2cf3, type: 3}
+      - {fileID: -2285118005049785302, guid: 6d4cc2b00dea18745974b0575d7d2cf3, type: 3}
+      - {fileID: -5355372594828552377, guid: 6d4cc2b00dea18745974b0575d7d2cf3, type: 3}
+      - {fileID: 4206811934698511087, guid: 6d4cc2b00dea18745974b0575d7d2cf3, type: 3}
+      - {fileID: -2237399436875608034, guid: 6d4cc2b00dea18745974b0575d7d2cf3, type: 3}
+      - {fileID: 6441157830915704153, guid: 6d4cc2b00dea18745974b0575d7d2cf3, type: 3}
+      - {fileID: -8606575040111815302, guid: 6d4cc2b00dea18745974b0575d7d2cf3, type: 3}
+      - {fileID: -8689204002900794241, guid: 6d4cc2b00dea18745974b0575d7d2cf3, type: 3}
+      - {fileID: -6241099316007566235, guid: 6d4cc2b00dea18745974b0575d7d2cf3, type: 3}
+      - {fileID: 779838638447324066, guid: 6d4cc2b00dea18745974b0575d7d2cf3, type: 3}
+      - {fileID: 8065117449142581910, guid: 6d4cc2b00dea18745974b0575d7d2cf3, type: 3}
+      - {fileID: -2637815304977703162, guid: 6d4cc2b00dea18745974b0575d7d2cf3, type: 3}
+      - {fileID: 340136972113898894, guid: 6d4cc2b00dea18745974b0575d7d2cf3, type: 3}
+      - {fileID: -7063297816893590779, guid: 6d4cc2b00dea18745974b0575d7d2cf3, type: 3}
+      - {fileID: 7256993245992203359, guid: 6d4cc2b00dea18745974b0575d7d2cf3, type: 3}
+      - {fileID: 7388037240336224697, guid: 6d4cc2b00dea18745974b0575d7d2cf3, type: 3}
+      - {fileID: 5489550446384719026, guid: 6d4cc2b00dea18745974b0575d7d2cf3, type: 3}
+      - {fileID: 4465742468877876835, guid: 6d4cc2b00dea18745974b0575d7d2cf3, type: 3}
+      - {fileID: 5750597226268634073, guid: 6d4cc2b00dea18745974b0575d7d2cf3, type: 3}
+      pos: {x: 4.25, y: 1}
+      size: {x: 2.5, y: 4.5}
+      fps: 6.67
+      solid: 0
+      kind: character
+    - frames:
+      - {fileID: 21300000, guid: 1983f55df9ec2a946a822c4385e803a9, type: 3}
+      pos: {x: 3.25, y: 5}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: 2382b2ed1ba7b7243adb9860c76b7ae7, type: 3}
+      pos: {x: 9.75, y: 5}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: -479243618736986902, guid: efafcc70d1ed04340bac6ca2d694b7ed, type: 3}
+      - {fileID: 7680937572029330427, guid: efafcc70d1ed04340bac6ca2d694b7ed, type: 3}
+      - {fileID: 7165106819878502577, guid: efafcc70d1ed04340bac6ca2d694b7ed, type: 3}
+      - {fileID: -8492138201868343454, guid: efafcc70d1ed04340bac6ca2d694b7ed, type: 3}
+      - {fileID: 5015171672770999321, guid: efafcc70d1ed04340bac6ca2d694b7ed, type: 3}
+      - {fileID: 2422274612225644766, guid: efafcc70d1ed04340bac6ca2d694b7ed, type: 3}
+      - {fileID: -9127428724158672105, guid: efafcc70d1ed04340bac6ca2d694b7ed, type: 3}
+      - {fileID: -3658015426051227524, guid: efafcc70d1ed04340bac6ca2d694b7ed, type: 3}
+      - {fileID: -6371020377971983605, guid: efafcc70d1ed04340bac6ca2d694b7ed, type: 3}
+      - {fileID: -5851720220966036071, guid: efafcc70d1ed04340bac6ca2d694b7ed, type: 3}
+      - {fileID: -7153118031765821302, guid: efafcc70d1ed04340bac6ca2d694b7ed, type: 3}
+      - {fileID: -172643255849750106, guid: efafcc70d1ed04340bac6ca2d694b7ed, type: 3}
+      - {fileID: -6513437409766980329, guid: efafcc70d1ed04340bac6ca2d694b7ed, type: 3}
+      - {fileID: 2211204492028601706, guid: efafcc70d1ed04340bac6ca2d694b7ed, type: 3}
+      - {fileID: 8952851914518370062, guid: efafcc70d1ed04340bac6ca2d694b7ed, type: 3}
+      - {fileID: -8600720979680954902, guid: efafcc70d1ed04340bac6ca2d694b7ed, type: 3}
+      - {fileID: 5450621329549827602, guid: efafcc70d1ed04340bac6ca2d694b7ed, type: 3}
+      - {fileID: -709186599212132045, guid: efafcc70d1ed04340bac6ca2d694b7ed, type: 3}
+      - {fileID: 4495065056392066331, guid: efafcc70d1ed04340bac6ca2d694b7ed, type: 3}
+      - {fileID: -7942561374549595904, guid: efafcc70d1ed04340bac6ca2d694b7ed, type: 3}
+      - {fileID: -5163181027941369951, guid: efafcc70d1ed04340bac6ca2d694b7ed, type: 3}
+      - {fileID: -6292566470518395270, guid: efafcc70d1ed04340bac6ca2d694b7ed, type: 3}
+      - {fileID: -12979577488100440, guid: efafcc70d1ed04340bac6ca2d694b7ed, type: 3}
+      - {fileID: 454492582893705938, guid: efafcc70d1ed04340bac6ca2d694b7ed, type: 3}
+      pos: {x: 0.75, y: 3.5}
+      size: {x: 1.5, y: 1.5}
+      fps: 6.67
+      solid: 1
+      kind: tree
+    - frames:
+      - {fileID: 21300000, guid: 6f4acbebf5e358847bfb4028c7ec100d, type: 3}
+      pos: {x: 3.25, y: 4.5}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: f749a59f1c4b2754c8ee11a1f42b4a80, type: 3}
+      pos: {x: 9.75, y: 4.5}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: aa94ad44367ef27468cf22b1b4fbac08, type: 3}
+      pos: {x: 6.5, y: 3.5}
+      size: {x: 1, y: 1}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: c2004d0462380e04ab6ba58a2108ddba, type: 3}
+      pos: {x: 3.25, y: 4}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: 43996e5fe696a1949b2c757048f9d92d, type: 3}
+      pos: {x: 9.75, y: 4}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: 4f54260260f3c4047b9df9ba37a43d59, type: 3}
+      pos: {x: 8.75, y: 3.5}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 0
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: 37b0ef95c458ed0489f005e16011fadf, type: 3}
+      pos: {x: 1.5, y: 3}
+      size: {x: 1, y: 1}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: 0a553cd846ae5a3498eb54a86bb5a201, type: 3}
+      pos: {x: 3.25, y: 3.5}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: 6014ab26af23401438e55c3921199ceb, type: 3}
+      pos: {x: 9.75, y: 3.5}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: 2718d222b939d304fa98b9df5630a392, type: 3}
+      pos: {x: 6.5, y: 3}
+      size: {x: 7, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: b0e804b59c83a004aacbea301443bf30, type: 3}
+      pos: {x: 6.25, y: 2.5}
+      size: {x: 1.5, y: 1}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: 99f62d31a3de7bb47afdaefbd6f028b6, type: 3}
+      pos: {x: 8.5, y: 2.5}
+      size: {x: 1, y: 1}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: 5ead51728597c2b4b86adc6f7c846d23, type: 3}
+      pos: {x: 11.25, y: 3}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 0
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: 7e247d9e5bb1d7748b2a95f260153b7f, type: 3}
+      pos: {x: 10.5, y: 0.5}
+      size: {x: 2, y: 2.5}
+      fps: 0
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: 3fae19d22cb7e33448963d19a7c69969, type: 3}
+      pos: {x: 2.5, y: 2}
+      size: {x: 1, y: 1}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: da3c5abd2e027394b9d551ab0eb11aea, type: 3}
+      pos: {x: 7, y: 0.5}
+      size: {x: 2, y: 1.5}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: ec9e1ddfe1fa1154fb9e41da362ef7ab, type: 3}
+      pos: {x: 0.75, y: 1.5}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 0
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: e901bb261f797ca49b6c8f992f0dffd6, type: 3}
+      pos: {x: 8.5, y: 0.5}
+      size: {x: 1, y: 1.5}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: 73cf7020b8d5c1d418b324a8876324ed, type: 3}
+      pos: {x: 12.5, y: 1}
+      size: {x: 1, y: 1}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: 940fd40dd9b2bf74292ff7cff6af4006, type: 3}
+      pos: {x: 3, y: 0.5}
+      size: {x: 2, y: 1}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: ad8458d03f16a4d49afab47bf891e788, type: 3}
+      pos: {x: 1.5, y: 0.5}
+      size: {x: 1, y: 1}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: 8ec250b3b69274d429c87e51fe6c2415, type: 3}
+      pos: {x: 5.75, y: 1}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 0
+      kind: prop
+  - id: library
+    size: {x: 11, y: 7}
+    door: {x: 5.25, y: 2}
+    ground: {fileID: 21300000, guid: feaf4e116f10f864ba0caf1dfdcd44af, type: 3}
+    pieces:
+    - frames:
+      - {fileID: -7150436413100856677, guid: eec8a446417f2f4469126a41e50850fc, type: 3}
+      - {fileID: -6449660163587563656, guid: eec8a446417f2f4469126a41e50850fc, type: 3}
+      - {fileID: -857411796720218808, guid: eec8a446417f2f4469126a41e50850fc, type: 3}
+      - {fileID: -1899551288533517945, guid: eec8a446417f2f4469126a41e50850fc, type: 3}
+      - {fileID: -3407664861716585493, guid: eec8a446417f2f4469126a41e50850fc, type: 3}
+      - {fileID: -2106118919317134784, guid: eec8a446417f2f4469126a41e50850fc, type: 3}
+      - {fileID: -8863547727508325895, guid: eec8a446417f2f4469126a41e50850fc, type: 3}
+      - {fileID: -4713663834594577093, guid: eec8a446417f2f4469126a41e50850fc, type: 3}
+      - {fileID: -8798771034787083015, guid: eec8a446417f2f4469126a41e50850fc, type: 3}
+      - {fileID: -2642378376975418656, guid: eec8a446417f2f4469126a41e50850fc, type: 3}
+      - {fileID: -5602318855416523390, guid: eec8a446417f2f4469126a41e50850fc, type: 3}
+      - {fileID: -1293897481183365547, guid: eec8a446417f2f4469126a41e50850fc, type: 3}
+      pos: {x: 5.5, y: 2}
+      size: {x: 4, y: 5}
+      fps: 6.67
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: e840975ff59e69c44a3b11b63f46ae7e, type: 3}
+      pos: {x: 2.5, y: 3}
+      size: {x: 2, y: 2.5}
+      fps: 0
+      solid: 1
+      kind: tree
+    - frames:
+      - {fileID: 21300000, guid: a395b8e1623aa9f418ed07a92f567033, type: 3}
+      pos: {x: 9.25, y: 2.5}
+      size: {x: 3.5, y: 2.5}
+      fps: 0
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: 54da50f6c83f04647a9b6665f32d5db0, type: 3}
+      pos: {x: 1.25, y: 2.5}
+      size: {x: 2.5, y: 1.5}
+      fps: 0
+      solid: 1
+      kind: prop
+  - id: magetower
+    size: {x: 12.5, y: 9.5}
+    door: {x: 5.75, y: 2}
+    ground: {fileID: 21300000, guid: 46e9112f18f07804081dc1390cbd3932, type: 3}
+    pieces:
+    - frames:
+      - {fileID: -3370154607786478609, guid: 28cb54c90bed306468ac767ec55ad78f, type: 3}
+      - {fileID: 6682050940426279340, guid: 28cb54c90bed306468ac767ec55ad78f, type: 3}
+      - {fileID: -347190220511953503, guid: 28cb54c90bed306468ac767ec55ad78f, type: 3}
+      - {fileID: 4825550624634040974, guid: 28cb54c90bed306468ac767ec55ad78f, type: 3}
+      - {fileID: 3856473025651772266, guid: 28cb54c90bed306468ac767ec55ad78f, type: 3}
+      - {fileID: -8201318835758387489, guid: 28cb54c90bed306468ac767ec55ad78f, type: 3}
+      - {fileID: -6675964810946496881, guid: 28cb54c90bed306468ac767ec55ad78f, type: 3}
+      - {fileID: -8078005106472405320, guid: 28cb54c90bed306468ac767ec55ad78f, type: 3}
+      - {fileID: -2844457761150795185, guid: 28cb54c90bed306468ac767ec55ad78f, type: 3}
+      - {fileID: 4595589433148521965, guid: 28cb54c90bed306468ac767ec55ad78f, type: 3}
+      - {fileID: 4173836076185221970, guid: 28cb54c90bed306468ac767ec55ad78f, type: 3}
+      - {fileID: -5304280130292000308, guid: 28cb54c90bed306468ac767ec55ad78f, type: 3}
+      pos: {x: 6, y: 2}
+      size: {x: 4, y: 7}
+      fps: 6.67
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: -3109064007290169510, guid: afbc7c2a19f9c7b44a5073dc0ef96f47, type: 3}
+      - {fileID: -6966552067392070837, guid: afbc7c2a19f9c7b44a5073dc0ef96f47, type: 3}
+      - {fileID: 6662737258929113315, guid: afbc7c2a19f9c7b44a5073dc0ef96f47, type: 3}
+      - {fileID: 2638977013415255581, guid: afbc7c2a19f9c7b44a5073dc0ef96f47, type: 3}
+      - {fileID: -7943373198905099517, guid: afbc7c2a19f9c7b44a5073dc0ef96f47, type: 3}
+      - {fileID: -3196902589149329950, guid: afbc7c2a19f9c7b44a5073dc0ef96f47, type: 3}
+      - {fileID: -3121695452334699270, guid: afbc7c2a19f9c7b44a5073dc0ef96f47, type: 3}
+      - {fileID: 6230717098594318740, guid: afbc7c2a19f9c7b44a5073dc0ef96f47, type: 3}
+      - {fileID: 8897590573302989899, guid: afbc7c2a19f9c7b44a5073dc0ef96f47, type: 3}
+      - {fileID: 1289180847685724447, guid: afbc7c2a19f9c7b44a5073dc0ef96f47, type: 3}
+      - {fileID: 3625068324455460349, guid: afbc7c2a19f9c7b44a5073dc0ef96f47, type: 3}
+      - {fileID: 7180837058222124130, guid: afbc7c2a19f9c7b44a5073dc0ef96f47, type: 3}
+      pos: {x: 3.25, y: 1.5}
+      size: {x: 2.5, y: 4}
+      fps: 6.67
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 41408397242755945, guid: ff58c8406b2051449a1b9cc68e768e7e, type: 3}
+      - {fileID: 4600385710665599792, guid: ff58c8406b2051449a1b9cc68e768e7e, type: 3}
+      - {fileID: -5860548460736109167, guid: ff58c8406b2051449a1b9cc68e768e7e, type: 3}
+      - {fileID: -2805010179538907413, guid: ff58c8406b2051449a1b9cc68e768e7e, type: 3}
+      - {fileID: 1141557306440980317, guid: ff58c8406b2051449a1b9cc68e768e7e, type: 3}
+      - {fileID: 6939873357626908006, guid: ff58c8406b2051449a1b9cc68e768e7e, type: 3}
+      - {fileID: 4873739735567682208, guid: ff58c8406b2051449a1b9cc68e768e7e, type: 3}
+      - {fileID: -4898719642488409438, guid: ff58c8406b2051449a1b9cc68e768e7e, type: 3}
+      - {fileID: 1718354816839753872, guid: ff58c8406b2051449a1b9cc68e768e7e, type: 3}
+      - {fileID: 2247429875880824345, guid: ff58c8406b2051449a1b9cc68e768e7e, type: 3}
+      - {fileID: -2973263206059194163, guid: ff58c8406b2051449a1b9cc68e768e7e, type: 3}
+      - {fileID: -8690187972630471301, guid: ff58c8406b2051449a1b9cc68e768e7e, type: 3}
+      - {fileID: -8054150206708254227, guid: ff58c8406b2051449a1b9cc68e768e7e, type: 3}
+      - {fileID: 1460085865952913436, guid: ff58c8406b2051449a1b9cc68e768e7e, type: 3}
+      - {fileID: 8310140137414495341, guid: ff58c8406b2051449a1b9cc68e768e7e, type: 3}
+      - {fileID: -6048415135295013779, guid: ff58c8406b2051449a1b9cc68e768e7e, type: 3}
+      - {fileID: -8308725628693864943, guid: ff58c8406b2051449a1b9cc68e768e7e, type: 3}
+      - {fileID: -6820926123148815486, guid: ff58c8406b2051449a1b9cc68e768e7e, type: 3}
+      - {fileID: -7890123458022307173, guid: ff58c8406b2051449a1b9cc68e768e7e, type: 3}
+      - {fileID: 7474805839863217373, guid: ff58c8406b2051449a1b9cc68e768e7e, type: 3}
+      - {fileID: 5834620747309613274, guid: ff58c8406b2051449a1b9cc68e768e7e, type: 3}
+      - {fileID: -7246578239250464869, guid: ff58c8406b2051449a1b9cc68e768e7e, type: 3}
+      - {fileID: 6066694345234577815, guid: ff58c8406b2051449a1b9cc68e768e7e, type: 3}
+      - {fileID: -4288009686163366167, guid: ff58c8406b2051449a1b9cc68e768e7e, type: 3}
+      pos: {x: 4.5, y: 1.5}
+      size: {x: 2, y: 3.5}
+      fps: 6.67
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: -5680678233111408897, guid: 3b833d4f5bb069d4c8e05522ddc34548, type: 3}
+      - {fileID: -1485067474191736562, guid: 3b833d4f5bb069d4c8e05522ddc34548, type: 3}
+      - {fileID: -5781786203576023790, guid: 3b833d4f5bb069d4c8e05522ddc34548, type: 3}
+      - {fileID: 2641258722500942865, guid: 3b833d4f5bb069d4c8e05522ddc34548, type: 3}
+      - {fileID: -1902431067033416525, guid: 3b833d4f5bb069d4c8e05522ddc34548, type: 3}
+      - {fileID: 5125534803547799991, guid: 3b833d4f5bb069d4c8e05522ddc34548, type: 3}
+      - {fileID: -3479211330876163820, guid: 3b833d4f5bb069d4c8e05522ddc34548, type: 3}
+      - {fileID: 3385847889949948883, guid: 3b833d4f5bb069d4c8e05522ddc34548, type: 3}
+      - {fileID: -8248234377697970846, guid: 3b833d4f5bb069d4c8e05522ddc34548, type: 3}
+      - {fileID: -6545705785137810370, guid: 3b833d4f5bb069d4c8e05522ddc34548, type: 3}
+      - {fileID: 3598183249132233998, guid: 3b833d4f5bb069d4c8e05522ddc34548, type: 3}
+      - {fileID: 8607516990456999081, guid: 3b833d4f5bb069d4c8e05522ddc34548, type: 3}
+      - {fileID: -4260737803364062557, guid: 3b833d4f5bb069d4c8e05522ddc34548, type: 3}
+      - {fileID: 1694773401333922446, guid: 3b833d4f5bb069d4c8e05522ddc34548, type: 3}
+      - {fileID: -6076943393304003523, guid: 3b833d4f5bb069d4c8e05522ddc34548, type: 3}
+      - {fileID: 2706852149350456187, guid: 3b833d4f5bb069d4c8e05522ddc34548, type: 3}
+      - {fileID: -2909811567202263653, guid: 3b833d4f5bb069d4c8e05522ddc34548, type: 3}
+      - {fileID: 5565303793107789131, guid: 3b833d4f5bb069d4c8e05522ddc34548, type: 3}
+      - {fileID: -5785520746244308817, guid: 3b833d4f5bb069d4c8e05522ddc34548, type: 3}
+      - {fileID: 5319567007456226585, guid: 3b833d4f5bb069d4c8e05522ddc34548, type: 3}
+      - {fileID: 9072972290489706238, guid: 3b833d4f5bb069d4c8e05522ddc34548, type: 3}
+      - {fileID: 4210150526841563341, guid: 3b833d4f5bb069d4c8e05522ddc34548, type: 3}
+      - {fileID: 4506384794664859812, guid: 3b833d4f5bb069d4c8e05522ddc34548, type: 3}
+      - {fileID: 5117265971679198132, guid: 3b833d4f5bb069d4c8e05522ddc34548, type: 3}
+      pos: {x: 7.5, y: 1.5}
+      size: {x: 1, y: 2.5}
+      fps: 6.67
+      solid: 1
+      kind: prop
+  - id: manor
+    size: {x: 17, y: 10.5}
+    door: {x: 8.25, y: 5}
+    ground: {fileID: 21300000, guid: 72ab62fea852bed41a0643075a99a5b4, type: 3}
+    pieces:
+    - frames:
+      - {fileID: -1156107777097274355, guid: 660bec20a62265d49980ba5e2920bf80, type: 3}
+      - {fileID: -7532078948647029577, guid: 660bec20a62265d49980ba5e2920bf80, type: 3}
+      - {fileID: 8080643003129096457, guid: 660bec20a62265d49980ba5e2920bf80, type: 3}
+      - {fileID: -3667758106164313178, guid: 660bec20a62265d49980ba5e2920bf80, type: 3}
+      - {fileID: -3782360110609988657, guid: 660bec20a62265d49980ba5e2920bf80, type: 3}
+      - {fileID: -8900625209323251405, guid: 660bec20a62265d49980ba5e2920bf80, type: 3}
+      - {fileID: -5318193641255498495, guid: 660bec20a62265d49980ba5e2920bf80, type: 3}
+      - {fileID: -4743088259321242905, guid: 660bec20a62265d49980ba5e2920bf80, type: 3}
+      - {fileID: 1251486064981427045, guid: 660bec20a62265d49980ba5e2920bf80, type: 3}
+      - {fileID: -48540371853622914, guid: 660bec20a62265d49980ba5e2920bf80, type: 3}
+      pos: {x: 8.5, y: 4.5}
+      size: {x: 6, y: 5}
+      fps: 6.67
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: a5221cad3d8036b4c9e3e4aad28ed77c, type: 3}
+      pos: {x: 8.5, y: 8}
+      size: {x: 13, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: 80fc1a014b83a734cb744bb3dd4daf90, type: 3}
+      pos: {x: 4, y: 5.5}
+      size: {x: 3, y: 3}
+      fps: 0
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: 96623e39a37902e4d933886a03d30337, type: 3}
+      pos: {x: 13, y: 6}
+      size: {x: 2, y: 2.5}
+      fps: 0
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: 37adc8bc0d761b34f81898fa678ed8d0, type: 3}
+      pos: {x: 8.5, y: 7.5}
+      size: {x: 13, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: 81d7ae9e5163b174e85a4e924da08089, type: 3}
+      pos: {x: 2.25, y: 7}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: d757abab83745564aa68d50192d5d84b, type: 3}
+      pos: {x: 14.75, y: 7}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: 5849833ab0fd9e446831e9e408058180, type: 3}
+      pos: {x: 12, y: 4.5}
+      size: {x: 2, y: 3}
+      fps: 0
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: 46cd274f0a7bb7249995dbe5de293e88, type: 3}
+      pos: {x: 2.25, y: 6.5}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: 81127a14b3358594b90d2beb3c1ba2e1, type: 3}
+      pos: {x: 14.75, y: 6.5}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: 4bd76cf90169ac24bb4c48e9d755069d, type: 3}
+      pos: {x: 5, y: 4.5}
+      size: {x: 2, y: 2.5}
+      fps: 0
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: fe86b262bca826549a035f219baf33bf, type: 3}
+      pos: {x: 13.75, y: 5}
+      size: {x: 1.5, y: 2}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: 6178d908b25ba01439662d178cb02d0e, type: 3}
+      pos: {x: 2.25, y: 6}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: 3ea36aeb1f354fd47ab4d2e90b054664, type: 3}
+      pos: {x: 14.75, y: 6}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: 5f327c89915eb284895435dc4feaa599, type: 3}
+      pos: {x: 3.25, y: 4.5}
+      size: {x: 1.5, y: 2}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: bc76aac848be7204a90e054a80bd69e0, type: 3}
+      pos: {x: 2.25, y: 5.5}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: bd3ff9770b9644341b79dea18eeca6f6, type: 3}
+      pos: {x: 14.75, y: 5.5}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: 5a8084f1a898c1046ad2e7c039ea7cbf, type: 3}
+      pos: {x: 2.25, y: 5}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: 295fb74bf76a3364a9c1ac81d7f1329a, type: 3}
+      pos: {x: 14.75, y: 5}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: a9dce9e641f1e6047bb75aad0bca2b96, type: 3}
+      pos: {x: 4.75, y: 1}
+      size: {x: 2.5, y: 4.5}
+      fps: 0
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: 950bf8b9a9a3aac46bd8a0e1b8c56127, type: 3}
+      pos: {x: 12.75, y: 1}
+      size: {x: 2.5, y: 4.5}
+      fps: 0
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: 708da7c822f1f5e4c914c3bdce4a5c4a, type: 3}
+      pos: {x: 6.75, y: 3.5}
+      size: {x: 2.5, y: 2}
+      fps: 0
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: 851b974bb9d2bc8449e780d0960d3bf0, type: 3}
+      pos: {x: 10.25, y: 3.5}
+      size: {x: 2.5, y: 2}
+      fps: 0
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: 06afe1c3c30fcf04da9e8923888c3ff7, type: 3}
+      pos: {x: 2.25, y: 4.5}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: 58bb4159efb30b54895a00b98e687557, type: 3}
+      pos: {x: 14.75, y: 4.5}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: 52275ef4d4b37d2459f39625fdfc81a1, type: 3}
+      pos: {x: 3, y: 4}
+      size: {x: 1, y: 1}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: add6a3da033773c409ca2a8c10f71258, type: 3}
+      pos: {x: 2.25, y: 4}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: 4f6bc8b5e438f0d4b8fc7ef249f1738a, type: 3}
+      pos: {x: 14.75, y: 4}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: 287e309f7949d1841a4a17936ab55f4e, type: 3}
+      pos: {x: 2.25, y: 3.5}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: e98ca55899923a44393a7a891de7ce80, type: 3}
+      pos: {x: 14.75, y: 3.5}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: d31be07a9a8901b4dac4919600473a14, type: 3}
+      pos: {x: 3.25, y: 1.5}
+      size: {x: 1.5, y: 2.5}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: 4fbf2b3633c36d8499b503805b0977eb, type: 3}
+      pos: {x: 5.75, y: 1.5}
+      size: {x: 1.5, y: 2.5}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: fc296172b45d9714198ca1cdafdd97a1, type: 3}
+      pos: {x: 11.25, y: 1.5}
+      size: {x: 1.5, y: 2.5}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: e9dfbcc92964d4e44803437482468061, type: 3}
+      pos: {x: 13.75, y: 1.5}
+      size: {x: 1.5, y: 2.5}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: -7542022489052493148, guid: 5cefb858f26744740944863ba99a3a41, type: 3}
+      - {fileID: 3623271283252977569, guid: 5cefb858f26744740944863ba99a3a41, type: 3}
+      - {fileID: 8508298864802390813, guid: 5cefb858f26744740944863ba99a3a41, type: 3}
+      - {fileID: -4098945996591815870, guid: 5cefb858f26744740944863ba99a3a41, type: 3}
+      - {fileID: 5924597189948312915, guid: 5cefb858f26744740944863ba99a3a41, type: 3}
+      - {fileID: -514481084406914731, guid: 5cefb858f26744740944863ba99a3a41, type: 3}
+      pos: {x: 8.5, y: 1.5}
+      size: {x: 3, y: 2.5}
+      fps: 6.67
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: 773602067261d954a87f8a6e824b13c8, type: 3}
+      pos: {x: 2.25, y: 3}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: 65168648f172daa44af241bd0e0f5c89, type: 3}
+      pos: {x: 14.75, y: 3}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: c03e6f1800e588b4f984e06cff4f8cfb, type: 3}
+      pos: {x: 2.25, y: 2.5}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: 38cbd711cda0883489abd68afbb750db, type: 3}
+      pos: {x: 14.75, y: 2.5}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: a976b2f51fc25f842b51a58133ec9f0e, type: 3}
+      pos: {x: 2.25, y: 2}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: b84af39ad1bb8e443b3180abd742ec04, type: 3}
+      pos: {x: 14.75, y: 2}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: b5b25d984bfd1904ea179af80b19c4f2, type: 3}
+      pos: {x: 2.25, y: 1.5}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: 27eaaba1bc1f3274285e1a6d9cece7a1, type: 3}
+      pos: {x: 14.75, y: 1.5}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: dcf65be24a870f24987dde89e9f211d4, type: 3}
+      pos: {x: 8.5, y: 1}
+      size: {x: 13, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: 20aeebb992958d3408a1922ed878c084, type: 3}
+      pos: {x: 8.5, y: 0.5}
+      size: {x: 13, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+  - id: market
+    size: {x: 11.5, y: 8}
+    door: {x: 9.25, y: 2.5}
+    ground: {fileID: 21300000, guid: 8b3d1265612cd4644ba698ee708cf458, type: 3}
+    pieces:
+    - frames:
+      - {fileID: 21300000, guid: 46352812f6ae1c143bc79d9d22d530b6, type: 3}
+      pos: {x: 0.5, y: 6.5}
+      size: {x: 1, y: 1.5}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: 32df77451809d0142a4f0a064c879005, type: 3}
+      pos: {x: 11, y: 6.5}
+      size: {x: 1, y: 1.5}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: 3d2f630e3072b294b8586349e81bf659, type: 3}
+      pos: {x: 3.5, y: 4.5}
+      size: {x: 4, y: 3.5}
+      fps: 0
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: bf2fb99b822edac4895f4d811a4cde90, type: 3}
+      pos: {x: 7.5, y: 5}
+      size: {x: 3, y: 2.5}
+      fps: 0
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: -3479656823360539653, guid: c2fbef1486a06ea4bbcecf9a9248b3c5, type: 3}
+      - {fileID: -637696698917874733, guid: c2fbef1486a06ea4bbcecf9a9248b3c5, type: 3}
+      - {fileID: -3867827192967324570, guid: c2fbef1486a06ea4bbcecf9a9248b3c5, type: 3}
+      - {fileID: -6118291059723003423, guid: c2fbef1486a06ea4bbcecf9a9248b3c5, type: 3}
+      - {fileID: 2573714464164874351, guid: c2fbef1486a06ea4bbcecf9a9248b3c5, type: 3}
+      - {fileID: -1131336860086022478, guid: c2fbef1486a06ea4bbcecf9a9248b3c5, type: 3}
+      - {fileID: -788862394216740396, guid: c2fbef1486a06ea4bbcecf9a9248b3c5, type: 3}
+      - {fileID: -1751058437506060542, guid: c2fbef1486a06ea4bbcecf9a9248b3c5, type: 3}
+      - {fileID: -3125872111099899252, guid: c2fbef1486a06ea4bbcecf9a9248b3c5, type: 3}
+      - {fileID: -5652521088426577071, guid: c2fbef1486a06ea4bbcecf9a9248b3c5, type: 3}
+      - {fileID: 2002078398576709832, guid: c2fbef1486a06ea4bbcecf9a9248b3c5, type: 3}
+      - {fileID: 2679921925744029861, guid: c2fbef1486a06ea4bbcecf9a9248b3c5, type: 3}
+      pos: {x: 9.25, y: 2.5}
+      size: {x: 4.5, y: 4}
+      fps: 6.67
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 7442447977585817834, guid: a7cd88c50ea5b6144b22d9b4d9db0730, type: 3}
+      - {fileID: -5917942780333772168, guid: a7cd88c50ea5b6144b22d9b4d9db0730, type: 3}
+      - {fileID: 2258123946533737453, guid: a7cd88c50ea5b6144b22d9b4d9db0730, type: 3}
+      - {fileID: 7858913962379499786, guid: a7cd88c50ea5b6144b22d9b4d9db0730, type: 3}
+      - {fileID: -5778413528762483686, guid: a7cd88c50ea5b6144b22d9b4d9db0730, type: 3}
+      - {fileID: 6925001859091812753, guid: a7cd88c50ea5b6144b22d9b4d9db0730, type: 3}
+      - {fileID: 7457389332566742359, guid: a7cd88c50ea5b6144b22d9b4d9db0730, type: 3}
+      - {fileID: 5110946926800647971, guid: a7cd88c50ea5b6144b22d9b4d9db0730, type: 3}
+      - {fileID: -5695066851341116477, guid: a7cd88c50ea5b6144b22d9b4d9db0730, type: 3}
+      - {fileID: 7621216879058226632, guid: a7cd88c50ea5b6144b22d9b4d9db0730, type: 3}
+      - {fileID: -4792812438303156025, guid: a7cd88c50ea5b6144b22d9b4d9db0730, type: 3}
+      - {fileID: 6132365383019913231, guid: a7cd88c50ea5b6144b22d9b4d9db0730, type: 3}
+      pos: {x: 2, y: 2}
+      size: {x: 4, y: 4}
+      fps: 6.67
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: 71c6c4683c58b3d40b9c75ff83c96123, type: 3}
+      pos: {x: 5.75, y: 3}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 0
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: 67e4af5fd21c1e840b7459537bfb8fe0, type: 3}
+      pos: {x: 10, y: 2}
+      size: {x: 3, y: 1.5}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: 6da55f52847792b4186c1056ef40acef, type: 3}
+      pos: {x: 7.75, y: 1}
+      size: {x: 2.5, y: 2}
+      fps: 0
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: f623f8df1970692409193010ed177f28, type: 3}
+      pos: {x: 2.75, y: 0.5}
+      size: {x: 4.5, y: 2}
+      fps: 0
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: 9a405cd742f677b41bcb61ac0b3eff37, type: 3}
+      pos: {x: 10.25, y: 1}
+      size: {x: 1.5, y: 1.5}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: a5961d99a34dedd43836c1819dbce78a, type: 3}
+      pos: {x: 9.25, y: 0.5}
+      size: {x: 1.5, y: 2}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: a7c632c1859823348942a67acc55b9e3, type: 3}
+      pos: {x: 2.75, y: 0}
+      size: {x: 3.5, y: 1.5}
+      fps: 0
+      solid: 1
+      kind: prop
+  - id: prison
+    size: {x: 12.5, y: 8}
+    door: {x: 5.75, y: 2.5}
+    ground: {fileID: 21300000, guid: 808fba420dfbbff4591a7b2354d33000, type: 3}
+    pieces:
+    - frames:
+      - {fileID: 3092432035221979458, guid: b9cfeb6dd8843e94aa98281c5511ab56, type: 3}
+      - {fileID: 1437190815354503152, guid: b9cfeb6dd8843e94aa98281c5511ab56, type: 3}
+      - {fileID: 169945410561592291, guid: b9cfeb6dd8843e94aa98281c5511ab56, type: 3}
+      - {fileID: -7335505467549623241, guid: b9cfeb6dd8843e94aa98281c5511ab56, type: 3}
+      - {fileID: -8849609568883194400, guid: b9cfeb6dd8843e94aa98281c5511ab56, type: 3}
+      - {fileID: 2550358135989874438, guid: b9cfeb6dd8843e94aa98281c5511ab56, type: 3}
+      - {fileID: 1149978546532080654, guid: b9cfeb6dd8843e94aa98281c5511ab56, type: 3}
+      - {fileID: 1587445717619472102, guid: b9cfeb6dd8843e94aa98281c5511ab56, type: 3}
+      - {fileID: -8021068784954163447, guid: b9cfeb6dd8843e94aa98281c5511ab56, type: 3}
+      - {fileID: -6959587862304251493, guid: b9cfeb6dd8843e94aa98281c5511ab56, type: 3}
+      - {fileID: 655932742231474716, guid: b9cfeb6dd8843e94aa98281c5511ab56, type: 3}
+      - {fileID: 7458018794848737533, guid: b9cfeb6dd8843e94aa98281c5511ab56, type: 3}
+      pos: {x: 6, y: 2}
+      size: {x: 5, y: 5}
+      fps: 6.67
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 5456848340969603530, guid: 505c5a28962ebad4b9b9c907aaa7b12d, type: 3}
+      - {fileID: -5899202570738604868, guid: 505c5a28962ebad4b9b9c907aaa7b12d, type: 3}
+      - {fileID: -7374856847665525282, guid: 505c5a28962ebad4b9b9c907aaa7b12d, type: 3}
+      - {fileID: 8655923958196422216, guid: 505c5a28962ebad4b9b9c907aaa7b12d, type: 3}
+      - {fileID: 2232709100475679590, guid: 505c5a28962ebad4b9b9c907aaa7b12d, type: 3}
+      - {fileID: -49733776772479625, guid: 505c5a28962ebad4b9b9c907aaa7b12d, type: 3}
+      - {fileID: 3025693131990373090, guid: 505c5a28962ebad4b9b9c907aaa7b12d, type: 3}
+      - {fileID: -5375079198981317020, guid: 505c5a28962ebad4b9b9c907aaa7b12d, type: 3}
+      - {fileID: -1257177872555095504, guid: 505c5a28962ebad4b9b9c907aaa7b12d, type: 3}
+      - {fileID: -8630682947656432885, guid: 505c5a28962ebad4b9b9c907aaa7b12d, type: 3}
+      - {fileID: -5574929539497156121, guid: 505c5a28962ebad4b9b9c907aaa7b12d, type: 3}
+      - {fileID: 4151977066315511238, guid: 505c5a28962ebad4b9b9c907aaa7b12d, type: 3}
+      pos: {x: 2.5, y: 5}
+      size: {x: 1, y: 1.5}
+      fps: 6.67
+      solid: 0
+      kind: character
+    - frames:
+      - {fileID: -7305492259406153577, guid: 57a871c3729a99b43933b38ee858e07c, type: 3}
+      - {fileID: 273387362576690098, guid: 57a871c3729a99b43933b38ee858e07c, type: 3}
+      - {fileID: 7513894429945765472, guid: 57a871c3729a99b43933b38ee858e07c, type: 3}
+      - {fileID: 6744177145987312617, guid: 57a871c3729a99b43933b38ee858e07c, type: 3}
+      - {fileID: 8052601484419822608, guid: 57a871c3729a99b43933b38ee858e07c, type: 3}
+      - {fileID: 483239100517035440, guid: 57a871c3729a99b43933b38ee858e07c, type: 3}
+      - {fileID: 1700306398108746982, guid: 57a871c3729a99b43933b38ee858e07c, type: 3}
+      - {fileID: 2830258683099002071, guid: 57a871c3729a99b43933b38ee858e07c, type: 3}
+      - {fileID: 3428221403803489326, guid: 57a871c3729a99b43933b38ee858e07c, type: 3}
+      - {fileID: -7487463307070729023, guid: 57a871c3729a99b43933b38ee858e07c, type: 3}
+      - {fileID: 3559162311387290209, guid: 57a871c3729a99b43933b38ee858e07c, type: 3}
+      - {fileID: -5875222400631651655, guid: 57a871c3729a99b43933b38ee858e07c, type: 3}
+      pos: {x: 9.5, y: 5}
+      size: {x: 1, y: 1.5}
+      fps: 6.67
+      solid: 0
+      kind: character
+    - frames:
+      - {fileID: 21300000, guid: 5987cf357bb4f9e4c9714224f51348a1, type: 3}
+      pos: {x: 1.75, y: 4.5}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: 9e0172506a3c1e942a5aa3da06d3bd67, type: 3}
+      pos: {x: 10.25, y: 4.5}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: 9353ccbe53ecf0e4493e8da9deed3662, type: 3}
+      pos: {x: 1.75, y: 4}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: fcebd73c4e0b4974d9f98cd63d6ac7a6, type: 3}
+      pos: {x: 10.25, y: 4}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: 7109ea526fc1f3f4aaf26b432456596a, type: 3}
+      pos: {x: 1.75, y: 3.5}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: d9052d79e658cb44bb3abd04e4de2c63, type: 3}
+      pos: {x: 10.25, y: 3.5}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: 1d3746efc59318f4ab9fa4abb93e45b8, type: 3}
+      pos: {x: 1.75, y: 3}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: 56c4deb581b91b143a4a6023d08e5e66, type: 3}
+      pos: {x: 10.25, y: 3}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: 226e0a4ca3794ed4a980ac205af824a4, type: 3}
+      pos: {x: 1.75, y: 2.5}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: 4e2769900c28df749bebbb44f46df8d2, type: 3}
+      pos: {x: 10.25, y: 2.5}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: a38dbd8d7f4278742a0e44b980a5203d, type: 3}
+      pos: {x: 1.75, y: 2}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: efd564eb9ac21334eaeef4c5174eceab, type: 3}
+      pos: {x: 10.25, y: 2}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: -2226650070853303994, guid: 9c6ef0329359cad4dba53d73fbb9ed9a, type: 3}
+      - {fileID: 5317927872167739545, guid: 9c6ef0329359cad4dba53d73fbb9ed9a, type: 3}
+      - {fileID: 739024436544153558, guid: 9c6ef0329359cad4dba53d73fbb9ed9a, type: 3}
+      - {fileID: 7500429825409397125, guid: 9c6ef0329359cad4dba53d73fbb9ed9a, type: 3}
+      - {fileID: -2200835454671340918, guid: 9c6ef0329359cad4dba53d73fbb9ed9a, type: 3}
+      - {fileID: -1481595367577801642, guid: 9c6ef0329359cad4dba53d73fbb9ed9a, type: 3}
+      - {fileID: 2715439494043472963, guid: 9c6ef0329359cad4dba53d73fbb9ed9a, type: 3}
+      pos: {x: 6, y: 1.5}
+      size: {x: 9, y: 0.5}
+      fps: 6.67
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 6458822372867858567, guid: 5b81fdf12af634e48bc76f40bda39fbe, type: 3}
+      - {fileID: -838922301174327754, guid: 5b81fdf12af634e48bc76f40bda39fbe, type: 3}
+      - {fileID: 4761567200373218648, guid: 5b81fdf12af634e48bc76f40bda39fbe, type: 3}
+      - {fileID: 560128634361925983, guid: 5b81fdf12af634e48bc76f40bda39fbe, type: 3}
+      - {fileID: -6289281080135279959, guid: 5b81fdf12af634e48bc76f40bda39fbe, type: 3}
+      - {fileID: 7559183605520478568, guid: 5b81fdf12af634e48bc76f40bda39fbe, type: 3}
+      - {fileID: 9078265414949394140, guid: 5b81fdf12af634e48bc76f40bda39fbe, type: 3}
+      pos: {x: 6, y: 1}
+      size: {x: 9, y: 0.5}
+      fps: 6.67
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 3728956940859006102, guid: 967538a149215af4abc27630927ec33e, type: 3}
+      - {fileID: -6051802916565702048, guid: 967538a149215af4abc27630927ec33e, type: 3}
+      - {fileID: 2923933414891686667, guid: 967538a149215af4abc27630927ec33e, type: 3}
+      - {fileID: 3642889028849910940, guid: 967538a149215af4abc27630927ec33e, type: 3}
+      - {fileID: 4826540400704862515, guid: 967538a149215af4abc27630927ec33e, type: 3}
+      - {fileID: -78845768369483692, guid: 967538a149215af4abc27630927ec33e, type: 3}
+      - {fileID: 7636262288502925677, guid: 967538a149215af4abc27630927ec33e, type: 3}
+      pos: {x: 6, y: 0.5}
+      size: {x: 9, y: 0.5}
+      fps: 6.67
+      solid: 1
+      kind: fence
+  - id: tavern
+    size: {x: 12, y: 8}
+    door: {x: 4.75, y: 2}
+    ground: {fileID: 21300000, guid: 51e71f5e942a25a4bb4bd2f6ae4a46d7, type: 3}
+    pieces:
+    - frames:
+      - {fileID: -1156107777097274355, guid: 22c7ed463c53e2243a315d117a4d1c44, type: 3}
+      - {fileID: -7532078948647029577, guid: 22c7ed463c53e2243a315d117a4d1c44, type: 3}
+      - {fileID: 8080643003129096457, guid: 22c7ed463c53e2243a315d117a4d1c44, type: 3}
+      - {fileID: -3667758106164313178, guid: 22c7ed463c53e2243a315d117a4d1c44, type: 3}
+      - {fileID: -3782360110609988657, guid: 22c7ed463c53e2243a315d117a4d1c44, type: 3}
+      - {fileID: -8900625209323251405, guid: 22c7ed463c53e2243a315d117a4d1c44, type: 3}
+      - {fileID: -5318193641255498495, guid: 22c7ed463c53e2243a315d117a4d1c44, type: 3}
+      - {fileID: -4743088259321242905, guid: 22c7ed463c53e2243a315d117a4d1c44, type: 3}
+      - {fileID: 1251486064981427045, guid: 22c7ed463c53e2243a315d117a4d1c44, type: 3}
+      - {fileID: -48540371853622914, guid: 22c7ed463c53e2243a315d117a4d1c44, type: 3}
+      pos: {x: 6, y: 2}
+      size: {x: 6, y: 5}
+      fps: 6.67
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: 14ad3cda4fc89c94997dcb6f8ef0151b, type: 3}
+      pos: {x: 6, y: 4}
+      size: {x: 2, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: 26749c3f4d754c54a8b83903b0e02fb3, type: 3}
+      pos: {x: 3.25, y: 2}
+      size: {x: 1.5, y: 2}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: 9aa7b04cbaf1cc4428abe275a1e5c67f, type: 3}
+      pos: {x: 6, y: 3.5}
+      size: {x: 2, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: 4a078f3693d61d24d89dd3cce4555ad8, type: 3}
+      pos: {x: 3.75, y: 1}
+      size: {x: 1.5, y: 1.5}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 1844043559162435242, guid: ccf1bdef8c5b525438be31ad72045039, type: 3}
+      - {fileID: 806184515263192429, guid: ccf1bdef8c5b525438be31ad72045039, type: 3}
+      - {fileID: -7682459142249203549, guid: ccf1bdef8c5b525438be31ad72045039, type: 3}
+      - {fileID: -8752953396963473846, guid: ccf1bdef8c5b525438be31ad72045039, type: 3}
+      - {fileID: -5413042368182194190, guid: ccf1bdef8c5b525438be31ad72045039, type: 3}
+      - {fileID: 5470338694922315399, guid: ccf1bdef8c5b525438be31ad72045039, type: 3}
+      - {fileID: -7572151972378916977, guid: ccf1bdef8c5b525438be31ad72045039, type: 3}
+      - {fileID: 4623686190783871655, guid: ccf1bdef8c5b525438be31ad72045039, type: 3}
+      - {fileID: 3036276237995922000, guid: ccf1bdef8c5b525438be31ad72045039, type: 3}
+      - {fileID: 7569515546520735223, guid: ccf1bdef8c5b525438be31ad72045039, type: 3}
+      - {fileID: 6269440655514126452, guid: ccf1bdef8c5b525438be31ad72045039, type: 3}
+      - {fileID: -1360143765726896428, guid: ccf1bdef8c5b525438be31ad72045039, type: 3}
+      pos: {x: 8.25, y: 1}
+      size: {x: 1.5, y: 1.5}
+      fps: 6.67
+      solid: 0
+      kind: character
+    - frames:
+      - {fileID: 4554139123522170234, guid: 874385c5d9b478246b317e7c7b812aeb, type: 3}
+      - {fileID: -7033738894083371116, guid: 874385c5d9b478246b317e7c7b812aeb, type: 3}
+      - {fileID: 2353702842168536297, guid: 874385c5d9b478246b317e7c7b812aeb, type: 3}
+      - {fileID: 7164367446862483145, guid: 874385c5d9b478246b317e7c7b812aeb, type: 3}
+      - {fileID: -3685383257354405142, guid: 874385c5d9b478246b317e7c7b812aeb, type: 3}
+      - {fileID: -2422018190742445329, guid: 874385c5d9b478246b317e7c7b812aeb, type: 3}
+      - {fileID: -2780230352250090053, guid: 874385c5d9b478246b317e7c7b812aeb, type: 3}
+      - {fileID: -8439495670165599175, guid: 874385c5d9b478246b317e7c7b812aeb, type: 3}
+      - {fileID: -919942465076654757, guid: 874385c5d9b478246b317e7c7b812aeb, type: 3}
+      - {fileID: 5515798331086378102, guid: 874385c5d9b478246b317e7c7b812aeb, type: 3}
+      - {fileID: 2065945992007468648, guid: 874385c5d9b478246b317e7c7b812aeb, type: 3}
+      - {fileID: -6083051241521063890, guid: 874385c5d9b478246b317e7c7b812aeb, type: 3}
+      pos: {x: 4.75, y: 0.5}
+      size: {x: 2.5, y: 1.5}
+      fps: 6.67
+      solid: 0
+      kind: character
+    - frames:
+      - {fileID: 21300000, guid: 26349d42be23f8240849818ee9d72c7c, type: 3}
+      pos: {x: 7.25, y: 0.5}
+      size: {x: 1.5, y: 1}
+      fps: 0
+      solid: 1
+      kind: prop
+  - id: training
+    size: {x: 12, y: 8}
+    door: {x: 8.75, y: 5.5}
+    ground: {fileID: 21300000, guid: 9edca4336e9e5464bbae5b8439710b12, type: 3}
+    pieces:
+    - frames:
+      - {fileID: 2102584582712558175, guid: fbd053e59ab99384288bd29c80dd3010, type: 3}
+      - {fileID: 5294339429047985347, guid: fbd053e59ab99384288bd29c80dd3010, type: 3}
+      - {fileID: 6692853432794156039, guid: fbd053e59ab99384288bd29c80dd3010, type: 3}
+      - {fileID: 5133316208396075989, guid: fbd053e59ab99384288bd29c80dd3010, type: 3}
+      - {fileID: 7217575343755485038, guid: fbd053e59ab99384288bd29c80dd3010, type: 3}
+      - {fileID: -88067067526859380, guid: fbd053e59ab99384288bd29c80dd3010, type: 3}
+      - {fileID: 8601464006515426213, guid: fbd053e59ab99384288bd29c80dd3010, type: 3}
+      - {fileID: 3893492709923146965, guid: fbd053e59ab99384288bd29c80dd3010, type: 3}
+      - {fileID: 5260296854993969896, guid: fbd053e59ab99384288bd29c80dd3010, type: 3}
+      - {fileID: 8172300339823847716, guid: fbd053e59ab99384288bd29c80dd3010, type: 3}
+      - {fileID: 5710983684838767050, guid: fbd053e59ab99384288bd29c80dd3010, type: 3}
+      - {fileID: -5092959078405211014, guid: fbd053e59ab99384288bd29c80dd3010, type: 3}
+      pos: {x: 8.75, y: 5.5}
+      size: {x: 3.5, y: 2.5}
+      fps: 6.67
+      solid: 1
+      kind: building
+    - frames:
+      - {fileID: 21300000, guid: 15cb8c2588a84bf41aa228dad6ece64c, type: 3}
+      pos: {x: 1.5, y: 4}
+      size: {x: 1, y: 3.5}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: 9ad9c0916f66bef4099f77c69430d96d, type: 3}
+      pos: {x: 2.75, y: 6}
+      size: {x: 1.5, y: 1.5}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: 227093dc76ae8164d9d47731441a9700, type: 3}
+      pos: {x: 5, y: 6}
+      size: {x: 3, y: 1}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: -7336424768179312291, guid: ffd6cae73385eb9499fb54009762a73c, type: 3}
+      - {fileID: -5040811812752404611, guid: ffd6cae73385eb9499fb54009762a73c, type: 3}
+      - {fileID: 3389646296505871975, guid: ffd6cae73385eb9499fb54009762a73c, type: 3}
+      - {fileID: -4912912039769550517, guid: ffd6cae73385eb9499fb54009762a73c, type: 3}
+      - {fileID: -8989421239604888026, guid: ffd6cae73385eb9499fb54009762a73c, type: 3}
+      - {fileID: 3591477553707082082, guid: ffd6cae73385eb9499fb54009762a73c, type: 3}
+      - {fileID: -6268901585300234789, guid: ffd6cae73385eb9499fb54009762a73c, type: 3}
+      - {fileID: 9148784902117628940, guid: ffd6cae73385eb9499fb54009762a73c, type: 3}
+      - {fileID: 8165540216893323962, guid: ffd6cae73385eb9499fb54009762a73c, type: 3}
+      - {fileID: -7764796653636422072, guid: ffd6cae73385eb9499fb54009762a73c, type: 3}
+      - {fileID: 6588663157862302963, guid: ffd6cae73385eb9499fb54009762a73c, type: 3}
+      - {fileID: -8883648185640952554, guid: ffd6cae73385eb9499fb54009762a73c, type: 3}
+      pos: {x: 9.5, y: 5}
+      size: {x: 2, y: 2}
+      fps: 6.67
+      solid: 0
+      kind: character
+    - frames:
+      - {fileID: 21300000, guid: ddb8b1f060e12fb4db1eec1462880cea, type: 3}
+      pos: {x: 2.75, y: 5}
+      size: {x: 1.5, y: 1.5}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: c954e0c2f1a651346b0b40d78146d5ab, type: 3}
+      pos: {x: 2.75, y: 4}
+      size: {x: 1.5, y: 1.5}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: c86e29034d6627d45ad5d9d937a3eb9d, type: 3}
+      pos: {x: 8.75, y: 5}
+      size: {x: 4.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: -935462717558142847, guid: b026cbd86d2ae5347b887299db645b55, type: 3}
+      - {fileID: -8929368412280390499, guid: b026cbd86d2ae5347b887299db645b55, type: 3}
+      - {fileID: -5186593253465195380, guid: b026cbd86d2ae5347b887299db645b55, type: 3}
+      - {fileID: -6671292425593319155, guid: b026cbd86d2ae5347b887299db645b55, type: 3}
+      - {fileID: -4678521628057554014, guid: b026cbd86d2ae5347b887299db645b55, type: 3}
+      - {fileID: 2941868480897542160, guid: b026cbd86d2ae5347b887299db645b55, type: 3}
+      pos: {x: 7.5, y: 4.5}
+      size: {x: 1, y: 1}
+      fps: 6.67
+      solid: 0
+      kind: character
+    - frames:
+      - {fileID: 21300000, guid: 5a19a90e2d502ac44ae358ea75c0ebc8, type: 3}
+      pos: {x: 5.25, y: 4.5}
+      size: {x: 3.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: e880f8f52613acf49b36a679165cb875, type: 3}
+      pos: {x: 10.75, y: 4.5}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: -3633635017052880729, guid: 1accb1aa462303545bf204e8fa8f0679, type: 3}
+      - {fileID: -4740944137625879124, guid: 1accb1aa462303545bf204e8fa8f0679, type: 3}
+      - {fileID: -6299474810052164574, guid: 1accb1aa462303545bf204e8fa8f0679, type: 3}
+      - {fileID: 1311847990278346206, guid: 1accb1aa462303545bf204e8fa8f0679, type: 3}
+      - {fileID: -7844375912158287407, guid: 1accb1aa462303545bf204e8fa8f0679, type: 3}
+      - {fileID: -2460970548923159242, guid: 1accb1aa462303545bf204e8fa8f0679, type: 3}
+      - {fileID: 8301189671441439184, guid: 1accb1aa462303545bf204e8fa8f0679, type: 3}
+      - {fileID: 3626019410745484659, guid: 1accb1aa462303545bf204e8fa8f0679, type: 3}
+      - {fileID: -1063899779525956991, guid: 1accb1aa462303545bf204e8fa8f0679, type: 3}
+      - {fileID: 1994164018744108201, guid: 1accb1aa462303545bf204e8fa8f0679, type: 3}
+      - {fileID: 4501548677384771033, guid: 1accb1aa462303545bf204e8fa8f0679, type: 3}
+      - {fileID: -7386123556560374547, guid: 1accb1aa462303545bf204e8fa8f0679, type: 3}
+      pos: {x: 5, y: 4}
+      size: {x: 3, y: 1}
+      fps: 6.67
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 4358530245312911122, guid: 956296ff55002bb4a8708da8a3c418e1, type: 3}
+      - {fileID: -7170640041025030655, guid: 956296ff55002bb4a8708da8a3c418e1, type: 3}
+      - {fileID: -6080825838391618281, guid: 956296ff55002bb4a8708da8a3c418e1, type: 3}
+      - {fileID: 9195248889592955830, guid: 956296ff55002bb4a8708da8a3c418e1, type: 3}
+      - {fileID: 5253220893504032402, guid: 956296ff55002bb4a8708da8a3c418e1, type: 3}
+      - {fileID: 2029914250213636526, guid: 956296ff55002bb4a8708da8a3c418e1, type: 3}
+      - {fileID: 3113291163081246502, guid: 956296ff55002bb4a8708da8a3c418e1, type: 3}
+      - {fileID: 1145241920113884340, guid: 956296ff55002bb4a8708da8a3c418e1, type: 3}
+      - {fileID: 1216369762899070186, guid: 956296ff55002bb4a8708da8a3c418e1, type: 3}
+      - {fileID: -5924940728871817610, guid: 956296ff55002bb4a8708da8a3c418e1, type: 3}
+      - {fileID: -932786874562484181, guid: 956296ff55002bb4a8708da8a3c418e1, type: 3}
+      - {fileID: 8249621880466232965, guid: 956296ff55002bb4a8708da8a3c418e1, type: 3}
+      pos: {x: 5, y: 4}
+      size: {x: 3, y: 1}
+      fps: 6.67
+      solid: 0
+      kind: character
+    - frames:
+      - {fileID: 21300000, guid: b98551a310bd4354693575161cdb8cdb, type: 3}
+      pos: {x: 6.75, y: 4}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: c1faa23dac81b2a448f9b30fcb065354, type: 3}
+      pos: {x: 10.75, y: 4}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 2146426995781436796, guid: 4e7290fb9be7aaf48a8135e9d6e37ee0, type: 3}
+      - {fileID: -5210722955316510856, guid: 4e7290fb9be7aaf48a8135e9d6e37ee0, type: 3}
+      - {fileID: -4000594378564836266, guid: 4e7290fb9be7aaf48a8135e9d6e37ee0, type: 3}
+      - {fileID: -7170404129219209451, guid: 4e7290fb9be7aaf48a8135e9d6e37ee0, type: 3}
+      - {fileID: 667633007818132241, guid: 4e7290fb9be7aaf48a8135e9d6e37ee0, type: 3}
+      - {fileID: -8721746330328284675, guid: 4e7290fb9be7aaf48a8135e9d6e37ee0, type: 3}
+      - {fileID: -6975249130164431432, guid: 4e7290fb9be7aaf48a8135e9d6e37ee0, type: 3}
+      - {fileID: -7672132558933157853, guid: 4e7290fb9be7aaf48a8135e9d6e37ee0, type: 3}
+      - {fileID: 926819277990297407, guid: 4e7290fb9be7aaf48a8135e9d6e37ee0, type: 3}
+      - {fileID: 1545422511568135582, guid: 4e7290fb9be7aaf48a8135e9d6e37ee0, type: 3}
+      - {fileID: 2041687995101951041, guid: 4e7290fb9be7aaf48a8135e9d6e37ee0, type: 3}
+      - {fileID: -649155632282155913, guid: 4e7290fb9be7aaf48a8135e9d6e37ee0, type: 3}
+      pos: {x: 8, y: 3.5}
+      size: {x: 1, y: 1}
+      fps: 6.67
+      solid: 0
+      kind: character
+    - frames:
+      - {fileID: 4774813126921216935, guid: 5c13448d36abb52448ab222ef95cbdfa, type: 3}
+      - {fileID: 5276498683452491849, guid: 5c13448d36abb52448ab222ef95cbdfa, type: 3}
+      - {fileID: 3026751603507853303, guid: 5c13448d36abb52448ab222ef95cbdfa, type: 3}
+      - {fileID: -4467780619129207648, guid: 5c13448d36abb52448ab222ef95cbdfa, type: 3}
+      - {fileID: -2240262379528393605, guid: 5c13448d36abb52448ab222ef95cbdfa, type: 3}
+      - {fileID: 1089703348299896359, guid: 5c13448d36abb52448ab222ef95cbdfa, type: 3}
+      - {fileID: -5088987682414255232, guid: 5c13448d36abb52448ab222ef95cbdfa, type: 3}
+      - {fileID: 701590931634948428, guid: 5c13448d36abb52448ab222ef95cbdfa, type: 3}
+      - {fileID: 224207988412259607, guid: 5c13448d36abb52448ab222ef95cbdfa, type: 3}
+      - {fileID: -4332475652923064649, guid: 5c13448d36abb52448ab222ef95cbdfa, type: 3}
+      - {fileID: -3043375992183549557, guid: 5c13448d36abb52448ab222ef95cbdfa, type: 3}
+      - {fileID: 5494163947784111783, guid: 5c13448d36abb52448ab222ef95cbdfa, type: 3}
+      pos: {x: 9.25, y: 3.5}
+      size: {x: 1.5, y: 1}
+      fps: 6.67
+      solid: 0
+      kind: character
+    - frames:
+      - {fileID: 21300000, guid: 9a6493bfb6ccc8547a08a5deac061305, type: 3}
+      pos: {x: 1.75, y: 3}
+      size: {x: 1.5, y: 1}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: 3021f0b5b04aba84fba240c170b79114, type: 3}
+      pos: {x: 6.75, y: 3.5}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: 1d5f064b800a2f64ebbf7c3c399c20f6, type: 3}
+      pos: {x: 10.75, y: 3.5}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: -5439884968785263625, guid: dbe63d7756fa5bb44bb5f91564f1ad39, type: 3}
+      - {fileID: 4771704305141417638, guid: dbe63d7756fa5bb44bb5f91564f1ad39, type: 3}
+      - {fileID: 2699135032949233528, guid: dbe63d7756fa5bb44bb5f91564f1ad39, type: 3}
+      - {fileID: 4121751145627676054, guid: dbe63d7756fa5bb44bb5f91564f1ad39, type: 3}
+      - {fileID: 337260854661126977, guid: dbe63d7756fa5bb44bb5f91564f1ad39, type: 3}
+      - {fileID: 5799771063245106411, guid: dbe63d7756fa5bb44bb5f91564f1ad39, type: 3}
+      - {fileID: 820311363719750970, guid: dbe63d7756fa5bb44bb5f91564f1ad39, type: 3}
+      - {fileID: 8026429171698203066, guid: dbe63d7756fa5bb44bb5f91564f1ad39, type: 3}
+      - {fileID: -2303919868581419938, guid: dbe63d7756fa5bb44bb5f91564f1ad39, type: 3}
+      - {fileID: -5174617252692000044, guid: dbe63d7756fa5bb44bb5f91564f1ad39, type: 3}
+      - {fileID: 5893601769212201258, guid: dbe63d7756fa5bb44bb5f91564f1ad39, type: 3}
+      - {fileID: 3362026909477805826, guid: dbe63d7756fa5bb44bb5f91564f1ad39, type: 3}
+      pos: {x: 6, y: 3}
+      size: {x: 1, y: 1}
+      fps: 6.67
+      solid: 0
+      kind: character
+    - frames:
+      - {fileID: 5406664687454309960, guid: 0afc580eecb954f45a72bff2e6d69515, type: 3}
+      - {fileID: -738758540353645165, guid: 0afc580eecb954f45a72bff2e6d69515, type: 3}
+      - {fileID: -778857690660669130, guid: 0afc580eecb954f45a72bff2e6d69515, type: 3}
+      - {fileID: -2847065664994988220, guid: 0afc580eecb954f45a72bff2e6d69515, type: 3}
+      - {fileID: 9067333338802292460, guid: 0afc580eecb954f45a72bff2e6d69515, type: 3}
+      - {fileID: -4553892654694995853, guid: 0afc580eecb954f45a72bff2e6d69515, type: 3}
+      - {fileID: 1386785852323461866, guid: 0afc580eecb954f45a72bff2e6d69515, type: 3}
+      - {fileID: 5804658002219376675, guid: 0afc580eecb954f45a72bff2e6d69515, type: 3}
+      - {fileID: 682385955878308225, guid: 0afc580eecb954f45a72bff2e6d69515, type: 3}
+      - {fileID: -8926760566017079517, guid: 0afc580eecb954f45a72bff2e6d69515, type: 3}
+      - {fileID: -1048818205112476582, guid: 0afc580eecb954f45a72bff2e6d69515, type: 3}
+      - {fileID: 8685308599139501663, guid: 0afc580eecb954f45a72bff2e6d69515, type: 3}
+      pos: {x: 2, y: 0.5}
+      size: {x: 2, y: 3}
+      fps: 6.67
+      solid: 0
+      kind: character
+    - frames:
+      - {fileID: 21300000, guid: be3753e13fa3d1349b74a7a67e6bbd78, type: 3}
+      pos: {x: 6.75, y: 3}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: bc2f85eb6f8fd454b8ebd46350cc29d9, type: 3}
+      pos: {x: 10.75, y: 3}
+      size: {x: 0.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 6293274023420644944, guid: e369c2a28b7350540b3c52642a6de590, type: 3}
+      - {fileID: 1892615582733264383, guid: e369c2a28b7350540b3c52642a6de590, type: 3}
+      - {fileID: -8605591499790457386, guid: e369c2a28b7350540b3c52642a6de590, type: 3}
+      - {fileID: -6728990612237166339, guid: e369c2a28b7350540b3c52642a6de590, type: 3}
+      - {fileID: -7853518686117930824, guid: e369c2a28b7350540b3c52642a6de590, type: 3}
+      - {fileID: -1253291268567979366, guid: e369c2a28b7350540b3c52642a6de590, type: 3}
+      - {fileID: 1489920894181145393, guid: e369c2a28b7350540b3c52642a6de590, type: 3}
+      - {fileID: -2293688136536136523, guid: e369c2a28b7350540b3c52642a6de590, type: 3}
+      - {fileID: -8904979429229585124, guid: e369c2a28b7350540b3c52642a6de590, type: 3}
+      - {fileID: -509067081701067910, guid: e369c2a28b7350540b3c52642a6de590, type: 3}
+      - {fileID: -262645719718775366, guid: e369c2a28b7350540b3c52642a6de590, type: 3}
+      - {fileID: 3757166841195473505, guid: e369c2a28b7350540b3c52642a6de590, type: 3}
+      pos: {x: 3, y: 2.5}
+      size: {x: 1, y: 1}
+      fps: 6.67
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: -5194418387552810692, guid: a61eb743f48f0984892f27192eca2697, type: 3}
+      - {fileID: -6084777568121902478, guid: a61eb743f48f0984892f27192eca2697, type: 3}
+      - {fileID: -5326991032774965633, guid: a61eb743f48f0984892f27192eca2697, type: 3}
+      - {fileID: 2463506399546560702, guid: a61eb743f48f0984892f27192eca2697, type: 3}
+      - {fileID: -8036935120262789801, guid: a61eb743f48f0984892f27192eca2697, type: 3}
+      - {fileID: 3081225895847358370, guid: a61eb743f48f0984892f27192eca2697, type: 3}
+      - {fileID: 6538635770361190291, guid: a61eb743f48f0984892f27192eca2697, type: 3}
+      - {fileID: 7184468287853085087, guid: a61eb743f48f0984892f27192eca2697, type: 3}
+      - {fileID: -7771264916204149018, guid: a61eb743f48f0984892f27192eca2697, type: 3}
+      - {fileID: 1645248721817136654, guid: a61eb743f48f0984892f27192eca2697, type: 3}
+      - {fileID: 6032279382720931017, guid: a61eb743f48f0984892f27192eca2697, type: 3}
+      - {fileID: 2234846649360436393, guid: a61eb743f48f0984892f27192eca2697, type: 3}
+      pos: {x: 4, y: 1.5}
+      size: {x: 2, y: 2}
+      fps: 6.67
+      solid: 0
+      kind: character
+    - frames:
+      - {fileID: -568230187219802349, guid: 0108725b16ef1f54c933c679d134ab0a, type: 3}
+      - {fileID: -9052753998805680120, guid: 0108725b16ef1f54c933c679d134ab0a, type: 3}
+      - {fileID: -7464667754277842860, guid: 0108725b16ef1f54c933c679d134ab0a, type: 3}
+      - {fileID: -318116280230206764, guid: 0108725b16ef1f54c933c679d134ab0a, type: 3}
+      - {fileID: 4280347934655635033, guid: 0108725b16ef1f54c933c679d134ab0a, type: 3}
+      - {fileID: 2332348808668695958, guid: 0108725b16ef1f54c933c679d134ab0a, type: 3}
+      - {fileID: 9053411219756248995, guid: 0108725b16ef1f54c933c679d134ab0a, type: 3}
+      - {fileID: 2397791853620486766, guid: 0108725b16ef1f54c933c679d134ab0a, type: 3}
+      - {fileID: -179586974747097004, guid: 0108725b16ef1f54c933c679d134ab0a, type: 3}
+      - {fileID: 8514603263496622077, guid: 0108725b16ef1f54c933c679d134ab0a, type: 3}
+      - {fileID: -1891748376179441884, guid: 0108725b16ef1f54c933c679d134ab0a, type: 3}
+      - {fileID: 7563072250551473116, guid: 0108725b16ef1f54c933c679d134ab0a, type: 3}
+      pos: {x: 6, y: 2.5}
+      size: {x: 1, y: 1}
+      fps: 6.67
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: 0a0918a315760fb4e9add73e0eff2000, type: 3}
+      pos: {x: 8.75, y: 2.5}
+      size: {x: 4.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: 1ddcf5792cb909949ab3b65756321816, type: 3}
+      pos: {x: 0.75, y: 0}
+      size: {x: 1.5, y: 3}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: 5f606426c89f5014cbd0520ad03fc098, type: 3}
+      pos: {x: 11.25, y: 0}
+      size: {x: 1.5, y: 3}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: -689791647087971210, guid: c67bfb245eb946041b3e619c2bca9fd4, type: 3}
+      - {fileID: -7153748223876279432, guid: c67bfb245eb946041b3e619c2bca9fd4, type: 3}
+      - {fileID: -238176759686656828, guid: c67bfb245eb946041b3e619c2bca9fd4, type: 3}
+      - {fileID: -9187724687959872181, guid: c67bfb245eb946041b3e619c2bca9fd4, type: 3}
+      - {fileID: -1656088179433917326, guid: c67bfb245eb946041b3e619c2bca9fd4, type: 3}
+      - {fileID: -7968060635207751798, guid: c67bfb245eb946041b3e619c2bca9fd4, type: 3}
+      - {fileID: 4441252307096844892, guid: c67bfb245eb946041b3e619c2bca9fd4, type: 3}
+      - {fileID: 3991899638560826260, guid: c67bfb245eb946041b3e619c2bca9fd4, type: 3}
+      - {fileID: 6963124227194535220, guid: c67bfb245eb946041b3e619c2bca9fd4, type: 3}
+      - {fileID: 4792640690715414058, guid: c67bfb245eb946041b3e619c2bca9fd4, type: 3}
+      - {fileID: 2905200980330228294, guid: c67bfb245eb946041b3e619c2bca9fd4, type: 3}
+      - {fileID: 2261060330685776067, guid: c67bfb245eb946041b3e619c2bca9fd4, type: 3}
+      pos: {x: 8.5, y: 0.5}
+      size: {x: 3, y: 2}
+      fps: 6.67
+      solid: 0
+      kind: character
+    - frames:
+      - {fileID: 21300000, guid: 95fe467b00c38d7469a7bfc75c207771, type: 3}
+      pos: {x: 10.25, y: 0.5}
+      size: {x: 1.5, y: 2}
+      fps: 0
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 6965250119633555710, guid: e5282f5e5e355d748b6c711916396430, type: 3}
+      - {fileID: 4966662527120777558, guid: e5282f5e5e355d748b6c711916396430, type: 3}
+      - {fileID: -5263369491544823343, guid: e5282f5e5e355d748b6c711916396430, type: 3}
+      - {fileID: 6749910830552340973, guid: e5282f5e5e355d748b6c711916396430, type: 3}
+      - {fileID: -2335487242130508387, guid: e5282f5e5e355d748b6c711916396430, type: 3}
+      - {fileID: -6840000102725019599, guid: e5282f5e5e355d748b6c711916396430, type: 3}
+      - {fileID: -7513956655805729844, guid: e5282f5e5e355d748b6c711916396430, type: 3}
+      - {fileID: 3155341554838833383, guid: e5282f5e5e355d748b6c711916396430, type: 3}
+      - {fileID: -4775103573789045146, guid: e5282f5e5e355d748b6c711916396430, type: 3}
+      - {fileID: -7699731303473014256, guid: e5282f5e5e355d748b6c711916396430, type: 3}
+      - {fileID: 7784740680311131639, guid: e5282f5e5e355d748b6c711916396430, type: 3}
+      - {fileID: -21985934248631716, guid: e5282f5e5e355d748b6c711916396430, type: 3}
+      pos: {x: 5.5, y: 1}
+      size: {x: 1, y: 1}
+      fps: 6.67
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: -817951770103204692, guid: 5a59d548a56365b45a7d397b2d6abb66, type: 3}
+      - {fileID: -2788275106942276125, guid: 5a59d548a56365b45a7d397b2d6abb66, type: 3}
+      - {fileID: 5648390499789488936, guid: 5a59d548a56365b45a7d397b2d6abb66, type: 3}
+      - {fileID: 2764309506671765696, guid: 5a59d548a56365b45a7d397b2d6abb66, type: 3}
+      - {fileID: -3005248564063450400, guid: 5a59d548a56365b45a7d397b2d6abb66, type: 3}
+      - {fileID: 5572518627300377146, guid: 5a59d548a56365b45a7d397b2d6abb66, type: 3}
+      - {fileID: 5058279982449932213, guid: 5a59d548a56365b45a7d397b2d6abb66, type: 3}
+      - {fileID: 5701783618067944278, guid: 5a59d548a56365b45a7d397b2d6abb66, type: 3}
+      - {fileID: -6404348665713106244, guid: 5a59d548a56365b45a7d397b2d6abb66, type: 3}
+      - {fileID: 2631836312251106880, guid: 5a59d548a56365b45a7d397b2d6abb66, type: 3}
+      - {fileID: 51539906530754602, guid: 5a59d548a56365b45a7d397b2d6abb66, type: 3}
+      - {fileID: 7029084154171182539, guid: 5a59d548a56365b45a7d397b2d6abb66, type: 3}
+      pos: {x: 6, y: 1}
+      size: {x: 1, y: 1}
+      fps: 6.67
+      solid: 0
+      kind: character
+    - frames:
+      - {fileID: 8957586790010978818, guid: a691a4fd023629349bbe86e7de0373ac, type: 3}
+      - {fileID: 6863583122541163699, guid: a691a4fd023629349bbe86e7de0373ac, type: 3}
+      - {fileID: -9118571716596109501, guid: a691a4fd023629349bbe86e7de0373ac, type: 3}
+      - {fileID: 6171618963474837129, guid: a691a4fd023629349bbe86e7de0373ac, type: 3}
+      - {fileID: -7569051778553233009, guid: a691a4fd023629349bbe86e7de0373ac, type: 3}
+      - {fileID: -3314653875383258094, guid: a691a4fd023629349bbe86e7de0373ac, type: 3}
+      - {fileID: -1948669831219489429, guid: a691a4fd023629349bbe86e7de0373ac, type: 3}
+      - {fileID: 7433317171995401922, guid: a691a4fd023629349bbe86e7de0373ac, type: 3}
+      - {fileID: 511029508079837916, guid: a691a4fd023629349bbe86e7de0373ac, type: 3}
+      - {fileID: -8044748539130971114, guid: a691a4fd023629349bbe86e7de0373ac, type: 3}
+      - {fileID: 7028673539207074544, guid: a691a4fd023629349bbe86e7de0373ac, type: 3}
+      - {fileID: -4387447418307812126, guid: a691a4fd023629349bbe86e7de0373ac, type: 3}
+      pos: {x: 3.5, y: 1}
+      size: {x: 1, y: 1}
+      fps: 6.67
+      solid: 1
+      kind: prop
+    - frames:
+      - {fileID: 21300000, guid: a5f00b038507ad049a62c1aef162b4c2, type: 3}
+      pos: {x: 3.25, y: 0.5}
+      size: {x: 4.5, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
+    - frames:
+      - {fileID: 21300000, guid: 25a42e19d8f652c4fa000859b1d38aae, type: 3}
+      pos: {x: 8.5, y: 0.5}
+      size: {x: 4, y: 0.5}
+      fps: 0
+      solid: 1
+      kind: fence
   pierLeft: {fileID: 11400000, guid: 7f31565e4302f90438b17f6921e9aab6, type: 2}
   pierRight: {fileID: 11400000, guid: ba1818395da5050429e8ccedb075d8fe, type: 2}
   pierPlatform: {fileID: 11400000, guid: eb67a53307c991f4f82369d6a233fd26, type: 2}

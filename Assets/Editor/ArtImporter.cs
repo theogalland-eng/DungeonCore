@@ -45,6 +45,7 @@ public static class ArtImporter
     {
         { "bld_tavern", 4.4f }, { "bld_guild", 4.2f }, { "bld_forge", 4.6f }, { "bld_magetower", 3.1f },
         { "bld_glass", 3.6f }, { "bld_windmill", 3.4f }, { "bld_farmhouse", 3.8f },
+        { "town_1", 3.5f }, { "town_2", 3.9f }, { "town_3", 3.8f }, { "town_4", 3.9f },
     };
 
     static float PpuFor(string dir, string name)
