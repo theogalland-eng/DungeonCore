@@ -24,6 +24,8 @@ public class SettlementArt : ScriptableObject
         public float fps;
         public bool solid;
         public string kind;
+        /// <summary>Couches et images d'origine (repérer le bibliothécaire, le lit...).</summary>
+        public string names;
     }
 
     /// <summary>Scène complète d'un pack (bâtiment, cour, jardin, habitants) : sol plat + morceaux triés (Tools~/make_stamps.py).</summary>
@@ -37,6 +39,8 @@ public class SettlementArt : ScriptableObject
         public Vector2 door;
         public Sprite ground;
         public List<StampPiece> pieces = new List<StampPiece>();
+        /// <summary>Intérieurs : zones solides (murs, hors de la pièce), en unités depuis le coin bas-gauche.</summary>
+        public List<Rect> solids = new List<Rect>();
     }
 
     public List<Entry> entries = new List<Entry>();

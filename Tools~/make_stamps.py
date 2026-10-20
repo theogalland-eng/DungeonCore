@@ -51,9 +51,14 @@ STAMPS = {
     'farm':    dict(tmx=lambda: pack(471853, 'Tiled_files', 'Farm.tmx'), margin=None, feather=28),
     'training': dict(tmx=lambda: pack(626036, 'Tiled_files', 'Training_ground.tmx'), drop=['Tile Layer 33'], margin=None),
     'chapel':  dict(tmx=lambda: pack(160005, 'Tiled_files', 'Ruined_temple_exterior.tmx'), drop=['water', 'water_detailization', 'Discoverers'], ground=['site', 'House_platform', 'Bricks']),
+    'int_library': dict(tmx=lambda: pack(845649, 'Tiled_files', 'Interior.tmx'), interior=True),
+    'int_prison':  dict(tmx=lambda: pack(659586, 'Tiled_files', 'Interior.tmx'), interior=True),
+    'int_manor':   dict(tmx=lambda: pack(653272, 'Tiled_files', 'Interior_1st_floor.tmx'), interior=True, ground=['Ladder']),
+    'int_home':    dict(tmx=lambda: pack(654184, 'Tiled_files', 'Interior1.tmx'), interior=True, walls=[], trim=(2, 3)),
     'market':  dict(tmx=lambda: pack(587497, 'Tiled_files', 'Market_square.tmx'), drop=['Walls_top'], margin=None),
 }
 
+INTERIOR_GROUND = re.compile(r'floor|carpet|wall|window|tile layer', re.I)
 GROUND = re.compile(r'floor|ground|grass|street|brick|plate|spot|detail|shadow|carpet|road|straw|water|bed|hill|walls_grass|walls_sand|platform|crack|fish$', re.I)
 CHARACTER = re.compile(r'drinker|eater|girl|guard|archer|fighter|trainer|aristocrat|servant|trader|lute|flutist|chief|librarian|reader|visitor|smoke_guy|cat_|bird|animal|chicken|cow|pig|bandit|old_man|sleeping|prisoner|npc|character|blacksmith|glassblower|player', re.I)
 LIGHT = re.compile(r'flag|smoke|sign|banner|window|candle|ivy|cornice|arrow', re.I)
@@ -189,7 +194,9 @@ def build(sid, opt):
     for order, (name, cells) in enumerate(layers):
         if name in drop:
             continue
-        is_ground = (name in force_ground) or (name not in force_obj and GROUND.search(name) and not FENCE.search(name))
+        interior = opt.get('interior', False)
+        is_ground = (name in force_ground) or (name not in force_obj and (INTERIOR_GROUND.search(name) if interior
+                                                                            else GROUND.search(name) and not FENCE.search(name)))
         for (x, y), gid in cells.items():
             if crop and not (crop[0] <= x <= crop[2] and crop[1] <= y <= crop[3]):
                 continue
@@ -256,6 +263,20 @@ def build(sid, opt):
     for i in range(len(objs)):
         comps.setdefault(find(i), []).append(objs[i])
     comps = list(comps.values())
+    if opt.get('interior'):
+        # tapis et dallages posés sur une couche d'objets : grands rectangles pleins et bas → avec le sol
+        flat = []
+        for cl in comps:
+            occ = set(p for c in cl for p in cells_of(c))
+            xs = [p[0] for p in occ]; ys = [p[1] for p in occ]
+            w, h = max(xs) - min(xs) + 1, max(ys) - min(ys) + 1
+            if w >= 5 and h <= 5 and len(occ) >= 0.85 * w * h:
+                flat.append(cl)
+        for cl in flat:
+            comps.remove(cl)
+            for c in sorted(cl, key=lambda c: c.order):
+                r = rect(c)
+                g.alpha_composite(c.image(), (r[0] - X0, r[1] - Y0))
     info = []
     for cl in comps:
         occ = set(p for c in cl for p in cells_of(c))
@@ -322,7 +343,7 @@ def build(sid, opt):
             kind = 'building'
         fname = 'p%d' % len(pieces) + ('_%dx%d' % (x1 - x0, y1 - y0) if n > 1 else '') + '.png'
         strip.save(os.path.join(out, fname))
-        piece = dict(file=fname, x=x0 - X0, y=Y1 - y1, w=x1 - x0, h=y1 - y0, frames=n,
+        piece = dict(file=fname, x=x0 - X0, y=Y1 - y1, w=x1 - x0, h=y1 - y0, frames=n, names=names,
                      fps=round(1000.0 / dur, 2) if dur else 0, kind=kind,
                      solid=kind in ('building', 'prop', 'fence', 'tree') and hcell >= 1.5 or kind == 'fence')
         pieces.append(piece)
@@ -337,7 +358,7 @@ def build(sid, opt):
     if door is None:
         door = (W / 2, 0)
     # le sol ne déborde que d'un peu autour des objets (la place dallée des packs n'est pas recopiée)
-    margin = opt.get('margin', 2)
+    margin = None if opt.get('interior') else opt.get('margin', 2)
     if margin is not None:
         keep = Image.new('L', (W, H), 0)
         from PIL import ImageDraw
@@ -351,9 +372,67 @@ def build(sid, opt):
         alpha = g.getchannel('A')
         from PIL import ImageChops
         g.putalpha(ImageChops.multiply(alpha, keep))
-    feather(g, opt.get('feather', 18))
+    feather(g, 0 if opt.get('interior') else opt.get('feather', 18))
     g.save(os.path.join(out, 'ground.png'))
-    manifest = dict(id=sid, w=W, h=H, tile=tw, door=[round(door[0], 1), round(door[1], 1)], pieces=pieces)
+    solids = []
+    if opt.get('interior'):
+        # pièce : on marche sur les cases de sol qui ne portent pas de mur ; le reste (dans le cadre) est solide.
+        # Porte : la case praticable la plus basse, au plus près du milieu.
+        floor_cells, wall_cells = set(), set()
+        for c in ground:
+            if c.layer in opt.get('walls', ['Walls']):
+                wall_cells.add((c.x, c.y))          # faces des murs (les hauts et les cloisons décoratives restent franchissables)
+            elif not re.search(r'wall|window', c.layer, re.I):
+                floor_cells.add((c.x, c.y))
+        walk = {(x, y) for x, y in floor_cells - wall_cells if X0 // tw < x < (X0 + W) // tw - 1}
+        if opt.get('trim') and walk:
+            top, bot = opt['trim']   # rangées de sol sous le mur du fond / sous le mur de façade
+            ymin, ymax = min(y for x, y in walk), max(y for x, y in walk)
+            walk = {(x, y) for x, y in walk if ymin + top <= y <= ymax - bot}
+        cx0, cy0 = X0 // tw, Y0 // th
+        cw, ch = W // tw, H // th
+        mid = cx0 + cw / 2.0
+        low = max(y for x, y in walk)
+        dx, dy = min(((x, y) for x, y in walk if y >= low - 1), key=lambda c: (abs(c[0] + 0.5 - mid), -c[1]))
+        # seule la partie reliée à la porte compte (pas d'îlots de sol hors de la pièce)
+        reach, todo = {(dx, dy)}, [(dx, dy)]
+        while todo:
+            x, y = todo.pop()
+            for n in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
+                if n in walk and n not in reach:
+                    reach.add(n); todo.append(n)
+        walk = reach
+        # le passage de la porte descend jusqu'au bas de la carte (on sort par le bas)
+        gap = [x for x in range(dx - 2, dx + 3) if (x, dy) in walk]
+        for x in gap:
+            for y in range(dy + 1, min(dy + 4, cy0 + ch)):   # le seuil : trois cases sous la porte, pour sortir
+                walk.add((x, y))
+        door = ((dx + 0.5) * tw - X0, Y1 - (dy + 1) * th)
+        # rectangles solides : rangées de cases non praticables, fusionnées verticalement
+        runs = {}
+        for y in range(cy0, cy0 + ch):
+            x = cx0
+            while x < cx0 + cw:
+                if (x, y) in walk:
+                    x += 1
+                    continue
+                x1 = x
+                while x1 < cx0 + cw and (x1, y) not in walk:
+                    x1 += 1
+                runs.setdefault((x, x1), []).append(y)
+                x = x1
+        for (xa, xb), ys in runs.items():
+            ys.sort()
+            start = prev = ys[0]
+            for y in ys[1:] + [None]:
+                if y is not None and y == prev + 1:
+                    prev = y
+                    continue
+                # cases [xa, xb) x [start, prev] → pixels, origine en bas à gauche, y vers le haut
+                solids.append([xa * tw - X0, Y1 - (prev + 1) * th, (xb - xa) * tw, (prev - start + 1) * th])
+                if y is not None:
+                    start = prev = y
+    manifest = dict(id=sid, w=W, h=H, tile=tw, door=[round(door[0], 1), round(door[1], 1)], pieces=pieces, solids=[v for r in solids for v in r])
     with open(os.path.join(out, sid + '.json'), 'w', encoding='utf-8') as f:
         json.dump(manifest, f, indent=1)
     kinds = {}

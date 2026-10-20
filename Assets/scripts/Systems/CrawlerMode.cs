@@ -870,11 +870,6 @@ public class CrawlerMode : MonoBehaviour
         if (plot != null && floor == 0)
         {
             var home = SettlementManager.Instance?.HeroHome;
-            if (heroHome >= 3 && home != null && Vector2.Distance(DoorOf(home), p) < 1.4f)
-            {
-                act = () => Sleep(true);
-                return "Dormir chez soi (gratuit)";
-            }
             var sign = new Vector2(plot.rect.x + plot.rect.width / 2 + 0.5f, plot.rect.y + 0.5f);
             if (heroHome < 3 && Vector2.Distance(sign, p) < 1.8f)
             {
@@ -1036,6 +1031,31 @@ public class CrawlerMode : MonoBehaviour
             foreach (var x in r) lines.Add(new StoryManager.Line(x.who, x.text));
             if (key == "guild_talkers" && deepest < 4) lines.Add(new StoryManager.Line("Aventurière", "Seul au-delà du troisième étage ? Recrute au tableau, ou prépare ton épitaphe."));
             StoryManager.Instance?.Play(lines.ToArray());
+            return;
+        }
+        if (key == "home_bed") { if (heroHome >= 3) Sleep(true); return; }
+        if (key == "library_keeper")
+        {
+            int next = Mathf.Clamp(deepest + 1, 1, CrawlerDungeon.FloorCount);
+            StoryManager.Instance?.Play(
+                new StoryManager.Line("Le bibliothécaire", "Chut. Ici, on lit ce que les autres n'ont pas eu le temps de raconter."),
+                new StoryManager.Line("Le bibliothécaire", $"Votre prochain étage, le {next}e : « {CrawlerDungeon.FloorNames[next]} ». Les registres parlent de {CrawlerDungeon.FloorNames[Mathf.Max(1, next)].ToLowerInvariant()}... et d'un gardien qui scelle l'escalier."),
+                new StoryManager.Line("Le bibliothécaire", deepest >= 5 ? "Vous êtes allé plus bas que la plupart. Revenez me raconter : je tiens la carte des étages explorés."
+                                                                         : "Les premiers étages tuent surtout les imprudents. Mangez, dormez, et ne descendez pas épuisé."));
+            return;
+        }
+        if (key == "prison_chief")
+        {
+            StoryManager.Instance?.Play(
+                new StoryManager.Line("Le chef des gardes", "Les cellules sont pleines de gobelins pris aux portes. Ils viennent de la montagne, toujours plus nombreux."),
+                new StoryManager.Line("Le chef des gardes", "Si vous croisez des pillards dans le donjon, rapportez leurs têtes à la Guilde : la prime est bonne."));
+            return;
+        }
+        if (key == "manor_lord")
+        {
+            StoryManager.Instance?.Play(
+                new StoryManager.Line("Le seigneur", $"Ah, {GuildSystem.RankName(rank)}... Mes héros de rang S nettoieront ce donjon. Mais un aventurier de plus ne gâte rien."),
+                new StoryManager.Line("Le seigneur", "Rapportez-moi le cœur de cette montagne, et vous dînerez à ma table."));
             return;
         }
         if (key == "mage_orb")

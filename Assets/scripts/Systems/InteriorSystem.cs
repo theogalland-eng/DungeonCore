@@ -36,6 +36,11 @@ public class InteriorSystem : MonoBehaviour
         public readonly List<Npc> npcs = new List<Npc>();
         public readonly List<Vector3> lamps = new List<Vector3>();   // x, y, rayon
         public readonly List<Spot> spots = new List<Spot>();
+        /// <summary>Pièce complète d'un pack (Tools~/make_stamps.py, intérieurs) à la place du sol, du mur et des meubles posés à la main.</summary>
+        public string stamp;
+        /// <summary>Habitants à qui parler dans une pièce-tampon : repérés par le nom de leur couche, sinon position relative (0..1).</summary>
+        public readonly List<(string key, string label, string near, Vector2 fallback)> stampSpots = new List<(string, string, string, Vector2)>();
+        public Vector2 doorLocal = new Vector2(float.NaN, 0f);
     }
 
     private static readonly Dictionary<string, Layout> Layouts = BuildLayouts();
@@ -149,6 +154,22 @@ public class InteriorSystem : MonoBehaviour
         N(m, "npc_reader", 2.6f, -1.75f, 5f);
         m.lamps.Add(new Vector3(0f, -0.4f, 5f));
         S(m, "mage_seller", "Parler à l'apothicaire", 2.6f, -2.75f); S(m, "mage_orb", "Consulter l'orbe de scrutation", 0f, -1.2f);
+        // pièces complètes des packs : bibliothèque, prison, manoir, maison du héros
+        Layout ST(string id, string title, string stamp)
+        {
+            var l = new Layout { id = id, title = title, stamp = stamp, w = 10f, h = 8f };
+            d[id] = l;
+            return l;
+        }
+        var lib = ST("library", "La Bibliothèque", "int_library");
+        lib.stampSpots.Add(("library_keeper", "Parler au bibliothécaire", "Librarian", new Vector2(0.5f, 0.75f)));
+        var pri = ST("prison", "La Prison", "int_prison");
+        pri.light = new Color(0.85f, 0.85f, 1f);
+        pri.stampSpots.Add(("prison_chief", "Parler au chef des gardes", "Chief", new Vector2(0.75f, 0.7f)));
+        var man = ST("manor", "Le Manoir des nobles", "int_manor");
+        man.stampSpots.Add(("manor_lord", "Saluer le seigneur", "Characters1", new Vector2(0.5f, 0.7f)));
+        var hom = ST("hero_home", "Votre maison", "int_home");
+        hom.stampSpots.Add(("home_bed", "Dormir (gratuit)", null, new Vector2(0.5f, 0.6f)));
         return d;
     }
 
@@ -275,7 +296,7 @@ public class InteriorSystem : MonoBehaviour
         Physical = true;
         Vector3 o = root.transform.position;
         RoomRect = new Rect(o.x - layout.w / 2f, o.y - layout.h / 2f, layout.w, layout.h + 1.5f);
-        DoorInside = o + new Vector3(0f, -layout.h / 2f + 0.55f, 0f);
+        DoorInside = o + (float.IsNaN(layout.doorLocal.x) ? new Vector3(0f, -layout.h / 2f + 0.55f, 0f) : new Vector3(layout.doorLocal.x, layout.doorLocal.y + 0.25f, 0f));
         Place(DoorInside);
         var cam = Camera.main;
         if (cam != null) cam.transform.position = new Vector3(DoorInside.x, DoorInside.y + 1.5f, cam.transform.position.z);
@@ -380,6 +401,8 @@ public class InteriorSystem : MonoBehaviour
         var root = new GameObject("Intérieur_" + l.id);
         root.transform.position = new Vector3(600f + k * 40f, 600f, 0f);
         Vector3 o = root.transform.position;
+        var stamp = string.IsNullOrEmpty(l.stamp) ? null : SettlementArt.Get()?.GetStamp(l.stamp);
+        if (stamp != null) return BuildStamp(l, stamp, root, o);
 
         // fond noir autour de la pièce
         var back = Quad(root.transform, "Fond", new Color(0.03f, 0.02f, 0.04f), new Vector2(l.w + 30f, l.h + 30f), Vector2.zero, -10);
@@ -495,6 +518,41 @@ public class InteriorSystem : MonoBehaviour
             li.color = l.light;
             li.gameObject.AddComponent<TorchFlicker>();
         }
+        root.SetActive(false);
+        built[l.id] = root;
+        return root;
+    }
+
+    /// <summary>Pièce-tampon : la scène d'intérieur du pack, murs solides d'après ses cases de sol, sortie par le bas.</summary>
+    private GameObject BuildStamp(Layout l, SettlementArt.Stamp st, GameObject root, Vector3 o)
+    {
+        l.w = st.size.x; l.h = st.size.y;
+        var bl = new Vector2(-l.w / 2f, -l.h / 2f);
+        l.doorLocal = bl + st.door;
+        Quad(root.transform, "Fond", new Color(0.03f, 0.02f, 0.04f), new Vector2(l.w + 30f, l.h + 30f), Vector2.zero, -10);
+        var v = StampVisual.Create(st, root.transform, o + (Vector3)bl, true);
+        foreach (var r in st.solids) Solid(root.transform, "Mur", bl + r.center, r.size);
+        // on ne sort de la pièce que par la porte
+        Solid(root.transform, "MurHaut", new Vector2(0f, l.h / 2f + 0.4f), new Vector2(l.w + 2f, 0.8f));
+        Solid(root.transform, "MurGauche", new Vector2(-l.w / 2f - 0.4f, 0f), new Vector2(0.8f, l.h + 2f));
+        Solid(root.transform, "MurDroit", new Vector2(l.w / 2f + 0.4f, 0f), new Vector2(0.8f, l.h + 2f));
+        Solid(root.transform, "Seuil", new Vector2(l.doorLocal.x, l.doorLocal.y - 1.4f), new Vector2(2.6f, 0.6f));
+        l.spots.Clear();
+        foreach (var (key, label, near, fb) in l.stampSpots)
+        {
+            Vector2 pos = bl + new Vector2(fb.x * l.w, fb.y * l.h);
+            if (!string.IsNullOrEmpty(near))
+                foreach (var pc in st.pieces)
+                    if (pc.names != null && pc.names.Contains(near)) { pos = bl + pc.pos + new Vector2(0f, -0.45f); break; }
+            l.spots.Add(new Spot { key = key, label = label, local = pos, World = o + (Vector3)pos });
+        }
+        var amb = new GameObject("Ambiance").AddComponent<Light2D>(); Light2DCleanup.Attach(amb);
+        amb.transform.SetParent(root.transform, false);
+        amb.lightType = Light2D.LightType.Point;
+        amb.pointLightOuterRadius = Mathf.Max(l.w, l.h) * 0.9f;
+        amb.pointLightInnerRadius = Mathf.Max(l.w, l.h) * 0.5f;
+        amb.intensity = 1f;
+        amb.color = Color.Lerp(Color.white, l.light, 0.3f);
         root.SetActive(false);
         built[l.id] = root;
         return root;
@@ -625,9 +683,19 @@ public class InteriorSystem : MonoBehaviour
                 sb.Append("Plus la colonie grandit, mieux les intrus sont équipés. Un village qui a peur achète moins d'armures...");
                 break;
             }
+            case "prison":
+                head = "La prison";
+                sb.Append("<i>« Les cellules attendent tes créatures. Et ceux qui les aident. »</i>\n\n");
+                sb.Append("Les gardes veillent aux portes de la cité : vos raids y sont plus risqués.");
+                break;
+            case "manor":
+                head = "Le manoir des nobles";
+                sb.Append("<i>« Un donjon rentable est un donjon qu'on nettoie. Avec des héros de rang S. »</i>\n\n");
+                sb.Append("Les nobles financent les meilleurs aventuriers du royaume. Leur or attire les plus dangereux.");
+                break;
             default:
             {
-                head = "Bestiaire des mages";
+                head = IsLibrary(id) ? "Bestiaire de la bibliothèque" : "Bestiaire des mages";
                 sb.Append("<i>« Nous étudions ce qui vit sous la montagne. Pour mieux le combattre. »</i>\n\n");
                 var seen = new HashSet<string>();
                 foreach (var m in MonsterUnit.All) if (m != null && !m.summoned && seen.Add(m.familyName)) sb.Append($"• {m.familyName}\n");
@@ -637,6 +705,8 @@ public class InteriorSystem : MonoBehaviour
         }
         body = sb.ToString();
     }
+
+    private static bool IsLibrary(string id) => id == "library";
 
     private void Greet(string id)
     {

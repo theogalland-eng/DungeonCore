@@ -15,8 +15,8 @@ public static class StampImporter
     public const string Dir = "Assets/Art/Settlement/Stamps";
     const float Ppu = 32f;   // tuile de 16 px = une demi-case
 
-    [System.Serializable] class JPiece { public string file; public int x, y, w, h, frames; public float fps; public string kind; public bool solid; }
-    [System.Serializable] class JStamp { public string id; public int w, h, tile; public float[] door; public JPiece[] pieces; }
+    [System.Serializable] class JPiece { public string file; public int x, y, w, h, frames; public float fps; public string kind, names; public bool solid; }
+    [System.Serializable] class JStamp { public string id; public int w, h, tile; public float[] door; public JPiece[] pieces; public float[] solids; }
 
     [MenuItem("DungeonCore/Importer les tampons de la cité")]
     public static void ImportMenu() => Debug.Log(Import());
@@ -51,9 +51,13 @@ public static class StampImporter
                     fps = p.fps,
                     solid = p.solid,
                     kind = p.kind,
+                    names = p.names,
                 });
                 pieces++;
             }
+            if (j.solids != null)
+                for (int k = 0; k + 3 < j.solids.Length; k += 4)
+                    st.solids.Add(new Rect(j.solids[k] / Ppu, j.solids[k + 1] / Ppu, j.solids[k + 2] / Ppu, j.solids[k + 3] / Ppu));
             art.stamps.Add(st);
         }
         // pièces de l'enceinte (Tools~/make_citywalls.py)

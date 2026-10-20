@@ -1838,5 +1838,31 @@ public static class DevInspect3
     public static string FastBuild() { var h = SettlementManager.Instance.HeroHome; if (h != null) h.Work(10000f); return HomeState(); }
     public static string SleepInn() { CrawlerMode.Instance.Sleep(false); return "dodo"; }
     public static string HomeShot() => DevInspect.Shot(-11f, -53f, 7f, 1600, 1000, "herohome");
+
+    // ── intérieurs-tampons
+    static string GoDoor(string id)
+    {
+        var b = SettlementManager.Instance.Buildings.FirstOrDefault(x => x != null && x.def.id == id);
+        if (b == null) return "pas de " + id;
+        var at = b.transform.position + Vector3.down * 0.9f;
+        var pl = CrawlerMode.Instance.Player;
+        pl.transform.position = at; var rb = pl.GetComponent<Rigidbody2D>(); if (rb) rb.position = at;
+        return Prompt();
+    }
+    public static string GoLibrary() => GoDoor("library");
+    public static string GoPrison() => GoDoor("prison");
+    public static string GoManor() => GoDoor("manor");
+    public static string GoHome() => GoDoor("hero_home");
+    public static string InteriorState()
+    {
+        var i = InteriorSystem.Instance;
+        return $"inside={i.Inside} physical={i.Physical} id={i.CurrentId} door={i.DoorInside} room={i.RoomRect} spots={string.Join(" / ", i.Spots.Select(x => x.label + "@" + x.World))} joueur={CrawlerMode.Instance.Player.transform.position}";
+    }
+    public static string InteriorShot()
+    {
+        var r = InteriorSystem.Instance.RoomRect;
+        return DevInspect.Shot(r.center.x, r.center.y - 0.5f, r.height * 0.62f, 1600, 1000, "interior_" + InteriorSystem.Instance.CurrentId);
+    }
+    public static string ExitInterior() { InteriorSystem.Instance.ExitPhysical(); return "sortie"; }
 }
 #endif
