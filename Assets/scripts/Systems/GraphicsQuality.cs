@@ -5,7 +5,7 @@ using UnityEngine.Rendering.Universal;
 /// <summary>
 /// QUALITÉ GRAPHIQUE (Options) — trois niveaux, Équilibrée par défaut sur téléphone, Haute sur ordinateur :
 ///   Haute      : HDR, halo lumineux (bloom), vignettage et couleurs, 60 images/s ;
-///   Équilibrée : sans HDR ni halo (les deux passes les plus coûteuses), vignettage et couleurs, 60 images/s ;
+///   Équilibrée : sans HDR ni halo (les deux passes les plus coûteuses), vignettage et couleurs, 30 images/s sur téléphone (60 sur ordinateur) ;
 ///   Économie   : aucun post-traitement, rendu à 75 % de la résolution (téléphone), particules d'ambiance coupées, 30 images/s.
 /// Sur téléphone, si le jeu tourne nettement sous 45 images/s, on descend d'un niveau tout seul (une fois par partie),
 /// tant que le joueur n'a pas choisi lui-même.
@@ -40,7 +40,8 @@ public static class GraphicsQuality
             v.enabled = level != Level.Economy && GameSettings.PostProcessing;
             if (v.profile != null && v.profile.TryGet<Bloom>(out var bloom)) bloom.active = level == Level.High;
         }
-        Application.targetFrameRate = level == Level.Economy ? 30 : 60;
+        // téléphone : 60 images/s seulement en Haute — à 60 en continu il chauffe et ralentit au bout de 10-15 min
+        Application.targetFrameRate = level == Level.High || (level == Level.Balanced && !Application.isMobilePlatform) ? 60 : 30;
         // l'échelle de rendu modifie l'asset du pipeline : seulement dans le jeu installé, pas dans l'éditeur
         if (!Application.isEditor && GraphicsSettings.currentRenderPipeline is UniversalRenderPipelineAsset urp)
             urp.renderScale = level == Level.Economy ? 0.75f : 1f;
@@ -64,7 +65,7 @@ public static class GraphicsQuality
         if (sum < 10f) return;
         float fps = count / sum;
         sum = 0f; count = 0;
-        if (fps >= 45f) return;
+        if (fps >= (Application.targetFrameRate <= 30 ? 25f : 45f)) return;
         lowered = true;
         Set(Current - 1, false);
         GameHUD.Toast($"Qualité graphique : {Name(Current)} (pour plus de fluidité — modifiable dans les Options)", GameHUD.ManaColor);

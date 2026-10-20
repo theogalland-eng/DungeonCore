@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.Tilemaps;
 
 /// <summary>
 /// Atmosphère du donjon et de l'île (fumée des cheminées comprise) :
@@ -22,13 +23,14 @@ public class Atmosphere : MonoBehaviour
 
     private readonly List<(Light2D l, float baseI, float seed)> torches = new List<(Light2D, float, float)>();
     private readonly HashSet<Transform> lit = new HashSet<Transform>();
-    private readonly Dictionary<Vector3Int, GameObject> decals = new Dictionary<Vector3Int, GameObject>();
-    private readonly Dictionary<Vector3Int, GameObject> shades = new Dictionary<Vector3Int, GameObject>();
-    private Sprite aoTop, aoSide;
+    // détails et ombres de contact : dessinés dans des tilemaps (un seul rendu par couche, au lieu d'un objet par case)
+    private readonly HashSet<Vector3Int> decals = new HashSet<Vector3Int>();
+    private Tilemap decalMap, shadeTop, shadeLeft, shadeRight;
+    private Tile tileTop, tileLeft, tileRight;
+    private readonly Dictionary<Sprite, Tile> decalTiles = new Dictionary<Sprite, Tile>();
     private HashSet<Vector3Int> prevCells = new HashSet<Vector3Int>();
     private readonly List<Light2D> lanterns = new List<Light2D>();
     private Sprite[] decalSprites;
-    private Transform decalRoot;
     private long territoryHash;
     private float nextScan, nextDecals, nextLanterns;
 
@@ -44,7 +46,6 @@ public class Atmosphere : MonoBehaviour
         var list = new List<Sprite>(Resources.LoadAll<Sprite>("Decals"));
         list.Sort((a, b) => string.CompareOrdinal(a.name, b.name));
         decalSprites = list.ToArray();
-        decalRoot = new GameObject("Détails du sol").transform;
     }
 
     private void OnDestroy()
@@ -128,33 +129,67 @@ public class Atmosphere : MonoBehaviour
         h += n;
         if (h == territoryHash) return;
         territoryHash = h;
+        if (!EnsureMaps()) return;
         var keep = new HashSet<Vector3Int>(t.Cells);
         var gone = new List<Vector3Int>();
-        foreach (var kv in decals) if (!keep.Contains(kv.Key)) gone.Add(kv.Key);
-        foreach (var c in gone) { if (decals[c] != null) Destroy(decals[c]); decals.Remove(c); }
+        foreach (var c in decals) if (!keep.Contains(c)) gone.Add(c);
+        foreach (var c in gone) { decalMap.SetTile(c, null); decals.Remove(c); }
         RefreshShades(t, keep);
         foreach (var c in keep)
         {
-            if (decals.ContainsKey(c)) continue;
+            if (!decals.Add(c)) continue;
             uint r = Hash(c);
-            if ((r % 1000) / 1000f >= decalChance) { decals[c] = null; continue; }
-            var go = new GameObject("Détail");
-            go.transform.SetParent(decalRoot, false);
+            if ((r % 1000) / 1000f >= decalChance) continue;
+            var sprite = decalSprites[(int)((r >> 16) % (uint)decalSprites.Length)];
+            if (!decalTiles.TryGetValue(sprite, out var tile))
+                decalTiles[sprite] = tile = NewTile(sprite);
+            decalMap.SetTile(c, tile);
             // léger décalage dans la case, retournement : la répétition ne se voit pas
-            go.transform.position = t.CellCenter(c) + new Vector3(((r >> 10) % 7 - 3) * 0.05f, ((r >> 13) % 7 - 3) * 0.05f, 0f);
-            var sr = go.AddComponent<SpriteRenderer>();
-            sr.sprite = decalSprites[(int)((r >> 16) % (uint)decalSprites.Length)];
-            sr.flipX = ((r >> 20) & 1) == 1;
-            sr.sortingOrder = 1;
-            sr.color = new Color(1f, 1f, 1f, 0.72f);
-            decals[c] = go;
+            var off = new Vector3(((r >> 10) % 7 - 3) * 0.05f, ((r >> 13) % 7 - 3) * 0.05f, 0f);
+            decalMap.SetTransformMatrix(c, Matrix4x4.TRS(off, Quaternion.identity, new Vector3(((r >> 20) & 1) == 1 ? -1f : 1f, 1f, 1f)));
+            decalMap.SetColor(c, new Color(1f, 1f, 1f, 0.72f));
         }
+    }
+
+    private static Tile NewTile(Sprite s)
+    {
+        var t = ScriptableObject.CreateInstance<Tile>();
+        t.sprite = s;
+        t.flags = TileFlags.None;
+        t.colliderType = Tile.ColliderType.None;
+        return t;
+    }
+
+    /// <summary>Couches posées sur la grille du donjon (sous les objets et les personnages).</summary>
+    private bool EnsureMaps()
+    {
+        if (decalMap != null) return true;
+        var b = DungeonBuilder.Instance;
+        if (b == null || b.floorTilemap == null) return false;
+        Tilemap Layer(string name)
+        {
+            var go = new GameObject(name);
+            go.transform.SetParent(b.floorTilemap.transform.parent, false);
+            go.transform.localPosition = b.floorTilemap.transform.localPosition;
+            var tm = go.AddComponent<Tilemap>();
+            tm.tileAnchor = b.floorTilemap.tileAnchor;
+            var r = go.AddComponent<TilemapRenderer>();
+            r.sortingOrder = 1;
+            return tm;
+        }
+        decalMap = Layer("Détails du sol");
+        shadeTop = Layer("Ombres (haut)");
+        shadeLeft = Layer("Ombres (gauche)");
+        shadeRight = Layer("Ombres (droite)");
+        tileTop = NewTile(Gradient(true, false));
+        tileLeft = NewTile(Gradient(false, false));
+        tileRight = NewTile(Gradient(false, true));
+        return true;
     }
 
     // ── Ombre de contact au pied des murs : donne du relief à la vue de dessus ──
     private void RefreshShades(DungeonTerritory t, HashSet<Vector3Int> cells)
     {
-        if (aoTop == null) { aoTop = Gradient(true); aoSide = Gradient(false); }
         // seules les cases ajoutées ou retirées, et leurs voisines, changent d'ombre
         var affected = new HashSet<Vector3Int>();
         void Touch(Vector3Int c) { affected.Add(c); foreach (var d in DungeonTerritory.Dirs) affected.Add(c + d); }
@@ -163,36 +198,22 @@ public class Atmosphere : MonoBehaviour
         prevCells = new HashSet<Vector3Int>(cells);
         foreach (var c in affected)
         {
-            if (shades.TryGetValue(c, out var o)) { if (o != null) Destroy(o); shades.Remove(c); }
-        }
-        foreach (var c in affected)
-        {
-            if (!cells.Contains(c)) continue;
-            bool up = t.IsStone(c + Vector3Int.up), left = t.IsStone(c + Vector3Int.left), right = t.IsStone(c + Vector3Int.right);
-            if (!up && !left && !right) continue;
-            var root = new GameObject("Ombre");
-            root.transform.SetParent(decalRoot, false);
-            root.transform.position = t.CellCenter(c);
-            if (up) Shade(root.transform, aoTop, false, 0.58f);
-            if (left) Shade(root.transform, aoSide, false, 0.36f);
-            if (right) Shade(root.transform, aoSide, true, 0.36f);
-            shades[c] = root;
+            bool open = cells.Contains(c);
+            Put(shadeTop, c, tileTop, open && t.IsStone(c + Vector3Int.up), 0.58f);
+            Put(shadeLeft, c, tileLeft, open && t.IsStone(c + Vector3Int.left), 0.36f);
+            Put(shadeRight, c, tileRight, open && t.IsStone(c + Vector3Int.right), 0.36f);
         }
     }
 
-    private static void Shade(Transform parent, Sprite s, bool flip, float alpha)
+    private static void Put(Tilemap tm, Vector3Int c, Tile tile, bool on, float alpha)
     {
-        var go = new GameObject("o");
-        go.transform.SetParent(parent, false);
-        var sr = go.AddComponent<SpriteRenderer>();
-        sr.sprite = s;
-        sr.flipX = flip;
-        sr.sortingOrder = 1;
-        sr.color = new Color(0.04f, 0.03f, 0.06f, alpha);
+        if (!on) { if (tm.HasTile(c)) tm.SetTile(c, null); return; }
+        tm.SetTile(c, tile);
+        tm.SetColor(c, new Color(0.04f, 0.03f, 0.06f, alpha));
     }
 
     /// <summary>Dégradé de 16 px : opaque au bord du mur, transparent vers le centre de la case.</summary>
-    private static Sprite Gradient(bool top)
+    private static Sprite Gradient(bool top, bool flip)
     {
         const int S = 16;
         var tex = new Texture2D(S, S, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp };
@@ -200,7 +221,7 @@ public class Atmosphere : MonoBehaviour
         for (int y = 0; y < S; y++)
             for (int x = 0; x < S; x++)
             {
-                float d = top ? (S - 1 - y) / (float)S : x / (float)S;      // distance au mur (haut ou gauche)
+                float d = top ? (S - 1 - y) / (float)S : (flip ? S - 1 - x : x) / (float)S;   // distance au mur (haut, gauche ou droite)
                 float a = Mathf.Clamp01(1f - d / 0.55f);
                 a = Mathf.Round(a * a * 4f) / 4f;                               // paliers : rendu pixel art
                 px[y * S + x] = new Color32(255, 255, 255, (byte)(a * 255));

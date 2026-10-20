@@ -321,3 +321,9 @@ Mise en ligne du projet sur GitHub (ce dépôt), avec cette documentation.
 
 - 🎬 **Intro sans saccades** : les plans larges (île, survol à dos de mouette) sont resserrés (≈ 195 appels de dessin au lieu de 346 au survol) et, pendant l'écran noir du début, la caméra passe une image sur chaque plan pour charger textures et shaders avant la cinématique (leur premier affichage en plein survol faisait saccader le téléphone).
 - 🏛️ **Nouvelle cinématique : le verdict de la Guilde.** Au hall, sur le continent : les survivants de l'équipe d'évaluation rentrent un à un et font leur rapport (en nommant les disparus) — ou personne ne rentre, la greffière n'a aucune nouvelle, les semaines passent. Puis le maître de guilde dresse **le bilan en direct** sur le registre : créatures, pièges, puissance du cristal, étages, aventuriers tombés, issue de la mission ; **l'estimation du rang change à chaque ligne**, et le tampon tombe.
+
+### Stabilité sur téléphone (retours du 20/10)
+
+- 🌡️ **30 images/s sur téléphone en qualité Équilibrée** (60 seulement en Haute) : à 60 en continu, le téléphone chauffe puis ralentit au bout de 10-15 minutes ; la descente automatique de qualité tient compte de la nouvelle cadence.
+- 🧱 **Ombres de contact et détails du sol dessinés en tilemaps** : un rendu par couche au lieu d'un à quatre objets par case creusée (des centaines, puis des milliers à mesure que le donjon grandit).
+- 🧪 Outil d'endurance (`SoakTest`) : partie accélérée avec raids, relevés de mémoire, d'objets et de temps d'image toutes les 30 s.

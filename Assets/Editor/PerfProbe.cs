@@ -22,6 +22,13 @@ public static class PerfProbe
     }
 
     public static string Worst() => ReportWorst(6);
+    /// <summary>Lumières 2D par objet porteur (pour repérer celles qui s'accumulent).</summary>
+    public static string Lights()
+    {
+        var ls = Object.FindObjectsByType<UnityEngine.Rendering.Universal.Light2D>(FindObjectsSortMode.None);
+        string Key(Transform t) { var r = t; while (r.parent != null && r.parent.parent != null) r = r.parent; return (t.parent != null ? t.parent.name + "/" : "") + t.name; }
+        return string.Join(", ", ls.GroupBy(l => Key(l.transform)).OrderByDescending(g => g.Count()).Select(g => $"{g.Key} {g.Count()}"));
+    }
     /// <summary>Coût de rendu de l'image courante (appels de dessin, lots, triangles) et caméra.</summary>
     public static string Gpu()
     {
