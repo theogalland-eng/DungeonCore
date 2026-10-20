@@ -72,7 +72,8 @@ public static class CrawlerDungeon
     /// <summary>Zone du donjon (DungeonLayers) qui accueille l'étage.</summary>
     public static int RegionOf(int floor) => floor <= 1 ? 0 : floor >= FloorCount ? 3 : 1 + (floor % 2);
 
-    public static int RoomCount(int floor) => floor == 1 ? 6 : floor == FloorCount ? 5 : Mathf.Min(9, 5 + floor / 2);
+    // les étages souterrains sont larges : on les explore salle par salle (brouillard de guerre)
+    public static int RoomCount(int floor) => floor == 1 ? 7 : floor == FloorCount ? 6 : Mathf.Min(14, 7 + floor * 2 / 3);
 
     // ─────────────────────────────────────────────
     // GÉNÉRATION DU PLAN
@@ -131,10 +132,12 @@ public static class CrawlerDungeon
             for (int attempt = 0; attempt < 200 && !placed; attempt++)
             {
                 // on part surtout de la dernière salle (l'étage s'enfonce), parfois d'une autre (embranchements)
-                var parent = attempt < 50 || rng.Next(3) > 0 ? f.rooms[f.rooms.Count - 1] : f.rooms[rng.Next(f.rooms.Count)];
+                // sur les grands étages, une salle sur deux part d'ailleurs : un réseau ramifié plutôt qu'une file de salles
+                bool branch = want > 7 ? rng.Next(2) == 0 : attempt >= 50 && rng.Next(3) == 0;
+                var parent = !branch ? f.rooms[f.rooms.Count - 1] : f.rooms[rng.Next(f.rooms.Count)];
                 var prev = parent.rect;
                 var d = dirs[rng.Next(dirs.Length)];
-                int len = rng.Next(2, 6), w = rng.Next(5, 9), h = rng.Next(4, 7);
+                int len = rng.Next(2, 6), w = rng.Next(5, 10), h = rng.Next(4, 8);
                 if (floor == FloorCount && i == want - 1) { w = 9; h = 7; }   // la salle du cristal est vaste
                 Vector2Int start = d == Vector2Int.up ? new Vector2Int(prev.x + prev.width / 2, prev.yMax)
                                  : d == Vector2Int.down ? new Vector2Int(prev.x + prev.width / 2, prev.y - 1)
@@ -169,8 +172,45 @@ public static class CrawlerDungeon
             }
             if (!placed) break;
         }
+        if (want > 7) AddLoops(f, cells, builder, rng);
         builder.DigBatch(cells);
         return f;
+    }
+
+    /// <summary>Quelques couloirs droits entre salles voisines alignées : des boucles, on peut contourner une salle.</summary>
+    private static void AddLoops(Floor f, HashSet<Vector3Int> cells, DungeonBuilder builder, System.Random rng)
+    {
+        int budget = Mathf.Max(1, f.rooms.Count / 4);
+        for (int i = 0; i < f.rooms.Count && budget > 0; i++)
+            for (int j = 0; j < f.rooms.Count && budget > 0; j++)
+            {
+                if (i == j) continue;
+                RectInt a = f.rooms[i].rect, b = f.rooms[j].rect;
+                var path = new List<Vector3Int>();
+                Vector3Int side;
+                int lo = Mathf.Max(a.xMin + 1, b.xMin + 1), hi = Mathf.Min(a.xMax - 1, b.xMax - 1);
+                if (b.yMin > a.yMax && b.yMin - a.yMax <= 6 && hi > lo)
+                {
+                    int x = (lo + hi) / 2;
+                    for (int y = a.yMax; y < b.yMin; y++) path.Add(new Vector3Int(x, y, 0));
+                    side = Vector3Int.right;
+                }
+                else
+                {
+                    lo = Mathf.Max(a.yMin + 1, b.yMin + 1); hi = Mathf.Min(a.yMax - 1, b.yMax - 1);
+                    if (!(b.xMin > a.xMax && b.xMin - a.xMax <= 6 && hi > lo)) continue;
+                    int y = (lo + hi) / 2;
+                    for (int x = a.xMax; x < b.xMin; x++) path.Add(new Vector3Int(x, y, 0));
+                    side = Vector3Int.up;
+                }
+                // déjà reliées, ou le couloir frôlerait un autre passage : on laisse
+                bool ok = path.Count >= 2;
+                foreach (var c in path)
+                    if (cells.Contains(c) || cells.Contains(c + side) || cells.Contains(c - side) || !builder.stoneTilemap.HasTile(c)) { ok = false; break; }
+                if (!ok || rng.Next(3) == 0) continue;
+                foreach (var c in path) cells.Add(c);
+                budget--;
+            }
     }
 
     private static bool Inside(RectInt b, RectInt r) => r.xMin >= b.xMin && r.yMin >= b.yMin && r.xMax <= b.xMax && r.yMax <= b.yMax;

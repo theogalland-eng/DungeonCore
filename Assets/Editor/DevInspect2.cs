@@ -102,6 +102,14 @@ public static class DevInspect3
     public static string Floor8() { CrawlerMode.Instance.GoToFloor(8, true); return "8"; }
     public static string Floor10() { CrawlerMode.Instance.GoToFloor(10, true); return "10"; }
     public static string Floor2() { CrawlerMode.Instance.GoToFloor(2, false); return "2 from below"; }
+    public static string FogHide() { CrawlerFog.Instance?.gameObject.SetActive(false); var f = CrawlerMode.Instance.FloorData(CrawlerMode.Instance.floor); return $"rooms={f?.rooms.Count}"; }
+    public static string FloorOverview()
+    {
+        var f = CrawlerMode.Instance.FloorData(CrawlerMode.Instance.floor);
+        int x0 = 9999, y0 = 9999, x1 = -9999, y1 = -9999;
+        foreach (var r in f.rooms) { x0 = Mathf.Min(x0, r.rect.xMin); y0 = Mathf.Min(y0, r.rect.yMin); x1 = Mathf.Max(x1, r.rect.xMax); y1 = Mathf.Max(y1, r.rect.yMax); }
+        return DevInspect.Shot((x0 + x1) * 0.5f, (y0 + y1) * 0.5f, Mathf.Max((y1 - y0) * 0.5f + 3f, (x1 - x0) * 0.32f + 3f), 1600, 1000, "overview");
+    }
     public static int fogRoom;
     /// <summary>Téléporte le héros au centre de la salle suivante de l'étage (test du brouillard de guerre).</summary>
     public static string FogNextRoom()

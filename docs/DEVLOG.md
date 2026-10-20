@@ -308,3 +308,5 @@ Mise en ligne du projet sur GitHub (ce dépôt), avec cette documentation.
 
 - 🌑 **Brouillard de guerre** sous la montagne (`CrawlerFog`) : on ne voit que la salle où se tient le héros, ses murs et le début de ses sorties ; dans un couloir, quelques cases autour de soi. Les salles déjà visitées restent assombries, le reste de l'étage est noir (monstres et barres de vie compris). L'étage redevient inconnu à chaque nouvelle descente.
 - 🎥 **Vue rapprochée** dans le donjon (caméra plus proche qu'avant) et **calée sur la salle** courante tant qu'on y est, à la manière d'un Zelda ; elle suit librement le héros dans les couloirs.
+- 🗺️ **Donjon souterrain plus grand** : les trois étages souterrains passent de 84 à 180 cases de large (même hauteur et même position : sauvegardes compatibles, grille de déplacement inchangée), en mode Noyau comme en mode Aventurier. Outil d'éditeur `IslandGenerator.WidenUnderground` pour l'appliquer à la scène.
+- 🕸️ **Étages d'aventure plus vastes et ramifiés** : 7 à 13 salles selon la profondeur (au lieu de 5 à 9), un peu plus grandes, qui partent dans plusieurs directions, avec quelques couloirs en boucle entre salles voisines.

@@ -50,8 +50,8 @@ public class CrawlerFog : MonoBehaviour
         return f;
     }
 
-    private void OnEnable() => Instance = this;
-    private void OnDisable() { if (Instance == this) Instance = null; }
+    private void Awake() => Instance = this;
+    private void OnDestroy() { if (Instance == this) Instance = null; }   // reste l'instance même désactivé (Hide)
 
     /// <summary>Nouvel étage : tout redevient inconnu.</summary>
     public void SetFloor(CrawlerDungeon.Floor f, RectInt area)

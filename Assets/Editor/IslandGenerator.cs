@@ -1,4 +1,4 @@
-﻿#if UNITY_EDITOR
+#if UNITY_EDITOR
 using System.Collections.Generic;
 using System.Linq;
 using Pathfinding;
@@ -19,7 +19,7 @@ public static class IslandGenerator
 {
     public static int Seed = 1337;
     const int W = 160, H = 120, Margin = 16;
-    const int LayerW = 84, LayerH = 54, LayerGap = 12;
+    const int LayerW = 180, LayerH = 54, LayerGap = 12;   // étages souterrains larges (la grille A* fait 196 cases)
 
     enum K : byte { Deep, Shallow, Reef, Beach, Cliff, Low, High, Mountain, Ravine, Path, Dock, Cave, Lake, Lava }
 
@@ -961,6 +961,36 @@ public static class IslandGenerator
         var sr = go.AddComponent<SpriteRenderer>();
         sr.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(path);
         sr.sortingOrder = -13;
+    }
+
+    /// <summary>
+    /// Élargit les étages souterrains de la scène ouverte à LayerW cases, sans régénérer l'île : les cases ajoutées
+    /// sont remplies de roche ; la hauteur et la position des étages ne changent pas (sauvegardes compatibles).
+    /// </summary>
+    public static string WidenUnderground()
+    {
+        var layers = Object.FindFirstObjectByType<DungeonLayers>();
+        var murs = FindTilemap("murs");
+        if (layers == null || murs == null) return "no layers/murs";
+        int added = 0;
+        for (int i = 1; i < layers.layers.Count; i++)
+        {
+            var old = layers.layers[i].cellBounds;
+            if (old.width >= LayerW) continue;
+            var rect = new RectInt(-LayerW / 2, old.y, LayerW, old.height);
+            var wall = murs.GetTile(new Vector3Int(old.x, old.y, 0));
+            var cells = new List<Vector3Int>();
+            foreach (var p in rect.allPositionsWithin)
+                if (!old.Contains(p)) cells.Add(new Vector3Int(p.x, p.y, 0));
+            SetWalls(murs, cells, wall);
+            layers.layers[i].cellBounds = rect;
+            added += cells.Count;
+        }
+        EditorUtility.SetDirty(layers);
+        EditorUtility.SetDirty(murs);
+        EditorSceneManager.MarkSceneDirty(layers.gameObject.scene);
+        EditorSceneManager.SaveScene(layers.gameObject.scene);
+        return $"added {added} rock cells; " + string.Join(" ", layers.layers.Select(l => l.cellBounds.ToString()));
     }
 
     static void SetWalls(Tilemap tm, List<Vector3Int> cells, TileBase wall)
