@@ -12,6 +12,51 @@ public class CrawlerStairs : MonoBehaviour
     public bool down;
     public int Target => down ? floor + 1 : floor - 1;
 
+    /// <summary>Gardien de l'étage : tant qu'il vit, la descente est scellée (cercle de runes).</summary>
+    public GobelinAI guardian;
+    public bool Sealed => down && guardian != null && guardian.IsAlive();
+    public string GuardianName => guardian != null ? (guardian.GetComponent<MonsterMind>()?.GivenName ?? guardian.gobelinName) : "";
+    private Transform ring;
+    private GameObject seal;
+    private float spin, nextCheck;
+
+    /// <summary>Scelle la descente : seule la mort du gardien l'ouvre.</summary>
+    public void Seal(GobelinAI g)
+    {
+        guardian = g;
+        if (g == null || seal != null) return;
+        seal = new GameObject("Sceau du gardien");
+        seal.transform.SetParent(transform, false);
+        var ringGo = new GameObject("Runes");
+        ringGo.transform.SetParent(seal.transform, false);
+        var sr = ringGo.AddComponent<SpriteRenderer>();
+        sr.sprite = BossSeal.RingSprite();
+        sr.color = new Color(0.75f, 0.45f, 1f, 0.85f);
+        sr.sortingOrder = 2;
+        ringGo.transform.localScale = Vector3.one * 1.6f;
+        ring = ringGo.transform;
+        var l = seal.AddComponent<Light2D>(); Light2DCleanup.Attach(l);
+        l.lightType = Light2D.LightType.Point;
+        l.color = new Color(0.65f, 0.35f, 1f);
+        l.intensity = 0.9f;
+        l.pointLightOuterRadius = 2.4f;
+    }
+
+    private void Update()
+    {
+        if (seal == null) return;
+        spin += Time.deltaTime * 25f;
+        if (ring != null) ring.localRotation = Quaternion.Euler(0, 0, spin);
+        if (Time.time < nextCheck) return;
+        nextCheck = Time.time + 0.4f;
+        if (guardian != null && guardian.IsAlive()) return;
+        Fx.Play("shine", transform.position, 1.6f, 18f, 82, new Color(0.8f, 0.6f, 1f));
+        Sfx.Play("core_hit", transform.position, 0.7f);
+        GameHUD.Toast("Le gardien est tombé : le sceau de l'escalier se brise", GameHUD.GoldColor);
+        Destroy(seal);
+        seal = null;
+    }
+
     private void OnEnable() => All.Add(this);
     private void OnDisable() => All.Remove(this);
 

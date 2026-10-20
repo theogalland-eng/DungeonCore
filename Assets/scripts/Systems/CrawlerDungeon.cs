@@ -28,6 +28,12 @@ public static class CrawlerDungeon
         public List<Room> rooms = new List<Room>();
         public Room Start => rooms[0];
         public Room Last { get { var l = rooms[0]; foreach (var r in rooms) if (r.depth >= l.depth) l = r; return l; } }
+        /// <summary>Salle de l'escalier de descente et du gardien : fixée à la génération (les salles creusées
+        /// ensuite par l'Esprit du Noyau ne la déplacent pas).</summary>
+        public Room stairsRoom;
+        public Room StairsRoom => stairsRoom ?? Last;
+        /// <summary>Gardien de l'étage (tant qu'il vit, l'escalier de descente reste scellé).</summary>
+        public GobelinAI guardian;
         public readonly List<GameObject> spawned = new List<GameObject>();
     }
 
@@ -178,6 +184,7 @@ public static class CrawlerDungeon
         }
         if (want > 7) AddLoops(f, cells, builder, rng);
         builder.DigBatch(cells);
+        f.stairsRoom = f.Last;
         return f;
     }
 
@@ -339,7 +346,7 @@ public static class CrawlerDungeon
         return null;
     }
 
-    private static readonly string[] BossNames = { "", "", "Skrag la Fouine", "Mère Moisissure", "Ossegrince", "", "Hurle-Lune", "Vrask", "", "Comtesse Ysolde", "" };
+    private static readonly string[] BossNames = { "", "Krog le Chef de bande", "Skrag la Fouine", "Mère Moisissure", "Ossegrince", "", "Hurle-Lune", "Vrask", "", "Comtesse Ysolde", "" };
 
     /// <summary>Familles de monstres d'un étage (contrats de chasse).</summary>
     public static string[] FamiliesOn(int floor) => Families[Mathf.Clamp(floor, 1, FloorCount)];
@@ -355,7 +362,7 @@ public static class CrawlerDungeon
     }
 
     /// <summary>Monstres, pièges, coffres et décor de l'étage (appelé à chaque arrivée : le donjon se repeuple).</summary>
-    public static void Populate(Floor f, System.Random rng, System.Func<string, bool> chestLooted)
+    public static void Populate(Floor f, System.Random rng, System.Func<string, bool> chestLooted, bool guardian = true)
     {
         var builder = DungeonBuilder.Instance;
         var cat = DungeonCatalog.Get();
@@ -365,7 +372,7 @@ public static class CrawlerDungeon
             if (room == f.Start) continue;
             PopulateRoom(f, room, rng, chestLooted);
         }
-        SpawnGuardian(f);
+        if (guardian) SpawnGuardian(f);
     }
 
     /// <summary>Monstres, pièges, coffre et décor d'une salle.</summary>
@@ -387,7 +394,7 @@ public static class CrawlerDungeon
             }
             Vector2 Pos(Vector3Int c) => builder.floorTilemap.GetCellCenterWorld(c);
 
-            bool last = room == f.Last;
+            bool last = room == f.StairsRoom;
             // monstres : de plus en plus nombreux
             int count = Mathf.Min(6, 1 + fl / 2 + rng.Next(0, 3));
             if (fl == 1) count = Mathf.Min(count, 2 + rng.Next(0, 2));
@@ -423,18 +430,19 @@ public static class CrawlerDungeon
     private static void SpawnGuardian(Floor f)
     {
         int fl = f.number;
-        // gardiens : un boss dans la dernière salle de chaque étage (seigneur orc au 5, archiliche au 8 ;
-        // au 10, le seigneur de l'antre est posé devant le cristal par CrawlerMode)
-        if (fl >= 2 && fl < FloorCount)
+        // gardiens : un boss dans la salle de l'escalier de chaque étage, de 1 à 9 (seigneur orc au 5, archiliche au 8 ;
+        // au 10, le seigneur de l'antre est posé devant le cristal par CrawlerMode). Il scelle la descente.
+        if (fl >= 1 && fl < FloorCount)
         {
-            var room = f.Last;
+            var room = f.StairsRoom;
             string fam = fl == 5 ? "orc" : fl == 8 ? "lich" : Families[fl][Families[fl].Length - 1];
-            var g = SpawnMonster(fam, Mathf.Min(3, 1 + (fl + 1) / 3), room.Center + Vector3.down * 0.5f, f);
+            var g = SpawnMonster(fam, Mathf.Clamp(1 + (fl + 1) / 3, 2, 3), room.Center + Vector3.down * 0.5f, f);
             if (g != null)
             {
                 MonsterMind.For(g).MakeGuardian(fl == 5 ? "Grukk" : fl == 8 ? "Sa'Veth" : BossNames[fl], true);
                 g.SetBehavior(GobelinAI.GoblinBehavior.Stay);
                 CrawlerBoss.Attach(g, fl);
+                f.guardian = g;
             }
         }
     }

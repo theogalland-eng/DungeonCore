@@ -194,7 +194,7 @@ public class BossSeal : MonoBehaviour
 
     private static Sprite ringSprite;
 
-    private static Sprite RingSprite()
+    public static Sprite RingSprite()
     {
         if (ringSprite != null) return ringSprite;
         const int n = 32;

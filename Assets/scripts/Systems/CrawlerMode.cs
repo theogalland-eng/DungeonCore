@@ -241,13 +241,20 @@ public class CrawlerMode : MonoBehaviour
     }
 
     private Vector3 StairsUpPos(CrawlerDungeon.Floor f) => DungeonBuilder.Instance.floorTilemap.GetCellCenterWorld(new Vector3Int(f.Start.CenterCell.x, f.Start.rect.yMax - 1, 0));
-    private Vector3 StairsDownPos(CrawlerDungeon.Floor f) => DungeonBuilder.Instance.floorTilemap.GetCellCenterWorld(new Vector3Int(f.Last.CenterCell.x, f.Last.rect.yMax - 1, 0));
+    private Vector3 StairsDownPos(CrawlerDungeon.Floor f) => DungeonBuilder.Instance.floorTilemap.GetCellCenterWorld(new Vector3Int(f.StairsRoom.CenterCell.x, f.StairsRoom.rect.yMax - 1, 0));
+
+    /// <summary>Étages dont le gardien a été vaincu : leur descente reste ouverte, même quand l'étage est recréé.</summary>
+    private readonly HashSet<int> bossesDefeated = new HashSet<int>();
 
     /// <summary>Peuple l'étage et pose ses escaliers.</summary>
     private void FinishFloor(CrawlerDungeon.Floor f)
     {
-        CrawlerDungeon.Populate(f, new System.Random(rng.Next()), key => lootedChests.Contains(key));
-        if (f.number < CrawlerDungeon.FloorCount) CrawlerStairs.Create(StairsDownPos(f), f.number, true);
+        CrawlerDungeon.Populate(f, new System.Random(rng.Next()), key => lootedChests.Contains(key), !bossesDefeated.Contains(f.number));
+        if (f.number < CrawlerDungeon.FloorCount)
+        {
+            var down = CrawlerStairs.Create(StairsDownPos(f), f.number, true);
+            if (f.guardian != null) down.Seal(f.guardian);
+        }
         if (f.number > 1) CrawlerStairs.Create(StairsUpPos(f), f.number, false);
         if (f.number == CrawlerDungeon.FloorCount && Core != null)
         {
@@ -311,7 +318,7 @@ public class CrawlerMode : MonoBehaviour
             new StoryManager.Line("Maître de guilde", "Encore un qui veut sa part du donjon ? Il a DIX étages, et chaque marche vers le bas est pire que la précédente."),
             new StoryManager.Line("Maître de guilde", "Passe à la forge, à la tour des mages, et viens au hall : on y forme des groupes. Seul, tu ne passeras pas le quatrième étage."),
             new StoryManager.Line("Maître de guilde", "Le cristal est tout au fond. Brise-le, et ton nom sera chanté dans toutes les tavernes."),
-            new StoryManager.Line(StoryManager.SystemName, "Déplacement : ZQSD / flèches ou joystick. Attaque : Espace, clic ou bouton. Courir : Maj ou joystick à fond. Roulade : Ctrl, clic droit ou bouton Esquive. Compétence : R. Potion : F. Interagir (portes, habitants, coffres, escaliers) : E. Pierre de rappel : T."));
+            new StoryManager.Line(StoryManager.SystemName, "Déplacement : ZQSD / flèches ou joystick. Attaque : Espace, clic ou bouton. Roulade : Ctrl, clic droit ou bouton Esquive. Compétence : R. Potion : F. Interagir (portes, habitants, coffres, escaliers) : E. Pierre de rappel : T."));
     }
 
     // ─────────────────────────────────────────────
@@ -349,14 +356,20 @@ public class CrawlerMode : MonoBehaviour
             Vector3 target = new Vector3(pp.x, pp.y, cam.transform.position.z);
             float size = indoors ? 4.3f : fl > 0 ? 4f : 6.5f;      // sous la montagne : vue rapprochée
             var room = fl > 0 && CrawlerFog.Instance != null ? CrawlerFog.Instance.CurrentRoom : null;
-            if (room.HasValue)
+            // une salle à la fois : la caméra se cale sur la salle (murs compris) tant qu'on y est. Le passage
+            // salle ↔ couloir se fait en fondu (plus de saut au seuil des portes)
+            if (room.HasValue) camRoom = room.Value;
+            camRoomBlend = Mathf.MoveTowards(camRoomBlend, room.HasValue ? 1f : 0f, Time.unscaledDeltaTime * 2.2f);
+            if (fl <= 0) camRoomBlend = 0f;
+            if (camRoomBlend > 0f)
             {
-                // une salle à la fois : la caméra se cale sur la salle (murs compris) tant qu'on y est
-                var r = room.Value;
+                var r = camRoom;
                 float hw = size * cam.aspect, hh = size;
                 float cx = r.x + r.width * 0.5f, cy = r.y + r.height * 0.5f;
-                target.x = r.width + 2 > hw * 2f ? Mathf.Clamp(target.x, r.xMin - 1 + hw, r.xMax + 1 - hw) : cx;
-                target.y = r.height + 2 > hh * 2f ? Mathf.Clamp(target.y, r.yMin - 1 + hh, r.yMax + 1 - hh) : cy;
+                var locked = target;
+                locked.x = r.width + 2 > hw * 2f ? Mathf.Clamp(target.x, r.xMin - 1 + hw, r.xMax + 1 - hw) : cx;
+                locked.y = r.height + 2 > hh * 2f ? Mathf.Clamp(target.y, r.yMin - 1 + hh, r.yMax + 1 - hh) : cy;
+                target = Vector3.Lerp(target, locked, Mathf.SmoothStep(0f, 1f, camRoomBlend));
             }
             if (indoors)
             {
@@ -366,7 +379,7 @@ public class CrawlerMode : MonoBehaviour
                 target.x = r.width > hw * 2f ? Mathf.Clamp(target.x, r.xMin + hw - 0.5f, r.xMax - hw + 0.5f) : r.center.x;
                 target.y = r.height > hh * 2f ? Mathf.Clamp(target.y, r.yMin + hh - 1f, r.yMax - hh) : r.center.y;
             }
-            cam.transform.position = Vector3.Lerp(cam.transform.position, target, 1f - Mathf.Exp(-8f * Time.unscaledDeltaTime));
+            cam.transform.position = Vector3.Lerp(cam.transform.position, target, 1f - Mathf.Exp(-6f * Time.unscaledDeltaTime));
             cam.orthographicSize = Mathf.Lerp(cam.orthographicSize, size, Time.unscaledDeltaTime * 2f);
         }
         // Dedans : on voit l'intérieur de la montagne ; dehors : le volcan
@@ -399,6 +412,8 @@ public class CrawlerMode : MonoBehaviour
     }
 
     private int fogFloor = -1;
+    private RectInt camRoom;
+    private float camRoomBlend;
 
     /// <summary>Brouillard de guerre : sous la montagne, seule la salle du héros est visible.</summary>
     private void UpdateFog(int fl, Vector2 pp)
@@ -690,6 +705,12 @@ public class CrawlerMode : MonoBehaviour
             if (st == null || Vector2.Distance(st.transform.position, p) > 1.2f) continue;
             int t = st.Target;
             bool down = st.down;
+            if (st.Sealed)
+            {
+                string who = st.GuardianName;
+                act = () => { GameHUD.Toast($"L'escalier est scellé : vaincre {who} pour descendre", GameHUD.WarningColor); Sfx.Play("ui_error", null, 0.5f); };
+                return $"Scellé — vaincre {who}";
+            }
             act = () => Player.Gesture(false, 0.35f, () => GoToFloor(t, down));
             return down ? $"Descendre : étage {t} — {CrawlerDungeon.FloorNames[t]}" : $"Remonter à l'étage {t}";
         }
@@ -735,6 +756,7 @@ public class CrawlerMode : MonoBehaviour
         var u = g.GetComponent<MonsterUnit>();
         int stage = u != null ? u.stage : 1;
         bool guardian = g.GetComponent<MonsterMind>()?.IsGuardian == true;
+        if (guardian && floor > 0) bossesDefeated.Add(floor);
         int reward = 3 + 4 * stage + Mathf.Max(0, floor) * 2 + rng.Next(0, 5) + (guardian ? 150 : 0);
         CrawlerContracts.OnKill(u != null ? u.familyId : null, floor, guardian);
         if (guardian) GiveItem(CrawlerGear.Roll(Mathf.Max(1, floor), Player.role, rng, CrawlerGear.Rarity.Rare), g.transform.position);
@@ -1120,6 +1142,7 @@ public class CrawlerMode : MonoBehaviour
                 s.companions.Add(new CompanionSave { name = c.displayName, role = (int)c.role, rank = c.rank, female = c.female,
                                                      health = c.Combat.maxHealth > 0f ? c.Combat.currentHealth / c.Combat.maxHealth : 1f });
         s.lootedChests.AddRange(lootedChests);
+        s.bosses.AddRange(bossesDefeated);
         var o = CrawlerOverlord.Instance;
         if (o != null)
         {
@@ -1144,6 +1167,7 @@ public class CrawlerMode : MonoBehaviour
         foreach (var c in s.active) CrawlerContracts.Active.Add(LoadContract(c));
         lootedChests.Clear();
         foreach (var k in s.lootedChests) lootedChests.Add(k);
+        foreach (var b in s.bosses) bossesDefeated.Add(b);
         Player.SetTier(1 + armorLvl);
         Player.ApplyLook();
         RefreshStats(true);

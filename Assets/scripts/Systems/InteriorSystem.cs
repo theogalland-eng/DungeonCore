@@ -571,7 +571,9 @@ public class InteriorSystem : MonoBehaviour
     /// <summary>Recrée l'encart (après un achat).</summary>
     public void RefreshPanel()
     {
-        if (current == null) return;
+        // seulement si l'encart plein écran est ouvert : dans un intérieur « physique », la boutique est une fenêtre
+        // à part, et recréer l'encart ici en faisait une seconde, impossible à fermer
+        if (current == null || panel == null || Physical) return;
         if (panel != null) Destroy(panel.gameObject);
         ShowPanel(current);
     }

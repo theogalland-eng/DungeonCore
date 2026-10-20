@@ -167,6 +167,7 @@ public class CrawlerSave
     public List<ContractSave> active = new List<ContractSave>();
     public List<CompanionSave> companions = new List<CompanionSave>();
     public List<string> lootedChests = new List<string>();
+    public List<int> bosses = new List<int>();          // étages dont le gardien est vaincu
     public float overlordEssence = 60f, overlordSpent;
     public int overlordRooms, overlordEvolved, overlordReinforced, overlordTraps;
 }

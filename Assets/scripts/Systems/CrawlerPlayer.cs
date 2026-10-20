@@ -13,7 +13,7 @@ using UnityEngine.InputSystem;
 public class CrawlerPlayer : MonoBehaviour
 {
     public AdventurerAI.Role role;
-    public float speed = 3.6f;
+    public float speed = 4f;
     public float baseHp, baseDmg;
     public float skillCooldown = 8f;
 
@@ -183,10 +183,8 @@ public class CrawlerPlayer : MonoBehaviour
         if (InGesture) { move = Vector2.zero; Animate(); return; }
         if (move.sqrMagnitude > 0.01f) facing = move.normalized;
 
-        // course : Maj, gâchette, ou joystick poussé à fond
-        bool runHeld = (kb != null && kb.leftShiftKey.isPressed) || (pad != null && pad.leftStickButton.isPressed) ||
-                       VirtualJoystick.Value.magnitude > 0.92f;
-        UpdateStamina(runHeld);
+        // plus de course (mécanique sans intérêt) : l'endurance sert à la roulade
+        UpdateStamina(false);
 
         bool roll = touchRoll || (kb != null && (kb.leftCtrlKey.wasPressedThisFrame || kb.rightCtrlKey.wasPressedThisFrame)) ||
                     (pad != null && pad.rightShoulder.wasPressedThisFrame);

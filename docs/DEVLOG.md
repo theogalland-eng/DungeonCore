@@ -338,3 +338,11 @@ Mise en ligne du projet sur GitHub (ce dépôt), avec cette documentation.
 - 🔘 **Colonne en haut à gauche** : Menu, Talents, Vue île, puis Colonie en dessous quand elle existe, sans trou ; les points de talent s'affichent dans une pastille au coin du bouton (ils débordaient sous la colonne).
 - 👆 **Panneau de sélection** masqué quand aucun monstre n'est sélectionné ; un petit bouton « Tous les monstres » le remplace.
 - 🗂️ **Pièges et décors rangés** en sections avec en-têtes — pièges au sol, muraux, de l'étage, portes et mécanismes ; décor utile, lumières, cristaux et nature, macabre, mobilier et trophées, trésors et prestige — triés par niveau requis puis par coût.
+
+### Mode Aventurier : boutique, course, caméra, gardiens
+
+- 🛒 **Fenêtre d'achat dupliquée** impossible à fermer : un achat recréait l'ancien encart plein écran des intérieurs par-dessus la boutique. Corrigé.
+- 🏃 **Plus de sprint** (mécanique sans intérêt) ; la marche est un peu plus rapide et la jauge d'endurance sert à la roulade.
+- 🎥 **Caméra rapprochée sans à-coups** : le passage salle ↔ couloir se fait en fondu (avant, la caméra changeait de cible d'un coup au seuil des portes). Vérifié en marchant d'une salle à l'autre : plus de saut d'une image à l'autre.
+- 👑 **Un gardien à chaque étage, escalier scellé** : de l'étage 1 (nouveau : Krog le Chef de bande) à l'étage 9, un boss nommé garde la salle de l'escalier ; la descente est scellée par un cercle de runes tant qu'il vit (« Scellé — vaincre … »). Un gardien vaincu le reste, même quand l'étage est recréé (sauvegardé).
+- 🪜 La salle de l'escalier de descente est fixée à la génération : les salles creusées plus tard par l'Esprit du Noyau ne déplacent plus l'escalier ni le point d'arrivée.

@@ -197,6 +197,88 @@ public static class DevInspect3
         return string.Join(" | ", cat.items.Where(i => i.kind == ItemKind.Trap || i.kind == ItemKind.Decor)
             .Select(i => $"{i.category}:{i.id}={i.displayName}(L{i.unlockLevel},{i.cost},p{i.prestige})"));
     }
+    static Vector3 walkFrom, walkTo; static float walkT, maxCamStep, maxCamSpeed, maxDt; static string jumpAt = "", lagAt = "", timeline = "", lastRoomKey = ""; static float maxLag; static int walkFrame; static readonly System.Collections.Generic.List<Vector3> walkPath = new System.Collections.Generic.List<Vector3>(); static Vector3 lastCam;
+    /// <summary>Fait marcher le héros d'une salle à la suivante (4 cases/s) et mesure le plus grand saut de caméra par image.</summary>
+    public static string CamWalkTest()
+    {
+        var c = CrawlerMode.Instance;
+        var f = c.FloorData(Mathf.Max(1, c.floor));
+        // chemin réel (couloirs) de la salle d'arrivée à la salle la plus éloignée, par parcours en largeur
+        var b = DungeonBuilder.Instance;
+        var start = f.rooms[0].CenterCell; var goal = f.Last.CenterCell;
+        var prev = new System.Collections.Generic.Dictionary<Vector3Int, Vector3Int> { [start] = start };
+        var q = new System.Collections.Generic.Queue<Vector3Int>(); q.Enqueue(start);
+        while (q.Count > 0 && !prev.ContainsKey(goal))
+        {
+            var c0 = q.Dequeue();
+            foreach (var d in new[] { Vector3Int.up, Vector3Int.down, Vector3Int.left, Vector3Int.right })
+            { var n = c0 + d; if (prev.ContainsKey(n) || b.stoneTilemap.HasTile(n) || !b.floorTilemap.HasTile(n)) continue; prev[n] = c0; q.Enqueue(n); }
+        }
+        walkPath.Clear();
+        if (prev.ContainsKey(goal)) for (var c1 = goal; ; c1 = prev[c1]) { walkPath.Insert(0, b.floorTilemap.GetCellCenterWorld(c1)); if (c1 == start) break; }
+        walkFrom = walkPath.Count > 0 ? walkPath[0] : f.rooms[0].Center; walkTo = walkPath.Count > 0 ? walkPath[walkPath.Count - 1] : walkFrom;
+        walkT = 0f; timeline = ""; lastRoomKey = "?"; maxLag = 0f; maxCamStep = 0f; maxCamSpeed = 0f; maxDt = 0f; lastCam = Camera.main.transform.position;
+        UnityEditor.EditorApplication.update -= WalkTick;
+        UnityEditor.EditorApplication.update += WalkTick;
+        return $"marche {walkPath.Count} cases {walkFrom} -> {walkTo}";
+    }
+    static void WalkTick()
+    {
+        if (!Application.isPlaying || CrawlerMode.Instance == null) { UnityEditor.EditorApplication.update -= WalkTick; return; }
+        if (Time.frameCount == walkFrame) return;   // une seule avancée par image de jeu
+        walkFrame = Time.frameCount;
+        float dist = Mathf.Max(0.1f, walkPath.Count - 1);
+        walkT = Mathf.Min(1f, walkT + Time.unscaledDeltaTime * 4f / dist);
+        float fi = walkT * (walkPath.Count - 1); int i0 = Mathf.Clamp(Mathf.FloorToInt(fi), 0, Mathf.Max(0, walkPath.Count - 1)), i1 = Mathf.Min(i0 + 1, walkPath.Count - 1);
+        var p = walkPath.Count > 0 ? Vector3.Lerp(walkPath[i0], walkPath[i1], fi - i0) : walkFrom;
+        var pl = CrawlerMode.Instance.Player;
+        pl.transform.position = p; var rb = pl.GetComponent<Rigidbody2D>(); if (rb != null) rb.position = p;
+        var cp = Camera.main.transform.position;
+        float lag = Vector2.Distance(cp, p);
+        var curRoom = CrawlerFog.Instance != null ? CrawlerFog.Instance.CurrentRoom : null;
+        string rk = curRoom.HasValue ? curRoom.Value.x.ToString() : "-";
+        if (rk != lastRoomKey) { lastRoomKey = rk; timeline += $" [{walkT:0.00} salle={rk} fondu={(float)typeof(CrawlerMode).GetField("camRoomBlend", NP).GetValue(CrawlerMode.Instance):0.00} cell={DungeonBuilder.Instance.floorTilemap.WorldToCell(p)}]"; }
+        if (lag > maxLag)
+        {
+            maxLag = lag;
+            var cm = CrawlerMode.Instance;
+            lagAt = $"retard {lag:0.0} à t={walkT:0.00} héros={p} cam={cp} fl={cm.FloorAt(p)} floor={cm.floor} salle={CrawlerFog.Instance?.CurrentRoom} " +
+                    $"fondu={typeof(CrawlerMode).GetField("camRoomBlend", NP).GetValue(cm)} camSalle={typeof(CrawlerMode).GetField("camRoom", NP).GetValue(cm)}";
+        }
+        float step = Vector2.Distance(cp, lastCam), dt = Time.unscaledDeltaTime;
+        maxCamStep = Mathf.Max(maxCamStep, step);
+        maxDt = Mathf.Max(maxDt, dt);
+        if (dt > 0.001f && dt < 0.1f && step / dt > maxCamSpeed)
+        {
+            maxCamSpeed = step / dt;
+            jumpAt = $"t={walkT:0.00} héros={p} cam={cp} salle={CrawlerFog.Instance?.CurrentRoom} taille={Camera.main.orthographicSize:0.00} frame={Time.frameCount}";
+        }
+        lastCam = cp;
+        if (walkT >= 1f) UnityEditor.EditorApplication.update -= WalkTick;
+    }
+    public static string CamWalkResult() => $"fini={walkT >= 1f} saut max caméra={maxCamStep:0.000} u/image, vitesse max {maxCamSpeed:0.0} u/s (héros 4), image la plus longue {maxDt * 1000f:0} ms || {lagAt} || {timeline}";
+    /// <summary>Gardien et sceau de l'étage courant ; ToStairs : le héros va devant l'escalier de descente.</summary>
+    public static string SealState()
+    {
+        var c = CrawlerMode.Instance;
+        var f = c.FloorData(Mathf.Max(1, c.floor));
+        string st = "";
+        foreach (var s in CrawlerStairs.All) if (s != null && s.down && s.floor == f.number) st = $"escalier scellé={s.Sealed} gardien={s.GuardianName} pos={s.transform.position}";
+        return $"étage {f.number} gardien={(f.guardian != null ? f.guardian.gobelinName + " pv " + f.guardian.currentHealth : "aucun")} | {st} | invite={Invite(c)}";
+    }
+    static string Invite(CrawlerMode c)
+    {
+        var args = new object[] { null };
+        return (string)typeof(CrawlerMode).GetMethod("InteractionLabel", NP).Invoke(c, args);
+    }
+    public static string KillGuardian()
+    {
+        var c = CrawlerMode.Instance;
+        var f = c.FloorData(Mathf.Max(1, c.floor));
+        if (f.guardian == null) return "pas de gardien";
+        f.guardian.TakeDamage(999999f);
+        return "gardien frappé";
+    }
     public static int fogRoom;
     /// <summary>Téléporte le héros au centre de la salle suivante de l'étage (test du brouillard de guerre).</summary>
     public static string FogNextRoom()
