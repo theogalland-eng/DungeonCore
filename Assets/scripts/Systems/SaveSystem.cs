@@ -243,6 +243,26 @@ public class SaveSystem : MonoBehaviour
         GameHUD.Toast($"Partie chargée : jour {d.day}", GameHUD.GoldColor);
     }
 
+    private static void UpdateGraphsAround(List<Vector3Int> cells, DungeonBuilder builder, DungeonLayers layers)
+    {
+        if (AstarPath.active == null || builder == null || cells.Count == 0) return;
+        var boxes = new Dictionary<int, Bounds>();
+        foreach (var c in cells)
+        {
+            int k = layers != null ? layers.IndexAtCell(c) : 0;
+            var p = builder.floorTilemap.GetCellCenterWorld(c);
+            if (boxes.TryGetValue(k, out var b)) { b.Encapsulate(p); boxes[k] = b; }
+            else boxes[k] = new Bounds(p, Vector3.one);
+        }
+        foreach (var b in boxes.Values)
+        {
+            var e = b;
+            e.Expand(new Vector3(6f, 6f, 2f));
+            AstarPath.active.UpdateGraphs(e);
+        }
+        AstarPath.active.FlushGraphUpdates();
+    }
+
     private static Vector3Int Cell(List<int> flat, int i) => new Vector3Int(flat[i], flat[i + 1], 0);
 
     public void Apply(SaveData d)
@@ -279,7 +299,11 @@ public class SaveSystem : MonoBehaviour
             if (d.coreHealth > 0f) core.currentHealth = Mathf.Min(core.maxHealth, d.coreHealth);
         }
 
-        // Cases creusées / remblayées
+        // Cases creusées / remblayées (notées : seul le graphe autour d'elles est recalculé, pas toute l'île)
+        var changed = new List<Vector3Int>();
+        if (layers != null)
+            for (int i = 1; i < layers.layers.Count && i < d.layers.Count; i++)
+                if (d.layers[i].unlocked) changed.Add(layers.layers[i].landingCell);
         if (builder != null && territory != null)
         {
             var saved = new HashSet<Vector3Int>();
@@ -291,6 +315,7 @@ public class SaveSystem : MonoBehaviour
             {
                 if (!stone.HasTile(c) && territory.IsDungeonGround(c)) continue;
                 stone.SetTile(c, null);
+                changed.Add(c);
                 AutoWallTile.RefreshAround(stone, c);
                 floor.SetTile(c, layers != null ? layers.FloorTileFor(c) : builder.floorTile);
                 layers?.TintCell(floor, c, false);
@@ -301,6 +326,7 @@ public class SaveSystem : MonoBehaviour
                 if (saved.Contains(c)) continue;
                 var wall = layers != null ? layers.WallTileFor(c) : builder.stoneTile;
                 stone.SetTile(c, wall != null ? wall : builder.stoneTile);
+                changed.Add(c);
                 AutoWallTile.RefreshAround(stone, c);
                 layers?.TintCell(stone, c, true);
             }
@@ -311,10 +337,15 @@ public class SaveSystem : MonoBehaviour
         if (layers != null)
             for (int i = 1; i < layers.layers.Count && i < d.layers.Count; i++)
                 if (d.layers[i].connected && !layers.layers[i].connected)
-                    layers.ConnectLayer(i, new Vector3Int(d.layers[i].stairsX, d.layers[i].stairsY, 0));
+                {
+                    var st = new Vector3Int(d.layers[i].stairsX, d.layers[i].stairsY, 0);
+                    layers.ConnectLayer(i, st);
+                    changed.Add(st);
+                }
 
-        // Graphe de déplacement recalculé d'un bloc
-        if (AstarPath.active != null) AstarPath.active.Scan();
+        // Graphe de déplacement : mis à jour zone par zone autour des cases modifiées (un scan complet de l'île
+        // prenait plusieurs secondes sur téléphone)
+        UpdateGraphsAround(changed, builder, layers);
         territory?.Recompute();
 
         // Murs décoratifs

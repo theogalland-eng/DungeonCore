@@ -79,6 +79,25 @@ public static class SoakTest
         return n + DevInspect.Shot(core.x - 1.5f, core.y + 1f, 2.6f, 1600, 1000, "shade");
     }
 
+    /// <summary>Durées du démarrage : scan A* complet, régime des tuiles, recalcul du territoire.</summary>
+    public static string StartupCost()
+    {
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        AstarPath.active.Scan();
+        long scan = sw.ElapsedMilliseconds; sw.Restart();
+        DungeonTerritory.Instance?.Recompute();
+        long terr = sw.ElapsedMilliseconds;
+        var g = AstarPath.active.data.gridGraph;
+        int tiles = 0, maps = 0;
+        foreach (var tm in Object.FindObjectsByType<UnityEngine.Tilemaps.Tilemap>(FindObjectsSortMode.None)) { maps++; tiles += tm.GetUsedTilesCount() > 0 ? CountTiles(tm) : 0; }
+        return $"scan A* {scan} ms ({g.width}x{g.depth} = {g.width * g.depth} noeuds), territoire {terr} ms, tilemaps {maps} ({tiles} tuiles), GO {Object.FindObjectsByType<GameObject>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length}, colliders {Object.FindObjectsByType<Collider2D>(FindObjectsSortMode.None).Length}";
+    }
+
+    static int CountTiles(UnityEngine.Tilemaps.Tilemap tm)
+    {
+        var b = tm.cellBounds; return tm.GetTilesBlock(b).Count(t => t != null);
+    }
+
     public static string Report() => File.Exists(LogPath) ? File.ReadAllText(LogPath) : "aucun relevé";
 
     /// <summary>Objets dont le nombre a le plus augmenté depuis le début.</summary>

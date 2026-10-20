@@ -158,7 +158,9 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        TileDiet.Run();   // ~45 000 tuiles animées de l'île ramenées à la seule bande côtière (fluidité sur téléphone)
+        // ~45 000 tuiles animées de l'île ramenées à la seule bande côtière (fluidité sur téléphone) ;
+        // normalement déjà fait dans la scène (DungeonCore > Alléger les tuiles animées) : rien à refaire
+        TileDiet.Run();
         foreach (var l in FindObjectsByType<Light2D>(FindObjectsSortMode.None))
         {
             if (l.lightType == Light2D.LightType.Global)

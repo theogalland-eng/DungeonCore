@@ -14,12 +14,14 @@ public static class TileDiet
 {
     private const int ShoreBand = 5;
     private static bool done;
+    /// <summary>Éditeur : fabrique des copies fixes enregistrées comme fichiers (allègement fait une fois dans la scène).</summary>
+    public static System.Func<string, Sprite, Tile.ColliderType, Tile> MakeCopy;
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ResetStatic() => done = false;
 
-    public static string Run()
+    public static string Run(bool force = false)
     {
-        if (done) return "déjà fait";
+        if (done && !force) return "déjà fait";
         done = true;
         Tilemap blocked = null, water = null;
         var land = new List<Tilemap>();
@@ -29,7 +31,9 @@ public static class TileDiet
             else if (tm.name == "T_Eau") water = tm;
             else if (tm.name == "T_Sable" || tm.name == "T_Herbe" || tm.name == "T_Roche" || tm.name == "T_Jungle") land.Add(tm);
         }
+        if (!force && blocked != null && blocked.GetComponent<TileDietBaked>() != null) return "déjà allégé dans la scène";
         int a = blocked != null ? Freeze(blocked, null) : 0;
+        if (MakeCopy != null && blocked != null && blocked.GetComponent<TileDietBaked>() == null) blocked.gameObject.AddComponent<TileDietBaked>();
         int b = water != null ? Freeze(water, ShoreCells(water, land)) : 0;
         return $"tuiles figées : collisions {a}, large {b}";
     }
@@ -56,11 +60,15 @@ public static class TileDiet
                     var key = (t.name, sprite, col);
                     if (!copies.TryGetValue(key, out var copy))
                     {
-                        copy = ScriptableObject.CreateInstance<Tile>();
-                        copy.name = t.name;                    // les requêtes testent le nom (« sea »)
-                        copy.sprite = sprite;
-                        copy.colliderType = col;
-                        copy.flags = TileFlags.None;
+                        if (MakeCopy != null) copy = MakeCopy(t.name, sprite, col);
+                        else
+                        {
+                            copy = ScriptableObject.CreateInstance<Tile>();
+                            copy.name = t.name;                    // les requêtes testent le nom (« sea »)
+                            copy.sprite = sprite;
+                            copy.colliderType = col;
+                            copy.flags = TileFlags.None;
+                        }
                         copies[key] = copy;
                     }
                     block[i] = copy;
