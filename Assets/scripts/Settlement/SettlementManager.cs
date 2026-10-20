@@ -181,6 +181,31 @@ public class SettlementManager : MonoBehaviour
         }
     }
 
+    /// <summary>La maison du héros existe-t-elle (chantier compris) ?</summary>
+    public bool HasHeroHome => buildings.Any(b => b != null && b.def.id == "hero_home");
+    public SettlementBuilding HeroHome => buildings.FirstOrDefault(b => b != null && b.def.id == "hero_home");
+
+    /// <summary>
+    /// Mode Aventurier : la maison commandée au charpentier. Le chantier est payé d'avance ; les colons le bâtissent
+    /// sous les yeux du joueur (cadre de rondins, silhouette, barre d'avancement).
+    /// </summary>
+    public SettlementBuilding PlaceHeroHome(bool complete, float progress = 0f)
+    {
+        if (Site == null) return null;
+        var found = HeroHome;
+        if (found != null) return found;
+        var def = SettlementPlan.Get("hero_home");
+        var plot = Site.plots.Find(p => p.buildingId == "hero_home");
+        if (def == null || plot == null) return null;
+        for (int k = 0; k < 80; k++) { var t = TreeInRect(plot.rect); if (t == null) break; FellTree(t); t.gameObject.SetActive(false); }
+        var b = SettlementBuilding.Create(def, plot.rect, root, complete);
+        b.paid = true;
+        if (!complete && progress > 0f) { b.progress = Mathf.Clamp01(progress); b.Work(0f); }
+        buildings.Add(b);
+        OnChanged?.Invoke();
+        return b;
+    }
+
     /// <summary>Mode Aventurier : la colonie est d'emblée une ville (tous les chantiers finis, parcelles dégagées).</summary>
     public void BuildInstantly(int toStage)
     {
@@ -248,7 +273,12 @@ public class SettlementManager : MonoBehaviour
     /// </summary>
     public void RefreshCityLook()
     {
-        if (Site == null || routes == null || Site.cityStreets == null) return;
+        if (Site == null) return;
+        // enceinte : palissade au stade Village, remparts de pierre une fois fortifiée
+        CityWalls.Apply(Site, Outpost ? CityWalls.Kind.None
+            : stage >= SettlementPlan.FortifiedStage ? CityWalls.Kind.Stone
+            : stage >= SettlementPlan.PalisadeStage ? CityWalls.Kind.Palisade : CityWalls.Kind.None);
+        if (routes == null || Site.cityStreets == null) return;
         bool paved = stage >= SettlementPlan.FortifiedStage && !Outpost;
         if (paved == streetsPaved) return;
         var tile = paved ? Site.streetBrick : Site.streetDirt;

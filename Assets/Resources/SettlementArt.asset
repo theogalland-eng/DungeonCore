@@ -283,6 +283,27 @@ MonoBehaviour:
   - name: town_4
     frames:
     - {fileID: 21300000, guid: d2f05d18a0dde884f83b0d5bb0f224b0, type: 3}
+  - name: palisade_h
+    frames:
+    - {fileID: 21300000, guid: a2915ba8ce58f1a438b1d56a8dedcfc7, type: 3}
+  - name: palisade_v
+    frames:
+    - {fileID: 21300000, guid: 9e9af5ff79f748348a90f5f023657ff5, type: 3}
+  - name: wall_h
+    frames:
+    - {fileID: 21300000, guid: f5a13a42a4b45da4bb376e0f4cb7f5a5, type: 3}
+  - name: wall_tower
+    frames:
+    - {fileID: 21300000, guid: a68e771b03f01a4449f3d521a236b453, type: 3}
+  - name: wall_v
+    frames:
+    - {fileID: 21300000, guid: 1a5945347aa76da43a1cce3fb4ab1d2f, type: 3}
+  - name: wall_v_cap
+    frames:
+    - {fileID: 21300000, guid: 45efc122fcef63145ba5ddf61c56e6a8, type: 3}
+  - name: wall_v_face
+    frames:
+    - {fileID: 21300000, guid: 3b7064f2adaae814981082b5cab057a8, type: 3}
   stamps:
   - id: chapel
     size: {x: 11.5, y: 8}

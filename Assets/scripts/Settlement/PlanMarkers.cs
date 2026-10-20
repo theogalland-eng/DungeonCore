@@ -43,7 +43,9 @@ public class PlanMarkers : MonoBehaviour
 
     private void Refresh()
     {
+        // le terrain du héros : en mode Aventurier, tant que la maison n'est pas commandée
+        bool show = CrawlerMode.Active && (SettlementManager.Instance == null || !SettlementManager.Instance.HasHeroHome);
         foreach (var (go, adv) in signs)
-            if (go != null && adv && go.activeSelf != CrawlerMode.Active) go.SetActive(CrawlerMode.Active);
+            if (go != null && adv && go.activeSelf != show) go.SetActive(show);
     }
 }

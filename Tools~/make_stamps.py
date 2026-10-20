@@ -29,7 +29,7 @@ def pack(num, *rel):
         if not os.path.isdir(base):
             continue
         for d in os.listdir(base):
-            if d.startswith('craftpix-net-%s' % num):
+            if d.startswith('craftpix-net-%s' % num) and not d.endswith('.meta'):
                 return os.path.join(base, d, *rel)
     raise FileNotFoundError(num)
 
@@ -48,7 +48,7 @@ STAMPS = {
     'guild':   dict(tmx=lambda: pack(189780, 'Tiled_files', 'Exterior.tmx')),
     'magetower': dict(tmx=lambda: pack(289481, 'Tiled_files', 'Exterior.tmx'), drop=['Walls']),
     'glass':   dict(tmx=lambda: pack(692491, 'Tiled_files', 'Exterior.tmx')),
-    'farm':    dict(tmx=lambda: pack(471853, 'Tiled_files', 'Farm.tmx'), margin=None),
+    'farm':    dict(tmx=lambda: pack(471853, 'Tiled_files', 'Farm.tmx'), margin=None, feather=28),
     'training': dict(tmx=lambda: pack(626036, 'Tiled_files', 'Training_ground.tmx'), drop=['Tile Layer 33'], margin=None),
     'chapel':  dict(tmx=lambda: pack(160005, 'Tiled_files', 'Ruined_temple_exterior.tmx'), drop=['water', 'water_detailization', 'Discoverers'], ground=['site', 'House_platform', 'Bricks']),
     'market':  dict(tmx=lambda: pack(587497, 'Tiled_files', 'Market_square.tmx'), drop=['Walls_top'], margin=None),
@@ -351,6 +351,7 @@ def build(sid, opt):
         alpha = g.getchannel('A')
         from PIL import ImageChops
         g.putalpha(ImageChops.multiply(alpha, keep))
+    feather(g, opt.get('feather', 18))
     g.save(os.path.join(out, 'ground.png'))
     manifest = dict(id=sid, w=W, h=H, tile=tw, door=[round(door[0], 1), round(door[1], 1)], pieces=pieces)
     with open(os.path.join(out, sid + '.json'), 'w', encoding='utf-8') as f:
@@ -360,6 +361,28 @@ def build(sid, opt):
         kinds[p['kind']] = kinds.get(p['kind'], 0) + 1
     print('%-10s %4dx%-4d px  %2d morceaux %s  porte %s' % (sid, W, H, len(pieces), kinds, manifest['door']))
     return manifest
+
+
+def feather(img, width):
+    """Bords du sol fondus dans le terrain de l'île : tramage ordonné (pixel art) qui s'éclaircit vers le bord,
+    sur un bord légèrement bruité — plus de rectangle net autour des scènes."""
+    if not width:
+        return
+    import numpy as np
+    from scipy import ndimage
+    a = np.array(img.getchannel('A'))
+    inside = a > 0
+    dist = ndimage.distance_transform_edt(np.pad(inside, 1))[1:-1, 1:-1]   # le bord de l'image compte comme un bord
+    h, w = a.shape
+    rng = np.random.default_rng(7)
+    wob = ndimage.gaussian_filter(rng.random((h, w)), 6)
+    wob = (wob - wob.min()) / (wob.max() - wob.min() + 1e-9)
+    bayer = np.array([[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]]) / 16.0
+    thr = np.tile(bayer, (h // 4 + 1, w // 4 + 1))[:h, :w]
+    t = np.clip((dist - wob * width * 1.1) / (width * 0.5), 0, 1)
+    keep = inside & (t > thr)
+    a = np.where(keep, a, 0).astype(np.uint8)
+    img.putalpha(Image.fromarray(a))
 
 
 def preview(sid, scale=2):

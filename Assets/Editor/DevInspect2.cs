@@ -1806,5 +1806,37 @@ public static class DevInspect3
         return sb.ToString();
     }
     public static string TacticsCount() =>$"tactiques lancées : {GobelinAI.TacticsUsed}";
+
+    // ── logement du héros : fatigue, auberge, maison
+    static System.Reflection.MethodInfo M(string n) => typeof(CrawlerMode).GetMethod(n, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public);
+    public static string HomeState()
+    {
+        var c = CrawlerMode.Instance; var sm = SettlementManager.Instance; var h = sm?.HeroHome;
+        var gm = GameManager.Instance;
+        return $"or={c.gold} fatigue={c.fatigue:0.0} maison={c.heroHome} chantier={(h == null ? "-" : (h.IsComplete ? "fini" : (h.progress * 100f).ToString("0.0") + "%"))} " +
+               $"jour={gm?.CurrentDay} heure={gm?.DayProgress:0.00} pv={c.Player.Combat.currentHealth:0}/{c.Player.Combat.maxHealth:0} regen={c.Player.StaminaRegenMult:0.00} roul={c.Player.RollCostMult:0.00} dmg={c.Player.Combat.damageMult:0.00} pos={c.Player.transform.position}";
+    }
+    public static string GiveGold() { CrawlerMode.Instance.gold += 2000; return HomeState(); }
+    public static string Tired79() { CrawlerMode.Instance.fatigue = 79.9f; return HomeState(); }
+    public static string Tired99() { CrawlerMode.Instance.fatigue = 99.95f; return HomeState(); }
+    public static string GoHeroPlot()
+    {
+        var plot = SettlementManager.Instance.Site.plots.Find(p => p.buildingId == "hero_home");
+        var at = new Vector3(plot.rect.x + plot.rect.width / 2 + 0.5f, plot.rect.y - 0.3f, 0f);
+        var pl = CrawlerMode.Instance.Player;
+        pl.transform.position = at; var rb = pl.GetComponent<Rigidbody2D>(); if (rb) rb.position = at;
+        return "au terrain " + at;
+    }
+    public static string Prompt()
+    {
+        var mi = M("InteractionLabel");
+        var args = new object[] { null };
+        var label = mi.Invoke(CrawlerMode.Instance, args);
+        return "invite : " + (label ?? "(rien)");
+    }
+    public static string DoInteract() { CrawlerMode.Instance.Interact(); return Prompt() + " | " + HomeState(); }
+    public static string FastBuild() { var h = SettlementManager.Instance.HeroHome; if (h != null) h.Work(10000f); return HomeState(); }
+    public static string SleepInn() { CrawlerMode.Instance.Sleep(false); return "dodo"; }
+    public static string HomeShot() => DevInspect.Shot(-11f, -53f, 7f, 1600, 1000, "herohome");
 }
 #endif

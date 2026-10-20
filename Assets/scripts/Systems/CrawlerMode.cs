@@ -43,6 +43,17 @@ public class CrawlerMode : MonoBehaviour
     public float satiety = 100f;
     public int rations = 2;
     [Tooltip("Secondes pour passer de repu à affamé")] public float satietyDuration = 600f;
+    /// <summary>
+    /// Fatigue du héros (0 = reposé, 100 = il s'effondre). Elle monte avec le temps passé debout et à chaque étage
+    /// descendu ; manger ne suffit pas, seul un vrai sommeil la vide (chambre à la taverne, ou sa propre maison).
+    /// 50 % : l'endurance revient moins vite ; 80 % : coups plus faibles, roulade plus coûteuse ; 100 % : il s'effondre.
+    /// </summary>
+    public float fatigue;
+    [Tooltip("Secondes debout pour passer de reposé à épuisé")] public float fatigueDuration = 1500f;
+    public const float FatiguePerFloor = 6f;
+    /// <summary>Maison du héros : 0 rien, 1 terrain acheté, 2 maison commandée (chantier), 3 bâtie.</summary>
+    public int heroHome;
+    public const int PlotPrice = 500, HomePrice = 1000;
     /// <summary>Étage où se trouve le joueur (0 = dehors), et le plus profond atteint.</summary>
     public int floor, deepest, reportedDeepest;
 
@@ -65,7 +76,8 @@ public class CrawlerMode : MonoBehaviour
     private RectTransform hud, shop;
     private TextMeshProUGUI title, stats, prompt, partyText, banner;
     private RectTransform hpFill, skillFill, staminaFill, satietyFill;
-    private Image satietyImg;
+    private Image satietyImg, fatigueImg;
+    private RectTransform fatigueFill;
     private Image staminaImg;
     private Image fade;
     private float startTime;
@@ -503,6 +515,7 @@ public class CrawlerMode : MonoBehaviour
     private IEnumerator FloorRoutine(int target, bool fromAbove)
     {
         transitioning = true;
+        if (fromAbove && target > floor) AddFatigue(FatiguePerFloor);
         yield return Fade(1f, 0.35f);
         var f = Materialize(target);
         Vector3 at = fromAbove
@@ -635,6 +648,139 @@ public class CrawlerMode : MonoBehaviour
         if (satiety <= 0f && c.currentHealth > c.maxHealth * 0.8f) c.currentHealth = c.maxHealth * 0.8f;
         if (satiety < 25f && satiety + 100f / satietyDuration * Time.deltaTime >= 25f)
             GameHUD.Toast("Votre ventre gargouille (G : manger)", GameHUD.WarningColor);
+        TickFatigue(indoors);
+    }
+
+    // ─────────────────────────────────────────────
+    // FATIGUE ET SOMMEIL
+    // ─────────────────────────────────────────────
+
+    private void TickFatigue(bool indoors)
+    {
+        if (!indoors) AddFatigue(100f / fatigueDuration * Time.deltaTime);
+        if (fatigue >= 50f) Player.StaminaRegenMult *= 0.75f;
+        Player.RollCostMult = fatigue >= 80f ? 1.3f : 1f;
+        if (fatigue >= 80f) Player.Combat.damageMult *= 0.85f;
+        if (fatigue >= 100f && !transitioning) StartCoroutine(Collapse());
+        TickHeroHome();
+    }
+
+    private void AddFatigue(float v)
+    {
+        float before = fatigue;
+        fatigue = Mathf.Clamp(fatigue + v, 0f, 100f);
+        if (before < 50f && fatigue >= 50f) GameHUD.Toast("Vous êtes fatigué : une nuit à la taverne vous ferait du bien", GameHUD.WarningColor);
+        if (before < 80f && fatigue >= 80f) GameHUD.Toast("Épuisé : vos coups faiblissent, la roulade vous coûte", GameHUD.DangerColor);
+        if (before < 95f && fatigue >= 95f) GameHUD.Toast("Vous tenez à peine debout...", GameHUD.DangerColor);
+    }
+
+    private int RoomCost => 10 + 5 * PartyCount;
+
+    /// <summary>Le lendemain matin : on saute la nuit (le jour reprend tôt).</summary>
+    private static void NextMorning()
+    {
+        var gm = GameManager.Instance;
+        if (gm != null) gm.RestoreTime(gm.CurrentDay + 1, gm.dayLengthSeconds * 0.05f);
+    }
+
+    private void RestParty()
+    {
+        fatigue = 0f;
+        Player.Combat.currentHealth = Player.Combat.maxHealth;
+        foreach (var c in CrawlerCompanion.All) if (c != null && !c.IsDead) c.Combat.currentHealth = c.Combat.maxHealth;
+    }
+
+    /// <summary>Dormir (chambre de l'auberge, ou chez soi) : nuit sautée, santé pleine, fatigue effacée.</summary>
+    public void Sleep(bool home)
+    {
+        if (transitioning) return;
+        StartCoroutine(SleepRoutine(home));
+    }
+
+    private IEnumerator SleepRoutine(bool home)
+    {
+        transitioning = true;
+        CloseShop();
+        yield return Fade(1f, 0.6f);
+        RestParty();
+        NextMorning();
+        yield return new WaitForSecondsRealtime(0.8f);
+        yield return Fade(0f, 0.7f);
+        transitioning = false;
+        GameHUD.Toast(home ? "Une nuit chez soi : reposé et soigné" : "Une nuit à l'auberge : reposé et soigné", GameHUD.InfoColor);
+    }
+
+    private IEnumerator Collapse()
+    {
+        transitioning = true;
+        GameHUD.Toast("Épuisé, vous vous effondrez...", GameHUD.DangerColor);
+        yield return new WaitForSecondsRealtime(1.5f);
+        yield return Fade(1f, 0.5f);
+        if (InteriorSystem.Instance != null && InteriorSystem.Instance.Physical) InteriorSystem.Instance.ExitPhysical();
+        bool home = heroHome >= 3;
+        int paid = home ? 0 : Mathf.Min(gold, RoomCost + 15);
+        gold -= paid;
+        RestParty();
+        NextMorning();
+        WakeAt(home ? HomeDoor() : TavernDoor());
+        yield return Fade(0f, 0.6f);
+        transitioning = false;
+        StoryManager.Instance?.Play(home
+            ? new StoryManager.Line(string.IsNullOrWhiteSpace(HeroLook.HeroName) ? "Vous" : HeroLook.HeroName, "Réveillé chez moi, courbaturé... Je ne me souviens même pas d'être rentré.")
+            : new StoryManager.Line("La tavernière", paid > 0
+                ? $"On t'a trouvé endormi dans la boue. La chambre et les soins : {paid} pièces. La prochaine fois, monte te coucher avant de tomber."
+                : "On t'a trouvé endormi dans la boue. Pas un sou en poche... la chambre, je te l'offre. Une fois."));
+    }
+
+    private void WakeAt(Vector3 at)
+    {
+        TeleportParty(at);
+        var cam = Camera.main;
+        if (cam != null) cam.transform.position = new Vector3(at.x, at.y, cam.transform.position.z);
+    }
+
+    // ─────────────────────────────────────────────
+    // MAISON DU HÉROS
+    // ─────────────────────────────────────────────
+
+    private SettlementPlot HeroPlot() => SettlementManager.Instance?.Site?.plots.Find(p => p.buildingId == "hero_home");
+
+    private Vector3 HomeDoor()
+    {
+        var b = SettlementManager.Instance?.HeroHome;
+        return b != null && b.IsComplete ? DoorOf(b) + Vector3.down * 0.6f : TavernDoor();
+    }
+
+    private void BuyPlot()
+    {
+        if (!Pay(PlotPrice)) { GameHUD.Toast($"Il vous faut {PlotPrice} or pour ce terrain", GameHUD.WarningColor); return; }
+        heroHome = 1;
+        Sfx.Play("coin");
+        GameHUD.Toast("Le terrain est à vous ! Le charpentier attend votre commande (même endroit).", GameHUD.GoldColor);
+    }
+
+    private void OrderHome()
+    {
+        if (!Pay(HomePrice)) { GameHUD.Toast($"Le charpentier demande {HomePrice} or", GameHUD.WarningColor); return; }
+        heroHome = 2;
+        SettlementManager.Instance?.PlaceHeroHome(false);
+        Sfx.Play("coin");
+        GameHUD.Toast("Les charpentiers se mettent au travail : comptez trois jours", GameHUD.GoldColor);
+    }
+
+    /// <summary>Le chantier avance aussi sans ouvriers (le charpentier et ses commis) : ≈ 3 jours.</summary>
+    private void TickHeroHome()
+    {
+        if (heroHome != 2) return;
+        var b = SettlementManager.Instance?.HeroHome;
+        if (b == null) return;
+        if (!b.IsComplete && b.buildersPresent == 0) b.Work(Time.deltaTime);
+        if (b.IsComplete)
+        {
+            heroHome = 3;
+            ShowBanner("Votre maison est bâtie", "Dormir y est gratuit — et c'est là que vous vous réveillerez");
+            Sfx.Play("levelup");
+        }
     }
 
     private Sprite potionSprite;
@@ -720,6 +866,25 @@ public class CrawlerMode : MonoBehaviour
             act = () => GoToFloor(cp, true);
             return $"Cercle de passage : descendre à l'étage {cp}";
         }
+        var plot = HeroPlot();
+        if (plot != null && floor == 0)
+        {
+            var home = SettlementManager.Instance?.HeroHome;
+            if (heroHome >= 3 && home != null && Vector2.Distance(DoorOf(home), p) < 1.4f)
+            {
+                act = () => Sleep(true);
+                return "Dormir chez soi (gratuit)";
+            }
+            var sign = new Vector2(plot.rect.x + plot.rect.width / 2 + 0.5f, plot.rect.y + 0.5f);
+            if (heroHome < 3 && Vector2.Distance(sign, p) < 1.8f)
+            {
+                if (heroHome == 0) { act = BuyPlot; return $"Terrain à vendre près du port : {PlotPrice} or"; }
+                if (heroHome == 1) { act = OrderHome; return $"Commander votre maison au charpentier : {HomePrice} or"; }
+                int pct = home != null ? Mathf.RoundToInt(home.progress * 100f) : 0;
+                act = () => GameHUD.Toast("Les charpentiers s'affairent : revenez dans quelques jours", GameHUD.InfoColor);
+                return $"Chantier de votre maison : {pct} %";
+            }
+        }
         var b = DoorNear(1.4f);
         if (b != null) { act = () => Player.Gesture(false, 0.35f, () => EnterBuilding(b)); return $"Entrer : {b.def.name}"; }
         return null;
@@ -785,7 +950,9 @@ public class CrawlerMode : MonoBehaviour
         yield return Fade(1f, 0.4f);
         int lost = gold / 2;
         gold -= lost;
-        Vector3 at = TavernDoor();
+        fatigue = 0f;
+        NextMorning();
+        Vector3 at = heroHome >= 3 ? HomeDoor() : TavernDoor();
         Player.Revive(at);
         TeleportParty(at);
         foreach (var c in CrawlerCompanion.All) if (c != null && !c.IsDead) c.Combat.currentHealth = c.Combat.maxHealth;
@@ -933,13 +1100,12 @@ public class CrawlerMode : MonoBehaviour
         {
             case "tavern_host":
                 Line("<i>« Un lit, une soupe, et on n'en parle plus. Tes compagnons aussi, s'ils ont de quoi payer — c'est toi qui paies. »</i>", 70f);
-                int cost = 10 + 5 * PartyCount;
-                Button($"Se reposer ({cost} or) : santé pleine pour tout le groupe", () =>
+                int cost = RoomCost;
+                if (fatigue >= 50f) Line($"<color=#B9A8FF>Vous êtes {(fatigue >= 80f ? "épuisé" : "fatigué")} ({Mathf.RoundToInt(fatigue)} %).</color>", 30f);
+                Button($"Louer une chambre pour la nuit ({cost} or) : sommeil, santé pleine pour le groupe", () =>
                 {
                     if (!Pay(cost)) return;
-                    Player.Combat.currentHealth = Player.Combat.maxHealth;
-                    foreach (var c in CrawlerCompanion.All) if (c != null && !c.IsDead) c.Combat.currentHealth = c.Combat.maxHealth;
-                    GameHUD.Toast("Le groupe est reposé", GameHUD.InfoColor);
+                    Sleep(false);
                 }, gold >= cost);
                 Button("Une soupe chaude (6 or) : satiété pleine", () => { if (Pay(6)) { satiety = 100f; Sfx.Play("coin"); GameHUD.Toast("Rassasié", GameHUD.InfoColor); } }, gold >= 6);
                 Button("Provisions : 3 rations (14 or)", () => { if (Pay(14)) { rations += 3; Sfx.Play("coin"); } }, gold >= 14);
@@ -1131,6 +1297,7 @@ public class CrawlerMode : MonoBehaviour
             heroName = HeroLook.HeroName, hair = ColorText(HeroLook.Hair), skin = ColorText(HeroLook.Skin), outfit = ColorText(HeroLook.Outfit),
             gold = gold, potions = potions, rations = rations, recallStones = recallStones, kills = kills,
             weaponLvl = weaponLvl, armorLvl = armorLvl, rank = rank, deepest = deepest, reportedDeepest = reportedDeepest, trip = trip, satiety = satiety,
+            fatigue = fatigue, heroHome = heroHome, heroHomeProgress = SettlementManager.Instance?.HeroHome?.progress ?? 0f,
         };
         foreach (var it in bag) if (it != null) s.bag.Add(SaveGear(it));
         foreach (var it in equipped) if (it != null) s.equipped.Add(SaveGear(it));
@@ -1157,7 +1324,8 @@ public class CrawlerMode : MonoBehaviour
     {
         gold = s.gold; potions = s.potions; rations = s.rations; recallStones = s.recallStones; kills = s.kills;
         weaponLvl = s.weaponLvl; armorLvl = s.armorLvl; rank = s.rank; deepest = s.deepest; reportedDeepest = s.reportedDeepest;
-        trip = s.trip; satiety = s.satiety;
+        trip = s.trip; satiety = s.satiety; fatigue = s.fatigue; heroHome = s.heroHome;
+        if (heroHome >= 2) SettlementManager.Instance?.PlaceHeroHome(heroHome >= 3, s.heroHomeProgress);
         bag.Clear();
         foreach (var g in s.bag) bag.Add(LoadGear(g));
         foreach (var g in s.equipped) { var it = LoadGear(g); equipped[(int)it.slot] = it; }
@@ -1171,7 +1339,7 @@ public class CrawlerMode : MonoBehaviour
         Player.SetTier(1 + armorLvl);
         Player.ApplyLook();
         RefreshStats(true);
-        Vector3 at = TavernDoor();
+        Vector3 at = heroHome >= 3 ? HomeDoor() : TavernDoor();
         TeleportParty(at);
         int i = 0;
         foreach (var c in s.companions)
@@ -1231,7 +1399,7 @@ public class CrawlerMode : MonoBehaviour
         hud = UIKit.Stretch(UIKit.Rect("HUD", go.transform));
         SafeArea.Apply(hud);
 
-        var panel = UIKit.PanelBox("Statut", hud, new Vector2(0, 1), new Vector2(16, -16), new Vector2(600, 166));
+        var panel = UIKit.PanelBox("Statut", hud, new Vector2(0, 1), new Vector2(16, -16), new Vector2(600, 178));
         title = UIKit.LabelAt(panel, "", 26, UIKit.Gold, new Vector2(18, -10), new Vector2(570, 34));
         var bg = UIKit.PanelBox("PV", panel, new Vector2(0, 1), new Vector2(18, -52), new Vector2(560, 20), new Color(0.15f, 0.08f, 0.1f, 1f));
         hpFill = UIKit.Rect("Fill", bg);
@@ -1247,7 +1415,12 @@ public class CrawlerMode : MonoBehaviour
         satietyFill = UIKit.Rect("Fill", fbg);
         satietyImg = UIKit.Image(satietyFill, new Color(0.78f, 0.55f, 0.3f), false);
         satietyFill.anchorMin = Vector2.zero; satietyFill.anchorMax = new Vector2(1, 1); satietyFill.pivot = new Vector2(0, 0.5f); satietyFill.offsetMin = satietyFill.offsetMax = Vector2.zero;
-        stats = UIKit.LabelAt(panel, "", 20, UIKit.Text, new Vector2(18, -100), new Vector2(570, 60));
+        // fatigue : jauge violette sous la faim (seul le sommeil la vide)
+        var tbg = UIKit.PanelBox("Fatigue", panel, new Vector2(0, 1), new Vector2(18, -100), new Vector2(560, 9), new Color(0.08f, 0.08f, 0.12f, 1f));
+        fatigueFill = UIKit.Rect("Fill", tbg);
+        fatigueImg = UIKit.Image(fatigueFill, new Color(0.6f, 0.55f, 0.95f), false);
+        fatigueFill.anchorMin = Vector2.zero; fatigueFill.anchorMax = new Vector2(0, 1); fatigueFill.pivot = new Vector2(0, 0.5f); fatigueFill.offsetMin = fatigueFill.offsetMax = Vector2.zero;
+        stats = UIKit.LabelAt(panel, "", 20, UIKit.Text, new Vector2(18, -112), new Vector2(570, 60));
         stats.textWrappingMode = TextWrappingModes.Normal;
         partyText = UIKit.LabelAt(hud, "", 20, UIKit.Text, new Vector2(22, -192), new Vector2(560, 120));
         partyText.textWrappingMode = TextWrappingModes.Normal;
@@ -1358,10 +1531,14 @@ public class CrawlerMode : MonoBehaviour
         // à bout de souffle : la jauge rougit et clignote
         staminaImg.color = Player.Exhausted ? Color.Lerp(new Color(0.9f, 0.3f, 0.25f), new Color(0.5f, 0.15f, 0.12f), Mathf.PingPong(Time.unscaledTime * 3f, 1f))
                                             : new Color(0.95f, 0.8f, 0.35f);
+        fatigueFill.anchorMax = new Vector2(Mathf.Clamp01(fatigue / 100f), 1f);
+        fatigueImg.color = fatigue >= 80f ? Color.Lerp(new Color(0.75f, 0.45f, 0.95f), new Color(0.4f, 0.2f, 0.55f), Mathf.PingPong(Time.unscaledTime * 2f, 1f))
+                                          : new Color(0.6f, 0.55f, 0.95f);
         var interior = InteriorSystem.Instance;
         string where = interior != null && interior.Physical ? interior.CurrentTitle
                      : floor > 0 ? $"Étage {floor}/{CrawlerDungeon.FloorCount} — {CrawlerDungeon.FloorNames[floor]}" : "La ville du donjon";
-        string hungerTag = satiety <= 0f ? "   ·   <color=#FF8A7A>affamé</color>" : satiety < 25f ? "   ·   <color=#FFC266>faim</color>" : "";
+        string hungerTag = (satiety <= 0f ? "   ·   <color=#FF8A7A>affamé</color>" : satiety < 25f ? "   ·   <color=#FFC266>faim</color>" : "")
+                         + (fatigue >= 80f ? "   ·   <color=#C9A8FF>épuisé</color>" : fatigue >= 50f ? "   ·   <color=#B9B3FF>fatigué</color>" : "");
         stats.text = $"PV {Mathf.CeilToInt(c.currentHealth)}/{Mathf.RoundToInt(c.maxHealth)}   ·   <color=#FFD966>{gold} or</color>   ·   Potions {potions}   ·   Rations {rations}   ·   Rappel {recallStones}{hungerTag}\n" +
                      $"<size=85%><color=#B9B3CC>{where}   ·   record : étage {deepest}   ·   vaincus {kills}</color></size>";
         var sb = new System.Text.StringBuilder();

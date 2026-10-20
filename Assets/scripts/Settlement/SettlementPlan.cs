@@ -125,7 +125,7 @@ public static class SettlementPlan
             new BuildingDef { id = "tent_round", name = "Pavillon", stage = 6, w = 3, h = 2, wood = 12, buildTime = 20, pop = 2, sprite = "tent_round", prosperityPerDay = 2 },
 
             // ── Mode Aventurier : la maison du héros (terrain acheté, bâtie sur commande)
-            new BuildingDef { id = "hero_home", name = "Maison du héros", stage = -1, w = 14, h = 10, stamp = "hero_home",
+            new BuildingDef { id = "hero_home", name = "Maison du héros", stage = -1, w = 14, h = 10, stamp = "hero_home", buildTime = 340, light = true,
                 description = "Votre maison : on y dort gratuitement, coffre et armoire." },
         };
         for (int i = 0; i < Homes.Length; i++)

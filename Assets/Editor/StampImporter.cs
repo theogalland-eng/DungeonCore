@@ -56,9 +56,22 @@ public static class StampImporter
             }
             art.stamps.Add(st);
         }
+        // pièces de l'enceinte (Tools~/make_citywalls.py)
+        const string walls = "Assets/Art/Settlement/Walls";
+        int wn = 0;
+        if (Directory.Exists(walls))
+            foreach (var f in Directory.GetFiles(walls, "*.png").Select(x => x.Replace(Path.DirectorySeparatorChar, '/')))
+            {
+                var sp = ImportSingle(f, new Vector2(0.5f, 0f));
+                if (sp == null) continue;
+                string n = Path.GetFileNameWithoutExtension(f);
+                art.entries.RemoveAll(e => e.name == n);
+                art.entries.Add(new SettlementArt.Entry { name = n, frames = new[] { sp } });
+                wn++;
+            }
         EditorUtility.SetDirty(art);
         AssetDatabase.SaveAssets();
-        return $"{art.stamps.Count} tampons, {pieces} morceaux : " + string.Join(", ", art.stamps.Select(s => $"{s.id} {s.size.x:0.#}x{s.size.y:0.#}"));
+        return $"{wn} pièces d'enceinte, {art.stamps.Count} tampons, {pieces} morceaux : " + string.Join(", ", art.stamps.Select(s => $"{s.id} {s.size.x:0.#}x{s.size.y:0.#}"));
     }
 
     static TextureImporter Prepare(string path)

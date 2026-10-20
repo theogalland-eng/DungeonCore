@@ -160,6 +160,10 @@ public class CrawlerSave
     public int gold, potions, rations, recallStones, kills, weaponLvl, armorLvl, rank;
     public int deepest, reportedDeepest, trip;
     public float satiety = 100f;
+    public float fatigue;
+    /// <summary>Maison du héros : 0 rien, 1 terrain acheté, 2 chantier, 3 bâtie ; avancement du chantier.</summary>
+    public int heroHome;
+    public float heroHomeProgress;
     public List<GearSave> bag = new List<GearSave>();
     public List<GearSave> equipped = new List<GearSave>();
     public List<string> skills = new List<string>();

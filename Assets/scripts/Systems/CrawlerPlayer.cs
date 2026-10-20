@@ -33,6 +33,8 @@ public class CrawlerPlayer : MonoBehaviour
     public float Stamina01 => Mathf.Clamp01(Stamina / maxStamina);
     /// <summary>La faim ralentit la récupération (CrawlerMode).</summary>
     [System.NonSerialized] public float StaminaRegenMult = 1f;
+    /// <summary>Épuisé (fatigue ≥ 80 %) : la roulade coûte plus d'endurance.</summary>
+    [System.NonSerialized] public float RollCostMult = 1f;
     /// <summary>Bonus d'équipement : vitesse et récupération d'endurance.</summary>
     [System.NonSerialized] public float SpeedMult = 1f, GearStaminaMult = 1f;
     [System.NonSerialized] public bool touchEat;
@@ -248,13 +250,14 @@ public class CrawlerPlayer : MonoBehaviour
     private void Roll()
     {
         if (Rolling || Time.time < nextRoll) return;
-        if (Stamina < RollCost * 0.5f)
+        float rollCost = RollCost * RollCostMult;
+        if (Stamina < rollCost * 0.5f)
         {
             FloatingText.Spawn(transform.position + Vector3.up * 0.8f, "À bout de souffle", new Color(0.8f, 0.8f, 0.9f), 0.8f);
             nextRoll = Time.time + 0.4f;
             return;
         }
-        Stamina = Mathf.Max(0f, Stamina - RollCost);
+        Stamina = Mathf.Max(0f, Stamina - rollCost);
         lastEffort = Time.time;
         if (Stamina <= 0f) Exhausted = true;
         rollDir = move.sqrMagnitude > 0.01f ? move.normalized : facing;
