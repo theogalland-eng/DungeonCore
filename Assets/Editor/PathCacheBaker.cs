@@ -28,6 +28,9 @@ public static class PathCacheBaker
         var gg = ap.data.gridGraph;
         if (gg == null) return "pas de grille";
         gg.cutCorners = false;                  // comme AdventurerAI.FixGraphCorners au lancement
+        // collisions des tilemaps à jour (juste après une génération, l'éditeur ne les a pas encore reconstruites)
+        foreach (var tc in Object.FindObjectsByType<UnityEngine.Tilemaps.TilemapCollider2D>(FindObjectsSortMode.None)) tc.ProcessTilemapChanges();
+        foreach (var cc in Object.FindObjectsByType<CompositeCollider2D>(FindObjectsSortMode.None)) cc.GenerateGeometry();
         Physics2D.SyncTransforms();
         var sw = System.Diagnostics.Stopwatch.StartNew();
         ap.Scan();
@@ -79,6 +82,13 @@ public static class PathCacheBaker
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
         return $"{r} — {made} tuiles fixes créées";
+    }
+
+    /// <summary>En jeu : scan complet à l'instant (référence pour vérifier le précalcul).</summary>
+    public static string LiveScan()
+    {
+        AstarPath.active.Scan();
+        return "scan en jeu : " + Check();
     }
 
     /// <summary>En jeu : cases praticables du graphe chargé (pour comparer au précalcul).</summary>

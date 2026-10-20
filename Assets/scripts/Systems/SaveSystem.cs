@@ -318,8 +318,33 @@ public class SaveSystem : MonoBehaviour
 
     private static Vector3Int Cell(List<int> flat, int i) => new Vector3Int(flat[i], flat[i + 1], 0);
 
+    /// <summary>
+    /// Sauvegardes d'avant l'agrandissement de l'île (version 1) : les étages souterrains étaient 52 cases plus haut
+    /// (sous la surface, qui finissait en y = -76). Tout ce qui s'y trouvait descend de 52 cases.
+    /// </summary>
+    private static void MigrateV2(SaveData d)
+    {
+        const int Shift = 52, OldBottom = -76;
+        void Flat(List<int> l, int stride)
+        {
+            if (l == null) return;
+            for (int i = 0; i + 1 < l.Count; i += stride) if (l[i + 1] < OldBottom) l[i + 1] -= Shift;
+        }
+        Flat(d.territory, 2);
+        Flat(d.placedWalls, 2);
+        Flat(d.guildMap, 2);
+        Flat(d.trails, 4);
+        foreach (var l in d.layers) if (l.connected && l.stairsY < OldBottom) l.stairsY -= Shift;
+        foreach (var o in d.objects) if (o.y < OldBottom) o.y -= Shift;
+        foreach (var m in d.monsters) { if (m.y < OldBottom) m.y -= Shift; if (m.ay < OldBottom) m.ay -= Shift; }
+        if (d.coreY < OldBottom) d.coreY -= Shift;
+        if (d.guildCoreKnown && d.guildCoreY < OldBottom) d.guildCoreY -= Shift;
+        d.version = 2;
+    }
+
     public void Apply(SaveData d)
     {
+        if (d.version < 2) MigrateV2(d);
         playSeconds = d.playSeconds;
         GameDifficulty.Current = d.difficulty < 0 ? Difficulty.Facile : (Difficulty)Mathf.Clamp(d.difficulty, 0, 3);
         var gm = GameManager.Instance;

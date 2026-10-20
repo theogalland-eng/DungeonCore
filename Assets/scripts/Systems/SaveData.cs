@@ -8,7 +8,7 @@ using System.Collections.Generic;
 [Serializable]
 public class SaveData
 {
-    public int version = 1;
+    public int version = 2;          // 2 : île agrandie au sud, étages souterrains 40 cases plus bas
     public string savedAt;          // date lisible
     public long savedTicks;
     public string mode = "campaign";          // "campaign" (Noyau) ou "crawler" (Aventurier)

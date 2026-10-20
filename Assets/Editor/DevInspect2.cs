@@ -337,6 +337,12 @@ public static class DevInspect3
     public static string BushBehind() { sortProp = "Bush"; sortDy = 0.15f; return SortShot(); }
     public static string TreeFront() { sortProp = "Tree"; sortDy = -0.2f; return SortShot(); }
     public static string TreeBehind() { sortProp = "Tree"; sortDy = 0.2f; return SortShot(); }
+    public static string IslandShot() => DevInspect.Shot(0f, -26f, 96f, 2400, 1600, "island");
+    public static string CityShot() => DevInspect.Shot(28f, -79f, 18f, 2000, 1250, "city");
+    public static string PortShot() => DevInspect.Shot(-28f, -68f, 16f, 1600, 1000, "port");
+    public static string CampPlanShot() => DevInspect.Shot(18f, -24f, 16f, 1600, 1000, "camp");
+    public static string SouthCoastShot() => DevInspect.Shot(26f, -100f, 22f, 1600, 1000, "southcoast");
+    public static string EastShot() => DevInspect.Shot(56f, -30f, 34f, 1600, 1000, "east");
     public static int fogRoom;
     /// <summary>Téléporte le héros au centre de la salle suivante de l'étage (test du brouillard de guerre).</summary>
     public static string FogNextRoom()
