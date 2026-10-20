@@ -121,6 +121,27 @@ public static class DevInspect3
         int after = 0; foreach (var f in CrawlerMode.Instance.LiveFloors()) after += f.rooms.Count;
         return $"rooms {before}->{after} essence={o.essence:0} | " + o.Report();
     }
+    public static string AdvSave() => SaveSystem.Instance.Save("adv1") ? "saved " + ProfileStore.Summary("adv1").hero : "fail";
+    public static string AdvLoad() => SaveSystem.Load("adv1") ? "loading" : "fail";
+    public static string AdvSummary()
+    {
+        var c = CrawlerMode.Instance;
+        if (c == null || c.Player == null) return $"pas d'aventure (mode Noyau ? {MainMenu.Instance?.InHome})";
+        return $"role={c.Player.role} gold={c.gold} potions={c.potions} rations={c.rations} deepest={c.deepest} rank={c.rank} kills={c.kills} bag={c.bag.Count} equip={c.equipped.Count(e => e != null)} " +
+               $"party={c.PartyCount} skills={CrawlerSkills.Owned.Count()} contrats={CrawlerContracts.Active.Count}/{CrawlerContracts.Offered.Count} floor={c.floor} pos={c.Player.transform.position} jour={GameManager.Instance.CurrentDay} noyau={CrawlerOverlord.Instance?.Level}";
+    }
+    /// <summary>État d'aventure de test : or, objets, un compagnon, un talent appris (pour la sauvegarde).</summary>
+    public static string AdvSetup()
+    {
+        var c = CrawlerMode.Instance;
+        c.gold = 777; c.potions = 5; c.rations = 9; c.rank = 1; c.deepest = 3;
+        var rng = new System.Random(3);
+        c.bag.Add(CrawlerGear.Roll(3, c.Player.role, rng));
+        c.Equip(CrawlerGear.Roll(4, c.Player.role, rng, CrawlerGear.Rarity.Rare));
+        DevInspect2.HireFirst();
+        CrawlerOverlord.Instance.essence = 300; CrawlerOverlord.Instance.Think(3);
+        return AdvSummary();
+    }
     public static int fogRoom;
     /// <summary>Téléporte le héros au centre de la salle suivante de l'étage (test du brouillard de guerre).</summary>
     public static string FogNextRoom()

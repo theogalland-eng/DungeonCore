@@ -161,6 +161,21 @@ public class CrawlerOverlord : MonoBehaviour
         }
     }
 
+    public float Spent => spent;
+
+    /// <summary>Reprise d'une aventure sauvegardée.</summary>
+    public void Restore(CrawlerSave s)
+    {
+        essence = s.overlordEssence;
+        spent = 0f;
+        Level = 1;
+        RoomsDug = s.overlordRooms; Evolved = s.overlordEvolved; Reinforced = s.overlordReinforced; TrapsSet = s.overlordTraps;
+        spent = s.overlordSpent;
+        Level = Mathf.Min(10, 1 + Mathf.FloorToInt(spent / 250f));
+        CrawlerDungeon.ExtraRooms = Mathf.Min(6, Level - 1);
+        CrawlerDungeon.StageBonus = Mathf.Min(0.5f, 0.06f * (Level - 1));
+    }
+
     private void Spend(float cost)
     {
         essence -= cost;

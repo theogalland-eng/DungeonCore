@@ -102,6 +102,8 @@ public static class CrawlerSkills
     public static Tree For(AdventurerAI.Role role) => Trees[Mathf.Clamp((int)role, 0, Trees.Length - 1)];
     public static bool Has(string id) => owned.Contains(id);
     public static void Reset() => owned.Clear();
+    public static IEnumerable<string> Owned => owned;
+    public static void Restore(IEnumerable<string> ids) { owned.Clear(); foreach (var id in ids) owned.Add(id); }
 
     public static int Earned
     {

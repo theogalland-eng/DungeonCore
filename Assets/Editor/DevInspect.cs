@@ -485,7 +485,7 @@ public static class DevInspect
 
     public static string MenuPause() { MainMenu.Instance.OpenPause(); return MenuState(); }
     public static string MenuClose() { MainMenu.Instance.ClosePause(); return MenuState(); }
-    public static string MenuSlots() { typeof(MainMenu).GetMethod("ShowSlots", NP).Invoke(MainMenu.Instance, new object[] { true }); return "slots"; }
+    public static string MenuSlots() { typeof(MainMenu).GetMethod("ShowSlots", NP, null, new[] { typeof(bool) }, null).Invoke(MainMenu.Instance, new object[] { true }); return "slots"; }
     public static string MenuOptions() { typeof(MainMenu).GetMethod("ShowOptions", NP).Invoke(MainMenu.Instance, null); return "options"; }
     public static string MenuModes() { typeof(MainMenu).GetMethod("ShowModes", NP).Invoke(MainMenu.Instance, null); return "modes"; }
     public static string MenuProfiles() { typeof(MainMenu).GetMethod("ShowProfiles", NP).Invoke(MainMenu.Instance, null); return "profiles"; }

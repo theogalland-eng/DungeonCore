@@ -32,6 +32,10 @@ public class ProfileList
 public static class ProfileStore
 {
     public static readonly string[] Slots = { "auto", "slot1", "slot2", "slot3" };
+    /// <summary>Emplacements du mode Aventurier : distincts, une aventure n'écrase jamais une partie du Noyau.</summary>
+    public static readonly string[] AdvSlots = { "adv_auto", "adv1", "adv2", "adv3" };
+    public static string[] SlotsFor(bool adventure) => adventure ? AdvSlots : Slots;
+    public static bool IsAuto(string slot) => slot == "auto" || slot == "adv_auto";
     public static readonly Color[] Colors =
     {
         new Color(0.55f, 0.45f, 1f), new Color(0.35f, 0.8f, 1f), new Color(1f, 0.55f, 0.35f),
@@ -132,7 +136,9 @@ public static class ProfileStore
         return Path.Combine(Root, "saves", p.id, slot + ".json");
     }
 
-    public static string SlotLabel(string slot) => slot == "auto" ? "Sauvegarde automatique" : $"Emplacement {slot.Substring(4)}";
+    public static string SlotLabel(string slot) =>
+        slot == "auto" ? "Sauvegarde automatique" : slot == "adv_auto" ? "Aventure · sauvegarde automatique"
+        : slot.StartsWith("adv") ? $"Aventure · emplacement {slot.Substring(3)}" : $"Emplacement {slot.Substring(4)}";
 
     public static bool WriteSlot(string slot, SaveData data)
     {
@@ -182,6 +188,10 @@ public static class ProfileStore
         {
             slot = slot, exists = true, day = d.day, level = d.level, savedAt = d.savedAt, savedTicks = d.savedTicks,
             colony = d.colony != null && d.colony.stage > 0 ? SettlementPlan.StageNames[Mathf.Clamp(d.colony.stage, 0, SettlementPlan.StageNames.Length - 1)] : "",
+            adventure = d.mode == "crawler" && d.crawler != null,
+            hero = d.mode == "crawler" && d.crawler != null
+                ? $"{(string.IsNullOrWhiteSpace(d.crawler.heroName) ? CrawlerMode.ClassLabel((AdventurerAI.Role)d.crawler.role, false) : d.crawler.heroName)} · record : étage {d.crawler.deepest} · {d.crawler.gold} or"
+                : "",
         };
     }
 
@@ -189,11 +199,12 @@ public static class ProfileStore
     public static SaveSummary Latest()
     {
         SaveSummary best = null;
-        foreach (var s in Slots)
-        {
-            var sum = Summary(s);
-            if (sum.exists && (best == null || sum.savedTicks > best.savedTicks)) best = sum;
-        }
+        foreach (var list in new[] { Slots, AdvSlots })
+            foreach (var s in list)
+            {
+                var sum = Summary(s);
+                if (sum.exists && (best == null || sum.savedTicks > best.savedTicks)) best = sum;
+            }
         return best;
     }
 }

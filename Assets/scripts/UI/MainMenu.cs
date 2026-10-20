@@ -270,9 +270,9 @@ public class MainMenu : MonoBehaviour
         var latest = p != null ? ProfileStore.Latest() : null;
         continueBtn.interactable = latest != null;
         continueBtn.GetComponent<Image>().color = latest != null ? UIKit.Accent : new Color(0.16f, 0.14f, 0.22f, 0.9f);
-        continueSub.text = latest != null
-            ? $"Jour {latest.day} · Niveau {latest.level}{(string.IsNullOrEmpty(latest.colony) ? "" : " · " + latest.colony)} · {latest.savedAt}"
-            : "Aucune partie sauvegardée";
+        continueSub.text = latest == null ? "Aucune partie sauvegardée"
+            : latest.adventure ? $"Aventure · {latest.hero} · {latest.savedAt}"
+            : $"Jour {latest.day} · Niveau {latest.level}{(string.IsNullOrEmpty(latest.colony) ? "" : " · " + latest.colony)} · {latest.savedAt}";
     }
 
     // ─────────────────────────────────────────────
@@ -368,7 +368,7 @@ public class MainMenu : MonoBehaviour
         PauseButton(box, "Options", ShowOptions, ref y);
         PauseButton(box, "Retour à l'accueil", () => Confirm("Retour à l'accueil",
             "La progression depuis la dernière sauvegarde sera perdue. Sauvegarder d'abord dans la sauvegarde automatique ?",
-            "Sauvegarder et quitter", () => { SaveSystem.Instance?.Save("auto"); GoHome(); }, "Quitter sans sauvegarder", GoHome), ref y, new Color(0.3f, 0.14f, 0.18f, 0.96f));
+            "Sauvegarder et quitter", () => { SaveSystem.Instance?.Save(CrawlerMode.Active ? "adv_auto" : "auto"); GoHome(); }, "Quitter sans sauvegarder", GoHome), ref y, new Color(0.3f, 0.14f, 0.18f, 0.96f));
     }
 
     private void PauseButton(RectTransform box, string label, UnityEngine.Events.UnityAction a, ref float y, Color? c = null)
@@ -431,24 +431,36 @@ public class MainMenu : MonoBehaviour
     }
 
     // ── Emplacements de sauvegarde
-    private void ShowSlots(bool saving)
+    private void ShowSlots(bool saving) => ShowSlots(saving, -1);
+
+    /// <summary>Emplacements : en jeu, ceux du mode en cours ; au chargement, onglets Noyau / Aventure.</summary>
+    private void ShowSlots(bool saving, int tab)
     {
+        bool adventure = saving ? CrawlerMode.Active
+            : tab >= 0 ? tab == 1
+            : InHome ? (ProfileStore.Latest()?.adventure ?? false) : CrawlerMode.Active;
         var box = OpenModal(saving ? "Sauvegarder la partie" : "Charger une partie", new Vector2(980, 760));
-        UIKit.LabelAt(box, $"Profil : <b>{ProfileStore.EnsureActive().name}</b>", 22, UIKit.Sub, new Vector2(34, -80), new Vector2(700, 30));
+        UIKit.LabelAt(box, $"Profil : <b>{ProfileStore.EnsureActive().name}</b>", 22, UIKit.Sub, new Vector2(34, -80), new Vector2(460, 30));
+        if (!saving)
+        {
+            UIKit.BtnAt(box, "Noyau", () => ShowSlots(false, 0), new Vector2(1, 1), new Vector2(-226, -72), new Vector2(170, 46), 20, adventure ? UIKit.Button : UIKit.Accent);
+            UIKit.BtnAt(box, "Aventure", () => ShowSlots(false, 1), new Vector2(1, 1), new Vector2(-40, -72), new Vector2(170, 46), 20, adventure ? UIKit.Accent : UIKit.Button);
+        }
+        else UIKit.LabelAt(box, adventure ? "Mode Aventurier" : "Mode Noyau", 22, UIKit.Gold, new Vector2(-40, -80), new Vector2(360, 30), TextAlignmentOptions.Right, new Vector2(1, 1));
         float y = 124f;
-        foreach (var slot in ProfileStore.Slots)
+        foreach (var slot in ProfileStore.SlotsFor(adventure))
         {
             var sum = ProfileStore.Summary(slot);
             var card = UIKit.PanelBox("Slot", box, new Vector2(0.5f, 1), new Vector2(0, -y), new Vector2(920, 136), UIKit.Card);
             card.pivot = new Vector2(0.5f, 1);
-            UIKit.LabelAt(card, ProfileStore.SlotLabel(slot), 28, slot == "auto" ? new Color(0.7f, 0.85f, 1f) : UIKit.Text, new Vector2(24, -16), new Vector2(520, 38));
-            string info = sum.exists
-                ? $"Jour {sum.day} · Niveau {sum.level}{(string.IsNullOrEmpty(sum.colony) ? "" : " · colonie : " + sum.colony)}\n<size=85%><color=#9A96B0>{sum.savedAt}</color></size>"
-                : "<color=#6F6A80>Vide</color>";
+            UIKit.LabelAt(card, ProfileStore.SlotLabel(slot), 28, ProfileStore.IsAuto(slot) ? new Color(0.7f, 0.85f, 1f) : UIKit.Text, new Vector2(24, -16), new Vector2(520, 38));
+            string info = !sum.exists ? "<color=#6F6A80>Vide</color>"
+                : sum.adventure ? $"{sum.hero}\n<size=85%><color=#9A96B0>Jour {sum.day} · {sum.savedAt}</color></size>"
+                : $"Jour {sum.day} · Niveau {sum.level}{(string.IsNullOrEmpty(sum.colony) ? "" : " · colonie : " + sum.colony)}\n<size=85%><color=#9A96B0>{sum.savedAt}</color></size>";
             UIKit.LabelAt(card, info, 22, UIKit.Sub, new Vector2(24, -58), new Vector2(520, 70));
             float bx = -20f;
             string s = slot;
-            if (saving && slot != "auto")
+            if (saving && !ProfileStore.IsAuto(slot))
             {
                 var sb = UIKit.BtnAt(card, sum.exists ? "Écraser" : "Sauvegarder", () =>
                 {
@@ -468,10 +480,11 @@ public class MainMenu : MonoBehaviour
             }
             if (sum.exists)
                 UIKit.BtnAt(card, "Suppr.", () => Confirm("Supprimer la sauvegarde ?", $"{ProfileStore.SlotLabel(s)} (jour {sum.day}) sera définitivement effacé.", "Supprimer",
-                    () => { ProfileStore.DeleteSlot(s); ShowSlots(saving); }), new Vector2(1, 0.5f), new Vector2(bx, 0), new Vector2(120, 60), 20, new Color(0.3f, 0.14f, 0.18f, 0.96f));
+                    () => { ProfileStore.DeleteSlot(s); ShowSlots(saving, adventure ? 1 : 0); }), new Vector2(1, 0.5f), new Vector2(bx, 0), new Vector2(120, 60), 20, new Color(0.3f, 0.14f, 0.18f, 0.96f));
             y += 148f;
         }
-        if (saving) UIKit.LabelAt(box, "La sauvegarde automatique se fait à chaque aube et quand l'application passe en arrière-plan.", 19, new Color(0.55f, 0.52f, 0.66f), new Vector2(34, 26), new Vector2(900, 30), TextAlignmentOptions.BottomLeft, new Vector2(0, 0)).rectTransform.pivot = Vector2.zero;
+        if (saving) UIKit.LabelAt(box, adventure ? "La sauvegarde automatique se fait à chaque retour en ville et quand l'application passe en arrière-plan."
+            : "La sauvegarde automatique se fait à chaque aube et quand l'application passe en arrière-plan.", 19, new Color(0.55f, 0.52f, 0.66f), new Vector2(34, 26), new Vector2(900, 30), TextAlignmentOptions.BottomLeft, new Vector2(0, 0)).rectTransform.pivot = Vector2.zero;
     }
 
     // ── Modes de jeu
@@ -616,6 +629,18 @@ public class MainMenu : MonoBehaviour
         UIKit.BtnAt(box, "Retour", ShowClassSelect, new Vector2(0, 0), new Vector2(40, 36), new Vector2(220, 70), 26);
         UIKit.BtnAt(box, "Partir à l'aventure", () => { HeroLook.Save(); StartCrawler(role); }, new Vector2(1, 0), new Vector2(-40, 36), new Vector2(380, 70), 28, UIKit.Accent);
         Preview();
+    }
+
+    /// <summary>Reprise d'une aventure sauvegardée (après rechargement de la scène).</summary>
+    public void StartCrawlerFromSave(CrawlerSave s)
+    {
+        CloseModal();
+        ProfileStore.EnsureActive();
+        LeaveHome();
+        HoldIntro = false;
+        var cm = FindFirstObjectByType<CrawlerMode>();
+        if (cm == null) cm = new GameObject("CrawlerMode").AddComponent<CrawlerMode>();
+        cm.Begin((AdventurerAI.Role)s.role, s);
     }
 
     private void StartCrawler(AdventurerAI.Role role)

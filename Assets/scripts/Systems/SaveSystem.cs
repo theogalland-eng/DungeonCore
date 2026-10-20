@@ -46,7 +46,8 @@ public class SaveSystem : MonoBehaviour
         {
             var data = PendingLoad;
             PendingLoad = null;
-            StartCoroutine(ApplyRoutine(data));
+            if (data.mode == "crawler" && data.crawler != null) StartCoroutine(ApplyCrawlerRoutine(data));
+            else StartCoroutine(ApplyRoutine(data));
         }
     }
 
@@ -71,11 +72,23 @@ public class SaveSystem : MonoBehaviour
     private void OnApplicationPause(bool paused)
     {
         if (paused && GameSettings.AutoSave && InGame) Save("auto", true);
+        else if (paused && GameSettings.AutoSave && InCrawler) Save("adv_auto", true);
     }
 
     private void OnApplicationQuit()
     {
         if (GameSettings.AutoSave && InGame) Save("auto", true);
+        else if (GameSettings.AutoSave && InCrawler) Save("adv_auto", true);
+    }
+
+    /// <summary>Une aventure est en cours (héros présent, pas de chargement).</summary>
+    public bool InCrawler => CrawlerMode.Active && CrawlerMode.Instance != null && CrawlerMode.Instance.Player != null && !IsLoading &&
+                             (MainMenu.Instance == null || !MainMenu.Instance.InHome);
+
+    /// <summary>Sauvegarde automatique de l'aventure (retour en ville).</summary>
+    public void AutoSaveCrawler()
+    {
+        if (GameSettings.AutoSave && InCrawler) Save("adv_auto", true);
     }
 
     // ─────────────────────────────────────────────
@@ -84,7 +97,7 @@ public class SaveSystem : MonoBehaviour
 
     public bool Save(string slot, bool silent = false)
     {
-        var data = Capture();
+        var data = CrawlerMode.Active && CrawlerMode.Instance != null ? CaptureCrawler() : Capture();
         bool ok = ProfileStore.WriteSlot(slot, data);
         // statistiques du profil
         var p = ProfileStore.Active;
@@ -117,6 +130,46 @@ public class SaveSystem : MonoBehaviour
     // ─────────────────────────────────────────────
     // CAPTURE
     // ─────────────────────────────────────────────
+
+    /// <summary>Partie du mode Aventurier : l'heure, et l'état du héros (le donjon se recrée depuis sa graine).</summary>
+    public SaveData CaptureCrawler()
+    {
+        var d = new SaveData
+        {
+            savedAt = DateTime.Now.ToString("dd/MM/yyyy HH:mm"),
+            savedTicks = DateTime.Now.Ticks,
+            playSeconds = playSeconds,
+            mode = "crawler",
+            difficulty = (int)GameDifficulty.Current,
+            crawler = CrawlerMode.Instance.CaptureSave(),
+        };
+        var gm = GameManager.Instance;
+        if (gm != null) { d.day = gm.CurrentDay; d.dayTimer = gm.DayTimer; }
+        return d;
+    }
+
+    private IEnumerator ApplyCrawlerRoutine(SaveData d)
+    {
+        IsLoading = true;
+        yield return null;
+        yield return null;
+        try
+        {
+            playSeconds = d.playSeconds;
+            GameDifficulty.Current = d.difficulty < 0 ? Difficulty.Facile : (Difficulty)Mathf.Clamp(d.difficulty, 0, 3);
+            if (MainMenu.Instance != null) MainMenu.Instance.StartCrawlerFromSave(d.crawler);
+            else
+            {
+                var cm = FindFirstObjectByType<CrawlerMode>() ?? new GameObject("CrawlerMode").AddComponent<CrawlerMode>();
+                cm.Begin((AdventurerAI.Role)d.crawler.role, d.crawler);
+            }
+            GameManager.Instance?.RestoreTime(Mathf.Max(1, d.day), d.dayTimer);
+        }
+        catch (Exception e) { Debug.LogException(e); GameHUD.Toast("Chargement incomplet : " + e.Message, GameHUD.DangerColor); }
+        IsLoading = false;
+        OnLoaded?.Invoke();
+        GameHUD.Toast("Aventure reprise", GameHUD.GoldColor);
+    }
 
     public SaveData Capture()
     {

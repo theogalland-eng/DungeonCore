@@ -11,7 +11,8 @@ public class SaveData
     public int version = 1;
     public string savedAt;          // date lisible
     public long savedTicks;
-    public string mode = "campaign";
+    public string mode = "campaign";          // "campaign" (Noyau) ou "crawler" (Aventurier)
+    public CrawlerSave crawler;
     public float playSeconds;
 
     // Temps
@@ -150,6 +151,51 @@ public class LootStack
     public int count;
 }
 
+/// <summary>Partie du mode Aventurier : le héros, son équipement, son groupe, sa progression, l'Esprit du Noyau.</summary>
+[Serializable]
+public class CrawlerSave
+{
+    public int role, seed;
+    public string heroName, hair, skin, outfit;
+    public int gold, potions, rations, recallStones, kills, weaponLvl, armorLvl, rank;
+    public int deepest, reportedDeepest, trip;
+    public float satiety = 100f;
+    public List<GearSave> bag = new List<GearSave>();
+    public List<GearSave> equipped = new List<GearSave>();
+    public List<string> skills = new List<string>();
+    public List<ContractSave> offered = new List<ContractSave>();
+    public List<ContractSave> active = new List<ContractSave>();
+    public List<CompanionSave> companions = new List<CompanionSave>();
+    public List<string> lootedChests = new List<string>();
+    public float overlordEssence = 60f, overlordSpent;
+    public int overlordRooms, overlordEvolved, overlordReinforced, overlordTraps;
+}
+
+[Serializable]
+public class GearSave
+{
+    public string name;
+    public int slot, rarity, level;
+    public List<int> statKeys = new List<int>();
+    public List<float> statValues = new List<float>();
+}
+
+[Serializable]
+public class ContractSave
+{
+    public int kind, goal, progress, minFloor, gold, reward;
+    public string family;
+}
+
+[Serializable]
+public class CompanionSave
+{
+    public string name;
+    public int role, rank;
+    public bool female;
+    public float health = 1f;
+}
+
 /// <summary>Résumé affiché dans la liste des emplacements (lu sans charger toute la partie).</summary>
 [Serializable]
 public class SaveSummary
@@ -160,4 +206,6 @@ public class SaveSummary
     public string savedAt;
     public long savedTicks;
     public string colony;
+    public bool adventure;      // partie du mode Aventurier
+    public string hero;         // « Guerrier · étage 4 · 230 or »
 }

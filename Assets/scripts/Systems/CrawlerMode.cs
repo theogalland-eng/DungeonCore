@@ -154,12 +154,12 @@ public class CrawlerMode : MonoBehaviour
     // DÉMARRAGE
     // ─────────────────────────────────────────────
 
-    public void Begin(AdventurerAI.Role role)
+    public void Begin(AdventurerAI.Role role, CrawlerSave restore = null)
     {
         if (started) return;
         started = true;
         startTime = Time.time;
-        seed = System.Environment.TickCount & 0x7fffffff;
+        seed = restore != null ? restore.seed : System.Environment.TickCount & 0x7fffffff;
         rng = new System.Random(seed);
         GameHUD.Instance?.SetPanelsVisible(false);
         foreach (var sel in FindObjectsByType<MonsterSelector>(FindObjectsSortMode.None)) sel.enabled = false;
@@ -175,11 +175,20 @@ public class CrawlerMode : MonoBehaviour
         bag.Clear();
         for (int i = 0; i < equipped.Length; i++) equipped[i] = null;
         BuildTown();
-        gameObject.AddComponent<CrawlerOverlord>();   // l'intelligence qui gère et agrandit le donjon
+        var overlord = gameObject.AddComponent<CrawlerOverlord>();   // l'intelligence qui gère et agrandit le donjon
+        if (restore != null)
+        {
+            overlord.Restore(restore);
+            // l'apparence du héros sauvegardé redevient celle du jeu
+            HeroLook.HeroName = restore.heroName ?? "";
+            HeroLook.Hair = ParseColor(restore.hair); HeroLook.Skin = ParseColor(restore.skin); HeroLook.Outfit = ParseColor(restore.outfit);
+            HeroLook.Save();
+        }
         BuildDungeon();
         SpawnPlayer(role);
         BuildHud();
-        StartCoroutine(Intro());
+        if (restore != null) ApplySave(restore);
+        else StartCoroutine(Intro());
     }
 
     private void BuildTown()
@@ -369,7 +378,11 @@ public class CrawlerMode : MonoBehaviour
         {
             if (fl == 1 && floor == 0) { OnEnterDungeon(); trip++; }
             if (fl == 0 && floor == 1) GameHUD.Toast("Vous ressortez à l'air libre", GameHUD.InfoColor);
-            if (fl == 0 && floor >= 1) CrawlerOverlord.Instance?.OnTripEnd();   // le Noyau a le champ libre
+            if (fl == 0 && floor >= 1)
+            {
+                CrawlerOverlord.Instance?.OnTripEnd();   // le Noyau a le champ libre
+                SaveSystem.Instance?.AutoSaveCrawler();  // retour en ville : sauvegarde automatique
+            }
             floor = fl;
             CrawlerContracts.OnFloor(floor);
             if (floor > deepest)
@@ -1034,16 +1047,7 @@ public class CrawlerMode : MonoBehaviour
         if (PartyCount >= MaxParty || !Pay(r.cost)) return;
         recruits.Remove(r);
         Vector3 at = Player.transform.position + new Vector3(0.8f, -0.4f, 0f);
-        var go = SpawnAdventurer(r.role, at, r.name);
-        var c = go.AddComponent<CrawlerCompanion>();
-        float m = 1f + 0.12f * r.rank;
-        float hp = r.role == AdventurerAI.Role.Warrior ? 190 : r.role == AdventurerAI.Role.Healer ? 140 : r.role == AdventurerAI.Role.Archer ? 120 : 100;
-        float dmg = r.role == AdventurerAI.Role.Warrior ? 15 : r.role == AdventurerAI.Role.Healer ? 8 : r.role == AdventurerAI.Role.Archer ? 12 : 18;
-        c.Setup(r.role, r.name, r.rank, hp * m, dmg * m);
-        c.classLabel = ClassLabel(r.role, r.female);
-        c.slot = PartyCount - 1;
-        HealthBar.Attach(go.transform, () => c.Combat.currentHealth / c.Combat.maxHealth, new Color(0.4f, 0.7f, 1f));
-        NemesisSystem.AddTag(go.transform, r.name, new Color(0.7f, 0.85f, 1f));
+        SpawnCompanion(r.role, r.name, r.rank, r.female, at);
         Sfx.Play("levelup", at, 0.6f);
         GameHUD.Toast($"{r.name} rejoint votre groupe", GameHUD.GoldColor);
         StoryManager.Instance?.Play(new StoryManager.Line(r.name, new[]
@@ -1051,6 +1055,108 @@ public class CrawlerMode : MonoBehaviour
             "Tu paies, je cogne. On s'entend.", "Dix étages ? J'en ai vu d'autres. Enfin... pas vraiment.",
             "Reste derrière moi et tout ira bien.", "Si je tombe, garde ma part pour ma mère.",
         }[rng.Next(4)]));
+    }
+
+    private CrawlerCompanion SpawnCompanion(AdventurerAI.Role role, string name, int rank, bool female, Vector3 at)
+    {
+        var go = SpawnAdventurer(role, at, name);
+        var c = go.AddComponent<CrawlerCompanion>();
+        float m = 1f + 0.12f * rank;
+        float hp = role == AdventurerAI.Role.Warrior ? 190 : role == AdventurerAI.Role.Healer ? 140 : role == AdventurerAI.Role.Archer ? 120 : 100;
+        float dmg = role == AdventurerAI.Role.Warrior ? 15 : role == AdventurerAI.Role.Healer ? 8 : role == AdventurerAI.Role.Archer ? 12 : 18;
+        c.Setup(role, name, rank, hp * m, dmg * m);
+        c.classLabel = ClassLabel(role, female);
+        c.female = female;
+        c.slot = PartyCount - 1;
+        HealthBar.Attach(go.transform, () => c.Combat.currentHealth / c.Combat.maxHealth, new Color(0.4f, 0.7f, 1f));
+        NemesisSystem.AddTag(go.transform, name, new Color(0.7f, 0.85f, 1f));
+        return c;
+    }
+
+    // ─────────────────────────────────────────────
+    // SAUVEGARDE
+    // ─────────────────────────────────────────────
+
+    private static Color? ParseColor(string s) => !string.IsNullOrEmpty(s) && ColorUtility.TryParseHtmlString(s, out var c) ? c : (Color?)null;
+    private static string ColorText(Color? c) => c.HasValue ? "#" + ColorUtility.ToHtmlStringRGB(c.Value) : "";
+
+    private static GearSave SaveGear(CrawlerGear.Item it)
+    {
+        var g = new GearSave { name = it.name, slot = (int)it.slot, rarity = (int)it.rarity, level = it.level };
+        foreach (var kv in it.stats) { g.statKeys.Add((int)kv.Key); g.statValues.Add(kv.Value); }
+        return g;
+    }
+
+    private static CrawlerGear.Item LoadGear(GearSave g)
+    {
+        var it = new CrawlerGear.Item { name = g.name, slot = (CrawlerGear.Slot)g.slot, rarity = (CrawlerGear.Rarity)g.rarity, level = g.level };
+        for (int i = 0; i < g.statKeys.Count && i < g.statValues.Count; i++) it.stats[(CrawlerGear.Stat)g.statKeys[i]] = g.statValues[i];
+        return it;
+    }
+
+    private static ContractSave SaveContract(CrawlerContracts.Contract c) =>
+        new ContractSave { kind = (int)c.kind, family = c.family, goal = c.goal, progress = c.progress, minFloor = c.minFloor, gold = c.gold, reward = (int)c.reward };
+
+    private static CrawlerContracts.Contract LoadContract(ContractSave c) =>
+        new CrawlerContracts.Contract { kind = (CrawlerContracts.Kind)c.kind, family = c.family, goal = c.goal, progress = c.progress, minFloor = c.minFloor, gold = c.gold, reward = (CrawlerGear.Rarity)c.reward };
+
+    /// <summary>Tout ce qu'il faut pour reprendre l'aventure : le donjon se recrée depuis la graine.</summary>
+    public CrawlerSave CaptureSave()
+    {
+        var s = new CrawlerSave
+        {
+            role = (int)(Player != null ? Player.role : AdventurerAI.Role.Warrior), seed = seed,
+            heroName = HeroLook.HeroName, hair = ColorText(HeroLook.Hair), skin = ColorText(HeroLook.Skin), outfit = ColorText(HeroLook.Outfit),
+            gold = gold, potions = potions, rations = rations, recallStones = recallStones, kills = kills,
+            weaponLvl = weaponLvl, armorLvl = armorLvl, rank = rank, deepest = deepest, reportedDeepest = reportedDeepest, trip = trip, satiety = satiety,
+        };
+        foreach (var it in bag) if (it != null) s.bag.Add(SaveGear(it));
+        foreach (var it in equipped) if (it != null) s.equipped.Add(SaveGear(it));
+        s.skills.AddRange(CrawlerSkills.Owned);
+        foreach (var c in CrawlerContracts.Offered) s.offered.Add(SaveContract(c));
+        foreach (var c in CrawlerContracts.Active) s.active.Add(SaveContract(c));
+        foreach (var c in CrawlerCompanion.All)
+            if (c != null && !c.IsDead)
+                s.companions.Add(new CompanionSave { name = c.displayName, role = (int)c.role, rank = c.rank, female = c.female,
+                                                     health = c.Combat.maxHealth > 0f ? c.Combat.currentHealth / c.Combat.maxHealth : 1f });
+        s.lootedChests.AddRange(lootedChests);
+        var o = CrawlerOverlord.Instance;
+        if (o != null)
+        {
+            s.overlordEssence = o.essence; s.overlordSpent = o.Spent;
+            s.overlordRooms = o.RoomsDug; s.overlordEvolved = o.Evolved; s.overlordReinforced = o.Reinforced; s.overlordTraps = o.TrapsSet;
+        }
+        return s;
+    }
+
+    /// <summary>Reprise : le héros se réveille à la taverne avec son équipement, ses talents et son groupe.</summary>
+    private void ApplySave(CrawlerSave s)
+    {
+        gold = s.gold; potions = s.potions; rations = s.rations; recallStones = s.recallStones; kills = s.kills;
+        weaponLvl = s.weaponLvl; armorLvl = s.armorLvl; rank = s.rank; deepest = s.deepest; reportedDeepest = s.reportedDeepest;
+        trip = s.trip; satiety = s.satiety;
+        bag.Clear();
+        foreach (var g in s.bag) bag.Add(LoadGear(g));
+        foreach (var g in s.equipped) { var it = LoadGear(g); equipped[(int)it.slot] = it; }
+        CrawlerSkills.Restore(s.skills);
+        CrawlerContracts.Reset();
+        foreach (var c in s.offered) CrawlerContracts.Offered.Add(LoadContract(c));
+        foreach (var c in s.active) CrawlerContracts.Active.Add(LoadContract(c));
+        lootedChests.Clear();
+        foreach (var k in s.lootedChests) lootedChests.Add(k);
+        Player.SetTier(1 + armorLvl);
+        Player.ApplyLook();
+        RefreshStats(true);
+        Vector3 at = TavernDoor();
+        TeleportParty(at);
+        int i = 0;
+        foreach (var c in s.companions)
+        {
+            var comp = SpawnCompanion((AdventurerAI.Role)c.role, c.name, c.rank, c.female, at + new Vector3(i++ % 2 == 0 ? -0.8f : 0.8f, -0.5f, 0f));
+            comp.Combat.currentHealth = Mathf.Max(1f, comp.Combat.maxHealth * Mathf.Clamp01(c.health));
+        }
+        var cam = Camera.main;
+        if (cam != null) cam.transform.position = new Vector3(at.x, at.y, cam.transform.position.z);
     }
 
     // ─────────────────────────────────────────────

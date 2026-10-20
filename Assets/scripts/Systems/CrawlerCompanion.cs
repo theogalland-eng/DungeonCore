@@ -12,6 +12,7 @@ public class CrawlerCompanion : MonoBehaviour
 
     public AdventurerAI.Role role;
     public string displayName, classLabel;
+    public bool female;
     public int rank;
     public int slot;
     public float speed = 3.4f;
