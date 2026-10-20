@@ -44,6 +44,7 @@ Relancer un générateur reproduit le même résultat : la carte utilise une gra
 | **10 / 11. APK Android** | `Editor/ApkBuilder.cs` | IL2CPP, ARM64 → `Builds/DungeonCore.apk` ; le menu 11 installe directement en USB. |
 | **12. Créer les polices (Cinzel, Alegreya Sans)** | `Editor/FontMaker.cs` | Polices TextMesh Pro des titres (Cinzel, matériau lumineux) et du texte courant (Alegreya Sans, avec gras et italique). |
 | **13. Importer les icônes de l'interface** | `Editor/UIArt.cs` | Icônes pixel du HUD (cœur, mana, menu, colonie, volcan, verrou…). |
+| **Importer les tampons de la cité** | `Editor/StampImporter.cs` | Importe les scènes découpées par `make_stamps.py` (sol, morceaux, animations, murs des intérieurs) et les pièces de l'enceinte dans `SettlementArt`. |
 | Configurer pour mobile (paysage) | `Editor/ProjectSetup.cs` | Orientation paysage et réglages du lecteur. |
 
 ---
@@ -61,10 +62,12 @@ Prérequis : Python 3 avec **Pillow**, **NumPy** et **SciPy**. À lancer depuis 
 | `make_walls.py` | Atlas de 128 variantes de murs auto-raccordés par thème. |
 | `make_relief.py` | Relief 2.5D du volcan, calculé à partir de la forme de la montagne (distance au bord, ombrage, strates). |
 | `make_water.py` | Mer animée raccordable. |
-| `make_terrain.py` | **Terrain de l'île** : tuiles auto-raccordées « blob » (47 cas × 9 phases) pour le sable noir, la roche, l'herbe, la jungle, la lave et les sentiers (foulé, terre, pavés), eau animée, front de falaise et petits décors (roseaux, nénuphars, fleurs, récifs, faille de la grotte). |
+| `make_terrain.py` | **Terrain de l'île** : tuiles auto-raccordées « blob » (47 cas × 9 phases) pour le sable noir, la roche, l'herbe, la jungle, la lave et les sentiers (foulé, terre, pavés, briques des rues de la cité), eau animée, front de falaise et petits décors (roseaux, nénuphars, fleurs, récifs, faille de la grotte). |
 | `make_ui_icons.py` | Icônes pixel de l'interface, dessinées en « ASCII art ». |
 | `make_props.py` | Objets dessinés pour le projet : garde-manger, nid de couvée, enclume, forge, levier, pierre runique, plaque de pression, sceau des portes. |
 | `make_dungeon.py` | **Murs et sols du donjon** pour les 9 ambiances d'étage (atlas de murs 128 variantes au format `AutoWallTile`, sols en 9 phases). Remplace `make_walls.py`, qui recomposait les murs des packs. |
+| `make_stamps.py` | **Tampons de la cité** : chaque scène Tiled d'un pack (bâtiment et sa cour, intérieur) devient un sol plat + des morceaux triés à leurs pieds (animations comprises) ; remparts des packs retirés, bords fondus ; pour les intérieurs, cases praticables et porte. |
+| `make_citywalls.py` | **Enceinte de la cité** : remparts et tours découpés dans les tuiles du pack du manoir, palissade de rondins dessinée. |
 | `make_8dir.py` | **Personnages en 8 directions** : diagonales recomposées à partir des calques des packs (corps + tête de deux directions voisines), roulade, gestes. Épéistes, rôles et 45 monstres. |
 | `make_roles.py` | Archer, mage et soigneuse sur les **9 paliers d'armure**, **recomposés à partir des calques des épéistes** (étoffes recolorées, arc et bâton dessinés). |
 | `make_palettes.py` | Couleurs de cheveux, peau et tenue de chaque apparence du héros (personnalisation). |
