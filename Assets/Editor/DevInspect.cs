@@ -1,4 +1,4 @@
-﻿using UnityEditor;
+using UnityEditor;
 #if UNITY_EDITOR
 using System.Collections.Generic;
 using System.Text;
@@ -981,7 +981,24 @@ public static class DevInspect
         SkipDialogues();
         return GuildState();
     }
-    public static string VerdictReplay() { CinematicDirector.Instance.PlayGuildVerdict(4, "Test : l'équipe est revenue au complet.", null); return "verdict"; }
+    public static string VerdictReplay() { CinematicDirector.Instance.PlayGuildVerdict(4, "Test : l'équipe est revenue au complet.", null, null); return "verdict"; }
+    /// <summary>Cinématique du verdict au hall : 0 = tous rentrés, 1 = pertes, 2 = personne (test).</summary>
+    public static int verdictCase;
+    public static string VerdictHall()
+    {
+        var v = new GuildSystem.VerdictInfo { monsters = 14, maxStage = 2, traps = 6, floors = 2, level = 5, deaths = verdictCase == 0 ? 0 : 3, reported = 1,
+                                              monsterScore = 22f, trapScore = 4.8f, levelScore = 2.4f, floorScore = 1.5f, deathScore = verdictCase == 0 ? 0f : 1.8f };
+        v.team.Add(("Brennor", AdventurerAI.Role.Warrior)); v.team.Add(("Ysa", AdventurerAI.Role.Healer)); v.team.Add(("Kael", AdventurerAI.Role.Archer)); v.team.Add(("Mirth", AdventurerAI.Role.Mage));
+        if (verdictCase == 0) foreach (var m in v.team) v.back.Add(m.name);
+        if (verdictCase == 1) { v.back.Add("Brennor"); v.back.Add("Kael"); }
+        v.killed = verdictCase == 0 ? 0 : verdictCase == 1 ? 2 : 4;
+        v.fled = verdictCase == 0 ? 4 : verdictCase == 1 ? 2 : 0;
+        v.rank = GuildSystem.EstimateRank(32.5f) + (verdictCase == 0 ? 0 : 1);
+        CinematicDirector.Instance.PlayGuildVerdict(v.rank, "test", v, null);
+        return $"verdict case {verdictCase} rank {v.rank}";
+    }
+    public static string VerdictHall1() { verdictCase = 1; return VerdictHall(); }
+    public static string VerdictHall2() { verdictCase = 2; return VerdictHall(); }
     public static string GuildSaveTest()
     {
         var d = SaveSystem.Instance.Capture();

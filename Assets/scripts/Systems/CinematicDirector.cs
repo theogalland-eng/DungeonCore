@@ -683,15 +683,38 @@ public partial class CinematicDirector : MonoBehaviour
         for (float k = 0f; k < hold && !skip; k += Time.unscaledDeltaTime) yield return null;
     }
 
-    /// <summary>Le rapport de la Guilde : le donjon reçoit son rang.</summary>
-    public void PlayGuildVerdict(int rank, string outcome, Action onEnd) =>
-        Enqueue(() => GuildVerdictRoutine(rank, outcome, onEnd));
+    /// <summary>Le rapport de la Guilde : l'équipe rentre (ou pas) au hall, et le donjon reçoit son rang en direct.</summary>
+    public void PlayGuildVerdict(int rank, string outcome, GuildSystem.VerdictInfo info, Action onEnd) =>
+        Enqueue(() => GuildVerdictRoutine(rank, outcome, info, onEnd));
 
-    private IEnumerator GuildVerdictRoutine(int rank, string outcome, Action onEnd)
+    private IEnumerator GuildVerdictRoutine(int rank, string outcome, GuildSystem.VerdictInfo info, Action onEnd)
     {
         Begin();
         GameManager.Instance?.PushPause();
         yield return Bars(true, 0.4f);
+        var interior = InteriorSystem.Instance;
+        Transform room = info != null && interior != null && cam != null ? interior.ShowForCinematic("house_4") : null;
+        if (room != null)
+        {
+            Vector3 back = cam.transform.position;
+            float backSize = cam.orthographicSize;
+            yield return Fade(0f, 1f, 0.6f);
+            yield return VerdictHallScene(room, rank, info);
+            interior.HideCinematic("house_4");
+            ClearCards();
+            HideTally();
+            HideBubble();
+            caption.text = "";
+            cam.transform.position = back;
+            cam.orthographicSize = backSize;
+            yield return Fade(1f, 0f, 0.6f);
+            yield return Bars(false);
+            End();
+            GameManager.Instance?.PopPause();
+            onEnd?.Invoke();
+            yield break;
+        }
+        // repli (pas de hall disponible) : le registre seul
         yield return Fade(0f, 0.9f, 0.8f, new Color(0.05f, 0.03f, 0.08f));
         LayoutCards(300f, -80f, 110f);
         StartCoroutine(ShowCard(true, 0.6f));
@@ -717,6 +740,215 @@ public partial class CinematicDirector : MonoBehaviour
         End();
         GameManager.Instance?.PopPause();
         onEnd?.Invoke();
+    }
+
+    // ─────────────────────────────────────────────
+    // SCÈNE : RETOUR DE L'ÉQUIPE D'ÉVALUATION, RANG DONNÉ EN DIRECT
+    // ─────────────────────────────────────────────
+
+    private static GameObject RolePrefab(AdventurerAI.Role role)
+    {
+        var cat = DungeonCatalog.Get();
+        GameObject p = role == AdventurerAI.Role.Archer ? cat.archerPrefab : role == AdventurerAI.Role.Mage ? cat.magePrefab :
+                       role == AdventurerAI.Role.Healer ? cat.healerPrefab : (cat.adventurerPrefabs.Count > 2 ? cat.adventurerPrefabs[2] : null);
+        return p != null ? p : cat.adventurerPrefabs.Count > 0 ? cat.adventurerPrefabs[0] : null;
+    }
+
+    /// <summary>
+    /// Au hall de la Guilde : les survivants rentrent un à un et font leur rapport (ou personne ne rentre, et l'attente
+    /// tient lieu de rapport) ; puis le maître de guilde dresse le bilan du donjon poste par poste, l'estimation du rang
+    /// bouge à chaque ligne, et le tampon tombe.
+    /// </summary>
+    private IEnumerator VerdictHallScene(Transform room, int rank, GuildSystem.VerdictInfo v)
+    {
+        Vector3 o = room.position;
+        Transform master = room.Find("npc_guildmaster");
+        if (master == null) master = room;
+        Color guild = new Color(1f, 0.82f, 0.45f), hero = new Color(0.75f, 0.9f, 1f);
+        cam.transform.position = new Vector3(o.x, o.y - 0.2f, cam.transform.position.z);
+        cam.orthographicSize = 3.8f;
+        var actors = new List<GameObject>();
+        yield return Fade(1f, 0f, 0.8f);
+        yield return TitleCard("La Guilde des Aventuriers", "Sur le continent, quelques jours plus tard", 1f);
+
+        // qui rentre ?
+        var survivors = new List<(string name, AdventurerAI.Role role)>();
+        var lost = new List<string>();
+        foreach (var m in v.team) if (v.back.Contains(m.name)) survivors.Add(m); else lost.Add(m.name);
+        if (v.team.Count == 0 && v.fled > 0) survivors.Add(("L'éclaireur", AdventurerAI.Role.Archer));
+        string leaderName = v.team.Count > 0 ? v.team[0].name : "l'équipe";
+
+        if (survivors.Count > 0)
+        {
+            Sfx.Play("door_break", null, 0.35f);
+            for (int i = 0; i < survivors.Count; i++)
+            {
+                var a = SpawnActor(RolePrefab(survivors[i].role), o + new Vector3(0.2f, -3.6f, 0f));
+                if (a == null) continue;
+                actors.Add(a);
+                if (lost.Count > 0) foreach (var sr in a.GetComponentsInChildren<SpriteRenderer>()) sr.color = new Color(0.85f, 0.75f, 0.75f);   // éprouvés
+                var spot = o + new Vector3(-0.9f * (survivors.Count - 1) * 0.5f + 0.9f * i, -0.7f, 0f);
+                if (i < survivors.Count - 1) { StartCoroutine(Walk(a, spot, 2.6f)); yield return Wait(0.35f); }
+                else yield return Walk(a, spot, 2.6f);
+            }
+            Transform spk = actors.Count > 0 ? actors[0].transform : room;
+            string who = survivors[0].name;
+            if (lost.Count == 0)
+            {
+                yield return Say(spk, who, hero, "Maître. L'équipe est rentrée au complet, carnets remplis.", 1.3f);
+                yield return Say(spk, who, hero, "C'est bien un donjon. Un vrai, avec un cœur de cristal tout au fond.", 1.3f);
+            }
+            else
+            {
+                string names = lost.Count == 1 ? lost[0] : string.Join(", ", lost.GetRange(0, lost.Count - 1)) + " et " + lost[lost.Count - 1];
+                yield return Say(spk, who, hero, lost.Count == 1 ? $"Nous sommes rentrés... pas tous. {names} n'est pas revenu." : $"Nous sommes rentrés... pas tous. {names} ne sont pas revenus.", 1.5f);
+                yield return Say(master, "Maître de guilde", guild, "Leurs noms seront gravés au mur du hall. Raconte.", 1.2f);
+                yield return Say(spk, who, hero, "Ce donjon se défend. Il nous attendait.", 1.2f);
+            }
+        }
+        else
+        {
+            // personne : la greffière, l'attente, le silence
+            var cat = DungeonCatalog.Get();
+            var clerk = SpawnActor(cat.adventurerPrefabs.Count > 1 ? cat.adventurerPrefabs[1] : null, o + new Vector3(1.4f, -1.2f, 0f));
+            if (clerk != null) actors.Add(clerk);
+            Transform ct = clerk != null ? clerk.transform : room;
+            yield return Say(ct, "Greffière", hero, $"Maître... toujours aucune nouvelle de l'équipe de {leaderName}.", 1.4f);
+            HideBubble();
+            yield return Fade(0f, 1f, 0.5f);
+            yield return Caption("Une semaine passe. Puis une autre.", 1.1f);
+            caption.text = "";
+            yield return Fade(1f, 0f, 0.5f);
+            yield return Say(master, "Maître de guilde", guild, "Personne ne revient de cette île. Ça aussi, c'est un rapport.", 1.5f);
+        }
+
+        // le bilan, poste par poste : l'estimation du rang bouge en direct
+        yield return Say(master, "Maître de guilde", guild, "Voyons ce que vaut ce donjon.", 0.8f);
+        HideBubble();
+        StartCoroutine(MoveCamera(o + new Vector3(1.4f, -0.2f, 0f), 3.8f, 0.8f));
+        yield return ShowTally();
+        float score = 0f;
+        int est = v.reported;
+        SetEstimate(est, false);
+        string stageWord = v.maxStage >= 3 ? "formes ultimes" : v.maxStage == 2 ? "formes évoluées" : "créatures jeunes";
+        var lines = new List<(string text, float add)>
+        {
+            ($"Créatures recensées : {v.monsters} ({stageWord})", v.monsterScore),
+            ($"Pièges signalés : {v.traps}", v.trapScore),
+            ($"Puissance du cristal : niveau {v.level}", v.levelScore),
+            ($"Étages connus : {v.floors}", v.floorScore),
+        };
+        if (v.deaths > 0) lines.Add(($"Aventuriers tombés là-bas : {v.deaths}", v.deathScore));
+        foreach (var (text, add) in lines)
+        {
+            if (skip) break;
+            score += add;
+            yield return AddTallyLine(text);
+            int e = GuildSystem.EstimateRank(score);
+            if (e != est) { est = e; SetEstimate(est, true); }
+            yield return Wait(0.35f);
+        }
+        // l'issue de la mission pèse sur la décision finale
+        string verdictLine = v.fled == 0 && v.killed > 0 ? "Équipe disparue : la Guilde relève le rang"
+                           : v.killed > 0 ? $"Pertes de la mission : {v.killed}, la Guilde relève le rang"
+                           : "Équipe rentrée au complet";
+        yield return AddTallyLine(verdictLine);
+        if (est != rank) { est = rank; SetEstimate(est, true); }
+        yield return Wait(0.6f);
+        yield return Say(master, "Maître de guilde", guild, $"Rang {GuildSystem.RankName(rank)}. Qu'on l'inscrive au registre.", 0.6f);
+        HideBubble();
+        stampText.rectTransform.anchoredPosition = new Vector2(-420f, 40f);
+        yield return Stamp(rank);
+        subText.rectTransform.anchoredPosition = new Vector2(0f, -330f);
+        subText.text = $"Donjon de rang {GuildSystem.RankName(rank)} — {GuildSystem.DungeonRankDesc(rank)}";
+        yield return FadeText(subText, 1f, 0.5f);
+        yield return Wait(2f);
+        StartCoroutine(FadeText(subText, 0f, 0.4f));
+        yield return FadeText(stampText, 0f, 0.4f);
+        yield return Fade(0f, 1f, 0.6f);
+        foreach (var a in actors) if (a != null) Destroy(a);
+    }
+
+    // ── Registre du bilan (panneau à droite de l'écran) ──
+    private RectTransform tally;
+    private TextMeshProUGUI tallyLines, tallyEstimate;
+    private readonly List<string> tallyText = new List<string>();
+
+    private void EnsureTally()
+    {
+        if (tally != null) return;
+        var img = NewImage(canvas.transform, "Registre", new Color(0.15f, 0.1f, 0.08f, 0.94f));
+        img.raycastTarget = false;
+        tally = img.rectTransform;
+        tally.anchorMin = tally.anchorMax = tally.pivot = new Vector2(1f, 0.5f);
+        tally.anchoredPosition = new Vector2(-60f, 20f);
+        tally.sizeDelta = new Vector2(760f, 600f);
+        tally.gameObject.AddComponent<CanvasGroup>();
+        TextMeshProUGUI T(string name, float size, Color c, float y, float h, TextAlignmentOptions al)
+        {
+            var t = new GameObject(name, typeof(RectTransform)).AddComponent<TextMeshProUGUI>();
+            t.transform.SetParent(tally, false);
+            t.fontSize = size; t.color = c; t.alignment = al; t.raycastTarget = false;
+            t.textWrappingMode = TextWrappingModes.Normal;
+            var rt = t.rectTransform;
+            rt.anchorMin = new Vector2(0f, 1f); rt.anchorMax = new Vector2(1f, 1f); rt.pivot = new Vector2(0.5f, 1f);
+            rt.anchoredPosition = new Vector2(0f, y); rt.sizeDelta = new Vector2(-70f, h);
+            return t;
+        }
+        var title = T("Titre", 44, new Color(1f, 0.86f, 0.5f), -28f, 60f, TextAlignmentOptions.Center);
+        title.fontStyle = FontStyles.SmallCaps | FontStyles.Bold;
+        title.text = "Rapport d'évaluation";
+        tallyLines = T("Lignes", 30, new Color(0.9f, 0.88f, 0.96f), -110f, 340f, TextAlignmentOptions.TopLeft);
+        tallyLines.lineSpacing = 18f;
+        tallyEstimate = T("Estimation", 40, Color.white, -470f, 80f, TextAlignmentOptions.Center);
+        tallyEstimate.fontStyle = FontStyles.Bold;
+        tally.gameObject.SetActive(false);
+    }
+
+    private IEnumerator ShowTally()
+    {
+        EnsureTally();
+        tallyText.Clear();
+        tallyLines.text = "";
+        tallyEstimate.text = "";
+        var g = tally.GetComponent<CanvasGroup>();
+        g.alpha = 0f;
+        tally.gameObject.SetActive(true);
+        for (float k = 0f; k < 1f && !skip; k += Time.unscaledDeltaTime / 0.4f) { g.alpha = k; yield return null; }
+        g.alpha = 1f;
+    }
+
+    private void HideTally() { if (tally != null) tally.gameObject.SetActive(false); }
+
+    /// <summary>Une ligne du bilan s'écrit au registre.</summary>
+    private IEnumerator AddTallyLine(string text)
+    {
+        Sfx.Play("place", null, 0.3f);
+        tallyText.Add("");
+        int idx = tallyText.Count - 1;
+        for (float el = 0f; !skip; el += Time.unscaledDeltaTime)
+        {
+            int n = Mathf.Min(text.Length, Mathf.FloorToInt(el * 60f) + 1);
+            tallyText[idx] = "• " + text.Substring(0, n);
+            tallyLines.text = string.Join(System.Environment.NewLine, tallyText);
+            if (n >= text.Length) break;
+            yield return null;
+        }
+        tallyText[idx] = "• " + text;
+        tallyLines.text = string.Join(System.Environment.NewLine, tallyText);
+    }
+
+    private void SetEstimate(int rank, bool changed)
+    {
+        string col = ColorUtility.ToHtmlStringRGB(GuildSystem.RankColor(rank));
+        tallyEstimate.text = $"<size=70%><color=#B9B3CC>Estimation :</color></size> <color=#{col}>rang {GuildSystem.RankName(rank)}</color>";
+        if (changed) { Sfx.Play("coin", null, 0.35f); StartCoroutine(PopText(tallyEstimate.rectTransform)); }
+    }
+
+    private IEnumerator PopText(RectTransform rt)
+    {
+        for (float k = 0f; k < 1f; k += Time.unscaledDeltaTime / 0.25f) { rt.localScale = Vector3.one * (1f + 0.25f * Mathf.Sin(k * Mathf.PI)); yield return null; }
+        rt.localScale = Vector3.one;
     }
 
     // ─────────────────────────────────────────────

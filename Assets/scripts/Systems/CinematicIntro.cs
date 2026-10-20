@@ -45,6 +45,8 @@ public partial class CinematicDirector
 
     private Transform camFollow;
     private float camFollowSize;
+    /// <summary>Plans larges de l'intro (île, survol) : assez pour situer l'île, sans dessiner toute la carte (lent sur téléphone).</summary>
+    private const float WideShot = 9.5f;
 
     private class Mote { public Transform t; public SpriteRenderer sr; public int state; public float ang, rad, speed, seed; public Vector3 vel; }
     private readonly List<Mote> motes = new List<Mote>();
@@ -95,6 +97,18 @@ public partial class CinematicDirector
         fade.color = Color.black;
         topBar.sizeDelta = bottomBar.sizeDelta = new Vector2(0f, 120f);
         orbBob = 1f;
+        // Écran encore noir : on passe une image sur chaque plan large pour charger textures et shaders maintenant
+        // (sur téléphone, leur premier affichage en pleine cinématique faisait saccader le survol)
+        if (!skip)
+        {
+            Shader.WarmupAllShaders();
+            foreach (var (p, sz) in new[] { (geo.beach, WideShot), (geo.crater, WideShot + 0.5f), (geo.outside, 8f), (corePos, 5.5f) })
+            {
+                SetCam(p, sz);
+                yield return null;
+                yield return null;
+            }
+        }
         SetCam(geo.sea + new Vector3(0f, 0.25f, 0f), 3f);
         SpawnFish(geo.sea);
         yield return Fade(1f, 0f, 1.1f);
@@ -102,7 +116,7 @@ public partial class CinematicDirector
         StartCoroutine(OrbPanic(2f));
         camCtrl?.Shake(0.1f, 0.5f);
         yield return Thought("...Je ne respire pas !", 0.9f);
-        StartCoroutine(MoveCamera(Vector3.Lerp(geo.sea, geo.beach, 0.6f) - (Vector3)geo.seaDir * 4f, 13f, 3f));
+        StartCoroutine(MoveCamera(Vector3.Lerp(geo.sea, geo.beach, 0.6f) - (Vector3)geo.seaDir * 3f, WideShot, 3f));
         yield return Thought("De l'eau partout. Une île. Et moi... une boule de cristal bleu, à moitié dans l'eau.", 0.9f);
         StartCoroutine(MoveCamera(geo.beach + new Vector3(0f, 0.8f, 0f), 6f, 4f));
         StartCoroutine(DriftOrb(geo.sea, geo.beach, 4f));
@@ -171,7 +185,7 @@ public partial class CinematicDirector
         var sails = SpawnSails(geo.sails);
         StartCoroutine(ManaTo(mana, manaMax, 8f));
         camFollow = gull;
-        camFollowSize = 14f;
+        camFollowSize = WideShot + 0.5f;
         gullStop = false;
         StartCoroutine(GullFly(flight, 15f, 1f, true));
         yield return Thought("Je vole ! La jungle, un volcan qui fume... et des voiles, au loin. Des humains.", 0.6f);
@@ -186,7 +200,7 @@ public partial class CinematicDirector
             Vector3.Lerp(geo.beach, geo.outside, 0.5f) + side * 2f,
             geo.outside,
         };
-        camFollowSize = 10f;
+        camFollowSize = 8f;
         StartCoroutine(GullFly(toCave, 13f, 0.8f, false));
         yield return Thought("Un abri... cette fissure, dans le flanc de la montagne.", 0.3f);
         while (!skip && gullWp < toCave.Count) yield return null;

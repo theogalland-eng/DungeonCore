@@ -21,6 +21,17 @@ public static class PerfProbe
         return "profileur lancé";
     }
 
+    public static string Worst() => ReportWorst(6);
+    /// <summary>Coût de rendu de l'image courante (appels de dessin, lots, triangles) et caméra.</summary>
+    public static string Gpu()
+    {
+        var cam = Camera.main;
+        int lights = 0; foreach (var l in Object.FindObjectsByType<UnityEngine.Rendering.Universal.Light2D>(FindObjectsSortMode.None)) if (l.isActiveAndEnabled) lights++;
+        int srs = 0; foreach (var r in Object.FindObjectsByType<SpriteRenderer>(FindObjectsSortMode.None)) if (r.isVisible) srs++;
+        return $"draw={UnityEditor.UnityStats.drawCalls} batches={UnityEditor.UnityStats.batches} setpass={UnityEditor.UnityStats.setPassCalls} tris={UnityEditor.UnityStats.triangles} " +
+               $"cam={cam.orthographicSize:0.0} lights={lights} visibleSprites={srs} cine={(CinematicDirector.Instance != null && CinematicDirector.Instance.IsPlaying)}";
+    }
+
     public static string Report()
     {
         ProfilerDriver.enabled = false;

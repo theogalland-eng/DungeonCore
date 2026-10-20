@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -324,7 +324,7 @@ public class StoryManager : MonoBehaviour
                 S("Chaque expédition qui rentre fait évoluer votre classement. Un donjon qui tue monte vite en rang, et on lui envoie alors des chevaliers, puis des héros."));
         }
         if (GameSettings.Cinematics && CinematicDirector.Instance != null)
-            CinematicDirector.Instance.PlayGuildVerdict(rank, outcome, Talk);
+            CinematicDirector.Instance.PlayGuildVerdict(rank, outcome, GuildSystem.Instance != null ? GuildSystem.Instance.LastVerdict : null, Talk);
         else Talk();
     }
 

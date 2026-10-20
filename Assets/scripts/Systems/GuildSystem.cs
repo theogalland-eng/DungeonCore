@@ -137,6 +137,19 @@ public class GuildSystem : MonoBehaviour
     /// <summary>Ce que la Guilde mesurerait aujourd'hui (difficulté comprise).</summary>
     public int MeasuredRank => Mathf.Clamp(RankFromScore(DangerScore()) + GameDifficulty.RankBias, 0, MaxRank);
 
+    /// <summary>Ce que la cinématique du verdict raconte : l'équipe, qui est rentré, et le détail du calcul du rang.</summary>
+    public class VerdictInfo
+    {
+        public readonly List<(string name, AdventurerAI.Role role)> team = new List<(string, AdventurerAI.Role)>();
+        public readonly List<string> back = new List<string>();
+        public int monsters, maxStage, traps, floors, level, deaths, killed, fled, reported, rank;
+        public float monsterScore, trapScore, levelScore, floorScore, deathScore;
+        public string outcome;
+    }
+    public VerdictInfo LastVerdict { get; private set; }
+    private readonly List<(string name, AdventurerAI.Role role)> team = new List<(string, AdventurerAI.Role)>();
+    private readonly List<string> teamBack = new List<string>();
+
     // ─────────────────────────────────────────────
     // RAPPORTS DES INTRUS
     // ─────────────────────────────────────────────
@@ -148,6 +161,9 @@ public class GuildSystem : MonoBehaviour
         assessors.Clear();
         if (!assessment) return;
         assessors.AddRange(members);
+        team.Clear();
+        teamBack.Clear();
+        foreach (var m in members) if (m != null) team.Add((m.DisplayName, m.role));
         stage = Stage.Assessing;
         assessStart = Time.time;
         OnChanged?.Invoke();
@@ -158,6 +174,7 @@ public class GuildSystem : MonoBehaviour
     {
         if (a == null) return;
         repFled++;
+        if (stage == Stage.Assessing) teamBack.Add(a.DisplayName);
         repMonsters = Mathf.Max(repMonsters, a.MonstersSeen);
         repMaxStage = Mathf.Max(repMaxStage, a.MaxMonsterStageSeen);
         if (a.DamageTakenFraction >= 0.35f) repHurt++;
@@ -284,6 +301,7 @@ public class GuildSystem : MonoBehaviour
             outcome = "L'équipe est revenue au complet, carnets remplis.";
         }
         officialRank = Mathf.Clamp(rank, 0, MaxRank);
+        LastVerdict = BuildVerdict(killed, fled, outcome);
         stage = Stage.Assessed;
         assessedDay = Today;
         assessStart = -1f;
@@ -292,6 +310,27 @@ public class GuildSystem : MonoBehaviour
         OnChanged?.Invoke();
         StoryManager.Instance?.OnGuildVerdict(officialRank, outcome, killed, fled);
     }
+
+    /// <summary>Le détail du rang, poste par poste (mêmes poids que DangerScore), pour l'annoncer en direct.</summary>
+    private VerdictInfo BuildVerdict(int killed, int fled, string outcome)
+    {
+        var v = new VerdictInfo { killed = killed, fled = fled, reported = reportedRank, rank = officialRank, outcome = outcome, deaths = guildDeaths };
+        v.team.AddRange(team);
+        v.back.AddRange(teamBack);
+        foreach (var m in MonsterUnit.All)
+            if (m != null && !m.summoned) { v.monsters++; v.maxStage = Mathf.Max(v.maxStage, m.stage); v.monsterScore += m.stage == 1 ? 1f : m.stage == 2 ? 2.4f : 4.5f; }
+        v.traps = PlacedObject.Count(ItemKind.Trap);
+        v.trapScore = v.traps * 0.8f;
+        v.level = PlayerLevel.Instance != null ? PlayerLevel.Instance.currentLevel : 1;
+        v.levelScore = (v.level - 1) * 0.6f;
+        if (DungeonLayers.Instance != null) foreach (var l in DungeonLayers.Instance.layers) if (l.unlocked) v.floors++;
+        v.floorScore = Mathf.Max(0, v.floors - 1) * 1.5f;
+        v.deathScore = Mathf.Min(20f, guildDeaths * 0.6f);
+        return v;
+    }
+
+    /// <summary>Rang estimé pour un score partiel (difficulté comprise).</summary>
+    public static int EstimateRank(float score) => Mathf.Clamp(RankFromScore(score) + GameDifficulty.RankBias, 0, MaxRank);
 
     // ─────────────────────────────────────────────
     // EXPÉDITIONS CLASSÉES
