@@ -68,8 +68,16 @@ public static class GameSettings
     /// <summary>Échelle de l'interface (0,8 à 1,4) : plus grand = boutons et textes plus gros.</summary>
     public static float UiScale
     {
-        get => GetF("opt_uiscale", 1f);
+        get => GetF("opt_uiscale", DefaultUiScale());
         set => SetF("opt_uiscale", Mathf.Clamp(Mathf.Round(value * 10f) / 10f, 0.8f, 1.4f));
+    }
+
+    /// <summary>Taille d'interface par défaut selon l'écran réel : plus grande sur un petit téléphone (textes lisibles).</summary>
+    private static float DefaultUiScale()
+    {
+        if (!Application.isMobilePlatform || Screen.dpi <= 0f) return 1f;
+        float inches = Mathf.Min(Screen.width, Screen.height) / Screen.dpi;   // hauteur de l'écran en paysage
+        return inches < 2.9f ? 1.3f : inches < 3.6f ? 1.2f : inches < 4.5f ? 1.1f : 1f;
     }
 
     /// <summary>Vibrations du téléphone (cristal frappé, héros blessé).</summary>

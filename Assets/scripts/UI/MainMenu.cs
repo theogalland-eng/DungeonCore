@@ -128,6 +128,7 @@ public class MainMenu : MonoBehaviour
     private void BuildHome()
     {
         home = UIKit.Stretch(UIKit.Rect("Home", root));
+        home.gameObject.AddComponent<HudScaler>();   // colonne du menu et carte du profil suivent la taille d'interface
         // l'île en fond, assombrie ; un grand panneau dégradé à gauche porte le titre et le menu
         var veil = UIKit.Stretch(UIKit.Rect("Veil", home));
         UIKit.Image(veil, new Color(0.02f, 0.015f, 0.05f, 0.3f), false);
@@ -231,14 +232,15 @@ public class MainMenu : MonoBehaviour
         UIKit.Clear(menuButtons);
         int n = menuLabels.Count + 1;
         const float gap = 12f;
-        float h = Mathf.Clamp((avail - gap * n) / (n + 0.35f), 46f, 70f);
+        float h = Mathf.Clamp((avail - gap * n) / (n + 0.75f), 28f, 70f);   // la colonne est agrandie par la taille d'interface : on peut descendre bas
         float y = 0f;
-        continueBtn = HomeButton(menuButtons, "Continuer", () => ContinueGame(), ref y, UIKit.Accent, h * 1.35f, gap);
-        continueSub = UIKit.Label(continueBtn.transform, "", 18, new Color(0.88f, 0.85f, 1f));
-        UIKit.Place(continueSub.rectTransform, new Vector2(0.5f, 0f), new Vector2(0, 7), new Vector2(500, 26));
+        float hc = h * 1.75f;   // le bouton Continuer porte deux lignes (titre + date de la partie)
+        continueBtn = HomeButton(menuButtons, "Continuer", () => ContinueGame(), ref y, UIKit.Accent, hc, gap);
+        continueSub = UIKit.Label(continueBtn.transform, "", Mathf.Clamp(h * 0.36f, 12f, 18f), new Color(0.88f, 0.85f, 1f));
+        UIKit.Place(continueSub.rectTransform, new Vector2(0.5f, 0f), new Vector2(0, hc * 0.1f), new Vector2(500, hc * 0.38f));
         continueSub.rectTransform.pivot = new Vector2(0.5f, 0f);
         var ct = continueBtn.transform.Find("Text") as RectTransform;
-        if (ct != null) ct.offsetMin = new Vector2(8, h * 0.4f);
+        if (ct != null) ct.offsetMin = new Vector2(8, hc * 0.42f);
         foreach (var (label, act, color) in menuLabels) HomeButton(menuButtons, label, act, ref y, color, h, gap);
         if (profileName != null) RefreshHome();
     }

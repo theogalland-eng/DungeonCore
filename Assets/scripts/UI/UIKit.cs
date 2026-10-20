@@ -191,6 +191,9 @@ public static class UIKit
         var rt = Place(Rect(name, parent), anchor, pos, size);
         Image(rt, c ?? Panel);
         Frame(rt);
+        // fenêtre centrée posée sur un fond plein écran : suit la taille d'interface sans jamais dépasser l'écran
+        if (anchor == new Vector2(0.5f, 0.5f) && parent is RectTransform pr && pr.anchorMin == Vector2.zero && pr.anchorMax == Vector2.one)
+            rt.gameObject.AddComponent<FitToScreen>();
         return rt;
     }
 

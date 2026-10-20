@@ -1236,6 +1236,37 @@ public static class DevInspect3
         var p = b.floorTilemap.GetCellCenterWorld(cc + new Vector3Int(4, 1, 0));
         return DevInspect.Shot(p.x, p.y, 2.2f, 1200, 700, "mimics");
     }
+    public static string UiScale14() { GameSettings.UiScale = 1.4f; return "ui 1.4"; }
+    public static string UiScale10() { GameSettings.UiScale = 1.0f; return "ui 1.0"; }
+    /// <summary>Blocs de premier niveau des canevas d'interface (ancres, taille).</summary>
+    public static string UiBlocks()
+    {
+        var sb = new System.Text.StringBuilder();
+        foreach (var c in Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None))
+        {
+            if (!c.isRootCanvas) continue;
+            sb.Append($" || CANVAS {c.name} ordre={c.sortingOrder}: ");
+            var root = c.transform;
+            foreach (Transform ch in root)
+            {
+                var rt = ch as RectTransform; if (rt == null) continue;
+                if (rt.name == "SafeArea") { foreach (Transform g in rt) { var r2 = g as RectTransform; if (r2 != null) sb.Append($"[{r2.name} a={r2.anchorMin}-{r2.anchorMax} p={r2.anchoredPosition} s={r2.rect.size} {(r2.gameObject.activeSelf ? "" : "off")}] "); } continue; }
+                if (rt.childCount == 1 && rt.name == "Root") { foreach (Transform g in rt) { var r2 = g as RectTransform; if (r2 != null) sb.Append($"[{r2.name} a={r2.anchorMin}-{r2.anchorMax} s={r2.rect.size} {(r2.gameObject.activeSelf ? "" : "off")}] "); } continue; }
+                sb.Append($"[{rt.name} a={rt.anchorMin}-{rt.anchorMax} s={rt.rect.size} {(rt.gameObject.activeSelf ? "" : "off")}] ");
+            }
+        }
+        return sb.ToString();
+    }
+    public static string MenuScaleInfo()
+    {
+        var sb = new System.Text.StringBuilder();
+        foreach (var c in Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None))
+            if (c.name.StartsWith("MainMenu")) { var cs = c.GetComponent<UnityEngine.UI.CanvasScaler>(); sb.Append($"canvas ref={cs.referenceResolution} size={((RectTransform)c.transform).rect.size} "); }
+        foreach (var t in Object.FindObjectsByType<RectTransform>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            if (t.name == "Column" || t.name == "Home" || t.name == "Profile") sb.Append($"[{t.name} scale={t.localScale.x:0.00} size={t.rect.size} hud={(t.GetComponent<HudScaler>() != null)} actif={t.gameObject.activeInHierarchy}] ");
+        return sb.ToString();
+    }
+    public static string ExpandSide() { GameHUD.Instance.Side.SetExpanded(true); return "panneau ouvert"; }
     public static string OpenMainScene()
     {
         if (Application.isPlaying) return "arrêter le jeu d'abord";

@@ -298,3 +298,8 @@ Mise en ligne du projet sur GitHub (ce dépôt), avec cette documentation.
 - 👑 **Barre du boss d'étage** : affichée seulement quand il combat, qu'on le sélectionne ou qu'il vient d'être frappé (elle restait à l'écran dès qu'il avait perdu un PV).
 - 🌧️ **Météo seulement dehors** : plus de pluie ni de brume en vue du donjon ni dans les étages du dessous ; le brouillard est nettement moins dense.
 - 🧰 **Mimiques à la taille des coffres** (elles faisaient un tiers d'un coffre posé).
+
+### Taille de l'interface refaite (mobile)
+
+- 📐 **Taille de l'interface** (Options) : elle agrandissait tout le canevas, ce qui faisait déborder la colonne du menu et chevaucher les panneaux du haut (dessinés pour 1920×1080). Désormais chaque bloc grandit depuis son coin (`HudScaler`) en gardant la disposition de son groupe ; l'échelle de la rangée du haut est plafonnée pour que la carte du Noyau, le calendrier et la menace tiennent côte à côte ; le panneau de construction garde la hauteur de l'écran ; les fenêtres centrées suivent la taille choisie sans jamais dépasser l'écran (`FitToScreen`) ; les boutons du menu principal se réorganisent selon la place.
+- 📱 **Taille par défaut selon l'écran réel** : sur téléphone, l'interface démarre plus grande (110 à 130 % selon la hauteur physique de l'écran) pour que les textes restent lisibles.

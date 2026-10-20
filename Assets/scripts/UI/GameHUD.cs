@@ -298,6 +298,7 @@ public class GameHUD : MonoBehaviour
         go.AddComponent<GraphicRaycaster>();
 
         root = NewRect("SafeArea", go.transform);
+        root.gameObject.AddComponent<HudScaler>();   // taille d'interface : chaque bloc grandit depuis son coin, sans chevauchement
         ApplySafeArea();
     }
 
