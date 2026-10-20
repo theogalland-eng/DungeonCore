@@ -84,6 +84,7 @@ public class SettlerAI : MonoBehaviour
 
     private void Start()
     {
+        FeetSort.Attach(gameObject);
         seeker = GetComponent<Seeker>();
         animator = GetComponent<Animator>();
         sr = GetComponent<SpriteRenderer>();

@@ -116,6 +116,7 @@ public class GobelinAI : MonoBehaviour, IDamageable
         rb = GetComponent<Rigidbody2D>();
         seeker = GetComponent<Seeker>();
         spriteRenderer = GetComponent<SpriteRenderer>();
+        FeetSort.Attach(gameObject);   // trié à ses pieds, pas au centre de l'image
         if (spriteRenderer != null) baseColor = spriteRenderer.color;
         if (animator == null) animator = GetComponent<Animator>();
         currentHealth = maxHealth;

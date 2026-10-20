@@ -1173,7 +1173,7 @@ public static class IslandGenerator
             var axis = so.FindProperty("m_TransparencySortAxis");
             if (mode == null || axis == null) continue;
             mode.intValue = (int)TransparencySortMode.CustomAxis;
-            axis.vector3Value = new Vector3(0f, 1f, 0f);
+            axis.vector3Value = new Vector3(0f, 1f, 1f);   // z : décalage des pieds des personnages (FeetSort)
             so.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(data);
         }

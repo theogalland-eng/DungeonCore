@@ -435,6 +435,7 @@ public class InteriorSystem : MonoBehaviour
             sr.flipX = p.flip;
             sr.sortingOrder = p.order;
             sr.spriteSortPoint = SpriteSortPoint.Pivot;
+            if (p.order >= 3) FeetSort.Attach(sr.gameObject);   // meuble trié à son pied (le comptoir cache qui se tient derrière)
             // meubles debout : leur pied est solide (les tapis et cercles au sol ne le sont pas)
             if (p.order >= 3 && p.y < l.h / 2f - 0.6f)
             {
@@ -456,6 +457,7 @@ public class InteriorSystem : MonoBehaviour
             sr.flipX = n.flip;
             sr.sortingOrder = 3;
             sr.spriteSortPoint = SpriteSortPoint.Pivot;
+            if (!n.anim.StartsWith("fx_")) FeetSort.Attach(go);   // habitant trié à ses pieds
             var a = go.AddComponent<LoopAnim>();
             a.frames = frames;
             a.fps = n.fps;

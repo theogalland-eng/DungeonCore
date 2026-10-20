@@ -386,6 +386,7 @@ public class AdventurerAI : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         seeker = GetComponent<Seeker>();
         combat = GetComponent<AdventurerCombat>();
+        FeetSort.Attach(gameObject);   // trié à ses pieds (reste aussi sur le héros et les compagnons)
         if (animator == null) animator = GetComponent<Animator>();
         bodyCol = GetComponent<Collider2D>();
         spawnPoint = rb.position;

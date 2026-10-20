@@ -279,6 +279,64 @@ public static class DevInspect3
         f.guardian.TakeDamage(999999f);
         return "gardien frappé";
     }
+    /// <summary>Clique le bouton dont le libellé contient « Provisions », puis compte les fenêtres ouvertes.</summary>
+    public static string CountShops()
+    {
+        int shops = 0, panels = 0;
+        foreach (var go in Object.FindObjectsByType<RectTransform>(FindObjectsSortMode.None)) { if (go.name == "Boutique") shops++; if (go.name == "Panneau") panels++; }
+        return $"fenêtres boutique={shops}, encarts plein écran={panels}";
+    }
+    public static string BuyRations()
+    {
+        var c = CrawlerMode.Instance;
+        int before = c.rations;
+        foreach (var b in Object.FindObjectsByType<UnityEngine.UI.Button>(FindObjectsSortMode.None))
+        {
+            var t = b.GetComponentInChildren<TMPro.TMP_Text>();
+            if (t != null && t.text.Contains("Provisions")) { b.onClick.Invoke(); break; }
+        }
+        int shops = 0, panels = 0;
+        foreach (var go in Object.FindObjectsByType<RectTransform>(FindObjectsSortMode.None)) { if (go.name == "Boutique") shops++; if (go.name == "Panneau") panels++; }
+        return $"rations {before} -> {c.rations}, fenêtres boutique={shops}, encarts plein écran={panels}";
+    }
+    public static string sortProp = "Bush"; public static float sortDy = -0.15f;
+    /// <summary>Place le héros au pied d'un décor (sortProp) le plus proche, décalé de sortDy, et photographie.</summary>
+    public static string SortShot()
+    {
+        var pl = CrawlerMode.Instance.Player.transform;
+        Transform best = null; float bd = 999f;
+        foreach (var sr in Object.FindObjectsByType<SpriteRenderer>(FindObjectsSortMode.None))
+            if (sr.name.StartsWith(sortProp) && Vector2.Distance(sr.transform.position, pl.position) < bd) { bd = Vector2.Distance(sr.transform.position, pl.position); best = sr.transform; }
+        if (best == null) return "aucun " + sortProp;
+        var p = best.position + new Vector3(0.05f, sortDy + 0.45f, 0f);   // pieds du héros à sortDy du pied du décor
+        pl.position = p; var rb = pl.GetComponent<Rigidbody2D>(); if (rb != null) rb.position = p;
+        var fs = pl.GetComponent<FeetSort>(); if (fs != null) typeof(FeetSort).GetMethod("LateUpdate", NP).Invoke(fs, null);
+        var shot = DevInspect.Shot(best.position.x, best.position.y + 0.6f, 2.2f, 900, 700, sortProp + (sortDy < 0 ? "_devant" : "_derriere"));
+        return $"{best.name} {best.position} héros z={pl.position.z:0.00} | {shot}";
+    }
+    /// <summary>Le héros juste derrière (au-dessus du pied) puis juste devant le bâtiment le plus proche.</summary>
+    public static string BuildingShots()
+    {
+        var pl = CrawlerMode.Instance.Player.transform;
+        SettlementBuilding best = null; float bd = 999f;
+        foreach (var b in Object.FindObjectsByType<SettlementBuilding>(FindObjectsSortMode.None))
+            if (b.def.id == "house_1") best = b;
+        if (best == null) return "aucun bâtiment";
+        var sr = best.GetComponentInChildren<SpriteRenderer>();
+        string r = $"{best.def.id} pos={best.transform.position} pivot={(sr != null && sr.sprite != null ? sr.sprite.pivot / sr.sprite.rect.size : Vector2.zero)} tri={(sr != null ? sr.spriteSortPoint.ToString() : "-")} | ";
+        foreach (var dy in new[] { 0.35f, -0.35f })
+        {
+            var p = best.transform.position + new Vector3(0.6f, dy + 0.45f, 0f);
+            pl.position = p; var rb = pl.GetComponent<Rigidbody2D>(); if (rb != null) rb.position = p;
+            var fs = pl.GetComponent<FeetSort>(); if (fs != null) typeof(FeetSort).GetMethod("LateUpdate", NP).Invoke(fs, null);
+            r += DevInspect.Shot(best.transform.position.x, best.transform.position.y + 1.2f, 3f, 900, 700, dy > 0 ? "bat_derriere" : "bat_devant") + " ";
+        }
+        return r;
+    }
+    public static string BushFront() { sortProp = "Bush"; sortDy = -0.15f; return SortShot(); }
+    public static string BushBehind() { sortProp = "Bush"; sortDy = 0.15f; return SortShot(); }
+    public static string TreeFront() { sortProp = "Tree"; sortDy = -0.2f; return SortShot(); }
+    public static string TreeBehind() { sortProp = "Tree"; sortDy = 0.2f; return SortShot(); }
     public static int fogRoom;
     /// <summary>Téléporte le héros au centre de la salle suivante de l'étage (test du brouillard de guerre).</summary>
     public static string FogNextRoom()

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Pathfinding;
 using UnityEngine;
 
@@ -84,6 +84,7 @@ public class WildAnimal : MonoBehaviour, IDamageable
 
     private void Start()
     {
+        FeetSort.Attach(gameObject);
         seeker = GetComponent<Seeker>();
         animator = GetComponent<Animator>();
         sr = GetComponent<SpriteRenderer>();
