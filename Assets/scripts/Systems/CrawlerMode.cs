@@ -175,6 +175,7 @@ public class CrawlerMode : MonoBehaviour
         bag.Clear();
         for (int i = 0; i < equipped.Length; i++) equipped[i] = null;
         BuildTown();
+        gameObject.AddComponent<CrawlerOverlord>();   // l'intelligence qui gère et agrandit le donjon
         BuildDungeon();
         SpawnPlayer(role);
         BuildHud();
@@ -368,6 +369,7 @@ public class CrawlerMode : MonoBehaviour
         {
             if (fl == 1 && floor == 0) { OnEnterDungeon(); trip++; }
             if (fl == 0 && floor == 1) GameHUD.Toast("Vous ressortez à l'air libre", GameHUD.InfoColor);
+            if (fl == 0 && floor >= 1) CrawlerOverlord.Instance?.OnTripEnd();   // le Noyau a le champ libre
             floor = fl;
             CrawlerContracts.OnFloor(floor);
             if (floor > deepest)
@@ -407,6 +409,15 @@ public class CrawlerMode : MonoBehaviour
 
     private CrawlerDungeon.Floor fogData;
 
+    /// <summary>Étages actuellement creusés (un par zone souterraine) : ceux sur lesquels l'Esprit du Noyau peut agir.</summary>
+    public IEnumerable<CrawlerDungeon.Floor> LiveFloors()
+    {
+        foreach (var kv in regionFloor)
+            if (floors.TryGetValue(kv.Value, out var f)) yield return f;
+    }
+
+    public bool ChestLooted(string key) => lootedChests.Contains(key);
+
     /// <summary>Zone couverte : les salles de l'étage et une large marge, dans les limites de sa couche.</summary>
     private static RectInt FogArea(CrawlerDungeon.Floor f)
     {
@@ -445,16 +456,9 @@ public class CrawlerMode : MonoBehaviour
     /// <summary>Le donjon est vivant : en votre absence, il fait repousser une partie de ses créatures.</summary>
     private void OnEnterDungeon()
     {
-        int n = Mathf.Min(4, killedSinceTown / 2);
+        // l'Esprit du Noyau a agi pendant l'expédition précédente (repeuplement, salles, évolutions) : il le fait sentir
         killedSinceTown = 0;
-        if (n <= 0 || !floors.TryGetValue(1, out var f1)) return;
-        for (int i = 0; i < n; i++)
-        {
-            var room = f1.rooms[Mathf.Clamp(1 + rng.Next(f1.rooms.Count - 1), 1, f1.rooms.Count - 1)];
-            var pos = new Vector2(room.rect.x + 1 + rng.Next(Mathf.Max(1, room.rect.width - 2)) + 0.5f, room.rect.y + 1 + rng.Next(Mathf.Max(1, room.rect.height - 2)) + 0.5f);
-            CrawlerDungeon.SpawnMonster(CrawlerDungeon.RandomFamily(1, rng), 1, pos, f1);
-        }
-        GameHUD.Toast("Le donjon a repoussé pendant votre absence...", GameHUD.DangerColor);
+        CrawlerOverlord.Instance?.OnEnterDungeon();
     }
 
     // ─────────────────────────────────────────────
@@ -725,6 +729,7 @@ public class CrawlerMode : MonoBehaviour
         gold += reward;
         kills++;
         killedSinceTown++;
+        CrawlerOverlord.Instance?.OnKill(g);
         FloatingText.Spawn(g.transform.position + Vector3.up * 0.9f, $"+{reward} or", GameHUD.GoldColor, 1.1f);
         if (rank < RankKills.Length - 1 && kills == RankKills[rank + 1])
             GameHUD.Toast($"Vous méritez le rang {GuildSystem.RankName(rank + 1)} : faites-le valider au hall de la Guilde", GameHUD.GoldColor);
@@ -733,6 +738,7 @@ public class CrawlerMode : MonoBehaviour
     public void OnPlayerDied()
     {
         if (transitioning) return;
+        CrawlerOverlord.Instance?.OnPlayerDeath();
         StartCoroutine(Respawn());
     }
 
@@ -930,6 +936,7 @@ public class CrawlerMode : MonoBehaviour
                 int earned = 0;
                 for (int i = 0; i < RankKills.Length; i++) if (kills >= RankKills[i]) earned = i;
                 Line($"Votre rang : {GuildSystem.RankTag(rank)} · Monstres vaincus : {kills} · Étage le plus profond : {deepest}/{CrawlerDungeon.FloorCount}", 40f);
+                if (CrawlerOverlord.Instance != null) Line($"<color=#D9A0FF>{CrawlerOverlord.Instance.Report()}</color>", 34f);
                 if (earned > rank)
                     Button($"Faire valider le rang {GuildSystem.RankName(earned)} (+8 % par rang)", () =>
                     {

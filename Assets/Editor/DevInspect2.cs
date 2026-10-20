@@ -110,6 +110,17 @@ public static class DevInspect3
         foreach (var r in f.rooms) { x0 = Mathf.Min(x0, r.rect.xMin); y0 = Mathf.Min(y0, r.rect.yMin); x1 = Mathf.Max(x1, r.rect.xMax); y1 = Mathf.Max(y1, r.rect.yMax); }
         return DevInspect.Shot((x0 + x1) * 0.5f, (y0 + y1) * 0.5f, Mathf.Max((y1 - y0) * 0.5f + 3f, (x1 - x0) * 0.32f + 3f), 1600, 1000, "overview");
     }
+    /// <summary>Donne de l'essence à l'Esprit du Noyau et le fait réfléchir (test).</summary>
+    public static string OverlordThink()
+    {
+        var o = CrawlerOverlord.Instance;
+        if (o == null) return "no overlord";
+        int before = 0; foreach (var f in CrawlerMode.Instance.LiveFloors()) before += f.rooms.Count;
+        o.essence += 600f;
+        o.Think(8);
+        int after = 0; foreach (var f in CrawlerMode.Instance.LiveFloors()) after += f.rooms.Count;
+        return $"rooms {before}->{after} essence={o.essence:0} | " + o.Report();
+    }
     public static int fogRoom;
     /// <summary>Téléporte le héros au centre de la salle suivante de l'étage (test du brouillard de guerre).</summary>
     public static string FogNextRoom()

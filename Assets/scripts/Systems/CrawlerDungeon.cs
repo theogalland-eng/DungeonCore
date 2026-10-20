@@ -73,7 +73,11 @@ public static class CrawlerDungeon
     public static int RegionOf(int floor) => floor <= 1 ? 0 : floor >= FloorCount ? 3 : 1 + (floor % 2);
 
     // les étages souterrains sont larges : on les explore salle par salle (brouillard de guerre)
-    public static int RoomCount(int floor) => floor == 1 ? 7 : floor == FloorCount ? 6 : Mathf.Min(14, 7 + floor * 2 / 3);
+    public static int RoomCount(int floor) => (floor == 1 ? 7 : floor == FloorCount ? 6 : Mathf.Min(14, 7 + floor * 2 / 3)) + (floor == FloorCount ? 0 : ExtraRooms);
+
+    /// <summary>L'Esprit du Noyau grandit : salles en plus sur les étages recréés, et chance qu'un monstre naisse un stade au-dessus.</summary>
+    public static int ExtraRooms;
+    public static float StageBonus;
 
     // ─────────────────────────────────────────────
     // GÉNÉRATION DU PLAN
@@ -276,6 +280,65 @@ public static class CrawlerDungeon
         return 3;
     }
 
+    /// <summary>Stade tiré pour l'étage, éventuellement relevé par l'éveil du Noyau.</summary>
+    public static int RollStage(int floor, System.Random rng)
+    {
+        int st = StageFor(floor, rng);
+        if (st < 3 && rng.NextDouble() < StageBonus) st++;
+        return st;
+    }
+
+    /// <summary>
+    /// Le Noyau creuse une salle de plus sur un étage existant, accrochée à une salle au hasard (jamais la salle d'arrivée).
+    /// Mêmes règles que la génération : dans la roche, dans la zone de l'étage, sans toucher une autre salle.
+    /// </summary>
+    public static Room ExpandFloor(Floor f, System.Random rng, RectInt? avoid = null)
+    {
+        var builder = DungeonBuilder.Instance;
+        var layers = DungeonLayers.Instance;
+        if (builder == null || f.rooms.Count < 2) return null;
+        RectInt bounds = layers != null && layers.layers.Count > f.region ? layers.layers[f.region].cellBounds : new RectInt(-50, -30, 100, 60);
+        bounds = new RectInt(bounds.x + 3, bounds.y + 3, bounds.width - 6, bounds.height - 6);
+        var dirs = new[] { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
+        for (int attempt = 0; attempt < 300; attempt++)
+        {
+            var parent = f.rooms[1 + rng.Next(f.rooms.Count - 1)];
+            if (avoid.HasValue && parent.rect.Equals(avoid.Value)) continue;
+            var prev = parent.rect;
+            var d = dirs[rng.Next(dirs.Length)];
+            int len = rng.Next(2, 6), w = rng.Next(5, 10), h = rng.Next(4, 8);
+            Vector2Int start = d == Vector2Int.up ? new Vector2Int(prev.x + prev.width / 2, prev.yMax)
+                             : d == Vector2Int.down ? new Vector2Int(prev.x + prev.width / 2, prev.y - 1)
+                             : d == Vector2Int.left ? new Vector2Int(prev.x - 1, prev.y + prev.height / 2)
+                             : new Vector2Int(prev.xMax, prev.y + prev.height / 2);
+            var corridor = new List<Vector3Int>();
+            var p = start;
+            for (int k = 0; k < len; k++) { corridor.Add(new Vector3Int(p.x, p.y, 0)); p += d; }
+            RectInt room = d == Vector2Int.up ? new RectInt(p.x - w / 2, p.y, w, h)
+                         : d == Vector2Int.down ? new RectInt(p.x - w / 2, p.y - h + 1, w, h)
+                         : d == Vector2Int.left ? new RectInt(p.x - w + 1, p.y - h / 2, w, h)
+                         : new RectInt(p.x, p.y - h / 2, w, h);
+            if (!Inside(bounds, room)) continue;
+            bool solid = true;
+            foreach (var c in corridor) if (!builder.stoneTilemap.HasTile(c)) { solid = false; break; }
+            for (int x = room.xMin - 1; x <= room.xMax && solid; x++)
+                for (int y = room.yMin - 1; y <= room.yMax && solid; y++)
+                    if (!builder.stoneTilemap.HasTile(new Vector3Int(x, y, 0))) solid = false;
+            if (!solid) continue;
+            var grown = new RectInt(room.x - 2, room.y - 2, room.width + 4, room.height + 4);
+            bool overlap = false;
+            foreach (var r in f.rooms) if (r.rect.Overlaps(grown)) { overlap = true; break; }
+            if (overlap) continue;
+            var cells = new HashSet<Vector3Int>(corridor);
+            AddRect(cells, room);
+            builder.DigBatch(cells);
+            var made = new Room { rect = room, depth = parent.depth + 1 };
+            f.rooms.Add(made);
+            return made;
+        }
+        return null;
+    }
+
     private static readonly string[] BossNames = { "", "", "Skrag la Fouine", "Mère Moisissure", "Ossegrince", "", "Hurle-Lune", "Vrask", "", "Comtesse Ysolde", "" };
 
     /// <summary>Familles de monstres d'un étage (contrats de chasse).</summary>
@@ -300,6 +363,18 @@ public static class CrawlerDungeon
         foreach (var room in f.rooms)
         {
             if (room == f.Start) continue;
+            PopulateRoom(f, room, rng, chestLooted);
+        }
+        SpawnGuardian(f);
+    }
+
+    /// <summary>Monstres, pièges, coffre et décor d'une salle.</summary>
+    public static void PopulateRoom(Floor f, Room room, System.Random rng, System.Func<string, bool> chestLooted)
+    {
+        var builder = DungeonBuilder.Instance;
+        var cat = DungeonCatalog.Get();
+        int fl = f.number;
+        {
             var used = new HashSet<Vector3Int>();
             Vector3Int RandomCell()
             {
@@ -317,7 +392,7 @@ public static class CrawlerDungeon
             int count = Mathf.Min(6, 1 + fl / 2 + rng.Next(0, 3));
             if (fl == 1) count = Mathf.Min(count, 2 + rng.Next(0, 2));
             if (fl == FloorCount) count = last ? 2 : 2 + rng.Next(0, 2);   // l'antre : peu de monstres, mais des formes ultimes
-            for (int i = 0; i < count; i++) SpawnMonster(RandomFamily(fl, rng), StageFor(fl, rng), Pos(RandomCell()), f);
+            for (int i = 0; i < count; i++) SpawnMonster(RandomFamily(fl, rng), RollStage(fl, rng), Pos(RandomCell()), f);
 
             // pièges
             var traps = Traps[Mathf.Clamp(fl, 1, FloorCount)];
@@ -343,6 +418,11 @@ public static class CrawlerDungeon
                 if (item != null && rng.Next(3) > 0) builder.PlaceItemFree(item, RandomCell());
             }
         }
+    }
+
+    private static void SpawnGuardian(Floor f)
+    {
+        int fl = f.number;
         // gardiens : un boss dans la dernière salle de chaque étage (seigneur orc au 5, archiliche au 8 ;
         // au 10, le seigneur de l'antre est posé devant le cristal par CrawlerMode)
         if (fl >= 2 && fl < FloorCount)

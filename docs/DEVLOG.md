@@ -310,3 +310,9 @@ Mise en ligne du projet sur GitHub (ce dépôt), avec cette documentation.
 - 🎥 **Vue rapprochée** dans le donjon (caméra plus proche qu'avant) et **calée sur la salle** courante tant qu'on y est, à la manière d'un Zelda ; elle suit librement le héros dans les couloirs.
 - 🗺️ **Donjon souterrain plus grand** : les trois étages souterrains passent de 84 à 180 cases de large (même hauteur et même position : sauvegardes compatibles, grille de déplacement inchangée), en mode Noyau comme en mode Aventurier. Outil d'éditeur `IslandGenerator.WidenUnderground` pour l'appliquer à la scène.
 - 🕸️ **Étages d'aventure plus vastes et ramifiés** : 7 à 13 salles selon la profondeur (au lieu de 5 à 9), un peu plus grandes, qui partent dans plusieurs directions, avec quelques couloirs en boucle entre salles voisines.
+
+### Mode Aventurier : l'Esprit du Noyau
+
+- 🧠 **Une intelligence gère le donjon** (`CrawlerOverlord`) : elle amasse de l'essence (chaque jour, à chaque défaite du héros, à chaque expédition, un peu à chaque monstre tué) et la dépense en choisissant l'action la plus utile du moment : **creuser une nouvelle salle** peuplée sur un étage que vous avez bien exploré, **repeupler** les salles vidées, **faire évoluer** les monstres qui vous ont échappé, **piéger** les salles où vous passez le plus, **envoyer les familles qui vous résistent** (et des chasseurs rapides contre un archer ou un mage). Elle agit hors de votre vue.
+- 🌱 **Éveil** : en dépensant, l'Esprit monte de niveau ; les étages recréés ont plus de salles et des monstres plus évolués.
+- 📜 Ce qu'il a fait est raconté au retour dans le donjon (« Le donjon a changé pendant votre absence... ») et résumé au hall de la Guilde.

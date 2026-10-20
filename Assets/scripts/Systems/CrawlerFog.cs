@@ -70,6 +70,22 @@ public class CrawlerFog : MonoBehaviour
         gameObject.SetActive(true);
     }
 
+    /// <summary>Le Noyau a creusé plus loin : la zone couverte s'étend (cases neuves dans le noir).</summary>
+    public void Cover(CrawlerDungeon.Floor f, RectInt area)
+    {
+        if (f != floor) return;
+        foreach (var p in area.allPositionsWithin)
+        {
+            var c = new Vector3Int(p.x, p.y, 0);
+            if (fog.HasTile(c)) continue;
+            fog.SetTile(c, tile);
+            fog.SetColor(c, Color.black);
+        }
+        int x0 = Mathf.Min(bounds.xMin, area.xMin), y0 = Mathf.Min(bounds.yMin, area.yMin);
+        int x1 = Mathf.Max(bounds.xMax, area.xMax), y1 = Mathf.Max(bounds.yMax, area.yMax);
+        bounds = new RectInt(x0, y0, x1 - x0, y1 - y0);
+    }
+
     public void Hide()
     {
         floor = null;
