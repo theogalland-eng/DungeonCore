@@ -175,10 +175,20 @@ public class DungeonBuilder : MonoBehaviour
         (PossessionController.Instance != null && PossessionController.Instance.IsPossessing) ||
         (GameManager.Instance != null && GameManager.Instance.State != GameManager.GameState.Playing);
 
+    private bool wasUnderAttack;
+
     private void Update()
     {
         // une attaque commence : on range les outils
-        if (currentMode != BuildMode.None && UnderAttack) { AttackRefusal(); SetMode(BuildMode.None); }
+        bool attack = UnderAttack;
+        if (currentMode != BuildMode.None && attack) { AttackRefusal(); SetMode(BuildMode.None); }
+        // l'attaque est finie : un creusement suspendu reprend tout seul (son bouton n'existe que pendant l'attaque)
+        if (wasUnderAttack && !attack && DigPaused)
+        {
+            DigPaused = false;
+            if (digQueue.Count > 0) GameHUD.Toast("Les intrus sont partis : le creusement reprend", GameHUD.InfoColor);
+        }
+        wasUnderAttack = attack;
         if (!InputBlocked)
         {
             HandleKeyboard();

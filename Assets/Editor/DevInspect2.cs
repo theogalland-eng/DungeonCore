@@ -142,6 +142,61 @@ public static class DevInspect3
         CrawlerOverlord.Instance.essence = 300; CrawlerOverlord.Instance.Think(3);
         return AdvSummary();
     }
+    /// <summary>Met 8 cases de roche en file de creusement autour du cristal (test du panneau des creusements).</summary>
+    public static string DigQueueTest()
+    {
+        var b = DungeonBuilder.Instance;
+        var t = typeof(DungeonBuilder);
+        t.GetField("dragMarking", NP).SetValue(b, true);
+        var m = t.GetMethod("ApplyDigMark", NP);
+        var core = DungeonTerritory.Instance.CoreCell;
+        int n = 0;
+        for (int x = -6; x <= 6 && n < 8; x++)
+            for (int y = -6; y <= 6 && n < 8; y++)
+            {
+                var c = core + new Vector3Int(x, y, 0);
+                if (!b.stoneTilemap.HasTile(c)) continue;
+                t.GetField("lastDragCell", NP).SetValue(b, new Vector3Int(9999, 9999, 0));
+                m.Invoke(b, new object[] { c }); n++;
+            }
+        t.GetField("dragMarking", NP).SetValue(b, false);
+        b.DigPaused = true;
+        return $"file={b.QueuedDigCount} pause={b.DigPaused}";
+    }
+    /// <summary>Une expédition apparaît directement dans le donjon (attaque en cours).</summary>
+    public static string AttackNow()
+    {
+        ExpeditionManager.Instance.LaunchExpedition();
+        var core = Object.FindFirstObjectByType<DungeonCore>().transform.position;
+        foreach (var a in AdventurerAI.All) if (a != null) { a.transform.position = core + Vector3.down * 1.5f; var rb = a.GetComponent<Rigidbody2D>(); if (rb != null) rb.position = a.transform.position; }
+        return $"intrus={AdventurerAI.All.Count}";
+    }
+    public static string AttackEnd()
+    {
+        foreach (var a in new System.Collections.Generic.List<AdventurerAI>(AdventurerAI.All)) if (a != null) Object.Destroy(a.gameObject);
+        return "intrus retirés";
+    }
+    public static string DigQueueState() => $"file={DungeonBuilder.Instance.QueuedDigCount} pause={DungeonBuilder.Instance.DigPaused} attaque={DungeonBuilder.UnderAttack}";
+    public static string TalentPoints() { while (PlayerLevel.Instance.currentLevel < 4) PlayerLevel.Instance.AddXP(PlayerLevel.Instance.xpForNextLevel); return $"niveau={PlayerLevel.Instance.currentLevel} points={Talents.Points}"; }
+    public static string buildTab = "Trap";
+    /// <summary>Déplie le panneau de construction sur l'onglet buildTab.</summary>
+    public static string OpenBuildPanel()
+    {
+        var sp = Object.FindFirstObjectByType<SidePanel>(FindObjectsInactive.Include);
+        typeof(SidePanel).GetMethod("SetExpanded", NP).Invoke(sp, new object[] { true });
+        typeof(SidePanel).GetMethod("SetTab", NP).Invoke(sp, new object[] { (CatalogCategory)System.Enum.Parse(typeof(CatalogCategory), buildTab) });
+        return "panneau " + buildTab;
+    }
+    public static string OpenDecor() { buildTab = "Decor"; return OpenBuildPanel(); }
+    public static string OpenTraps() { buildTab = "Trap"; return OpenBuildPanel(); }
+    public static string OpenMonsters() { buildTab = "Monster"; return OpenBuildPanel(); }
+    /// <summary>Pièges et décors du catalogue : id, nom, niveau, coût, prestige.</summary>
+    public static string ListTrapsDecor()
+    {
+        var cat = DungeonCatalog.Get();
+        return string.Join(" | ", cat.items.Where(i => i.kind == ItemKind.Trap || i.kind == ItemKind.Decor)
+            .Select(i => $"{i.category}:{i.id}={i.displayName}(L{i.unlockLevel},{i.cost},p{i.prestige})"));
+    }
     public static int fogRoom;
     /// <summary>Téléporte le héros au centre de la salle suivante de l'étage (test du brouillard de guerre).</summary>
     public static string FogNextRoom()

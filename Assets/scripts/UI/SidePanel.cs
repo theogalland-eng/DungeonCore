@@ -233,26 +233,34 @@ public class SidePanel : MonoBehaviour
             var t = UIKit.Label(attackBanner, "<b>LE DONJON EST ATTAQUÉ</b>\n\n<size=80%>Impossible de bâtir, poser ou invoquer tant qu'il reste des intrus.\nVos monstres, eux, peuvent toujours recevoir des ordres.\nL'onglet Étages reste ouvert.</size>", 26, new Color(1f, 0.82f, 0.78f));
             UIKit.Stretch(t.rectTransform, 24, 24, 0, 0);
             t.rectTransform.anchorMin = new Vector2(0f, 0.55f);
-            // creusements en attente : suspendre ou tout annuler, au milieu de la surcouche
-            digBox = UIKit.Place(UIKit.Rect("Creusements", attackBanner), new Vector2(0.5f, 0.5f), new Vector2(0f, -40f), new Vector2(560f, 150f));
-            UIKit.Image(digBox, new Color(0.12f, 0.02f, 0.03f, 0.9f));
+            // creusements en attente : un encart à la largeur du panneau, au milieu de la surcouche
+            digBox = UIKit.Rect("Creusements", attackBanner);
+            digBox.anchorMin = new Vector2(0f, 0.16f); digBox.anchorMax = new Vector2(1f, 0.5f);
+            digBox.offsetMin = new Vector2(18f, 0f); digBox.offsetMax = new Vector2(-18f, 0f);
+            UIKit.Image(digBox, UIKit.Panel);
             UIKit.Frame(digBox);
-            digText = UIKit.LabelAt(digBox, "", 22, new Color(1f, 0.85f, 0.75f), new Vector2(0f, -12f), new Vector2(540f, 40f), TextAlignmentOptions.Top, new Vector2(0.5f, 1f));
+            var head = UIKit.Label(digBox, "Creusements en attente", 24, UIKit.Gold);
+            Band(head.rectTransform, 1f, 0.72f);
+            head.fontStyle = FontStyles.SmallCaps | FontStyles.Bold;
+            digText = UIKit.Label(digBox, "", 21, UIKit.Text);
+            Band(digText.rectTransform, 0.72f, 0.5f);
             digPause = UIKit.BtnAt(digBox, "Suspendre", () =>
             {
                 var b = DungeonBuilder.Instance; if (b == null) return;
                 b.DigPaused = !b.DigPaused;
                 GameHUD.Toast(b.DigPaused ? "Creusement suspendu" : "Creusement repris", GameHUD.InfoColor);
                 RefreshDigBox();
-            }, new Vector2(0.5f, 0f), new Vector2(-140f, 18f), new Vector2(250f, 62f), 22);
-            UIKit.BtnAt(digBox, "Tout annuler", () =>
+            }, new Vector2(0f, 0f), Vector2.zero, Vector2.zero, 21);
+            Cell((RectTransform)digPause.transform, 0f, 0.5f);
+            var cancel = UIKit.BtnAt(digBox, "Tout annuler", () =>
             {
                 var b = DungeonBuilder.Instance; if (b == null) return;
                 int n = b.QueuedDigCount;
                 b.ClearDigQueue(); b.DigPaused = false;
                 GameHUD.Toast($"{n} creusement(s) annulé(s)", GameHUD.InfoColor);
                 RefreshDigBox();
-            }, new Vector2(0.5f, 0f), new Vector2(140f, 18f), new Vector2(250f, 62f), 22, UIKit.Danger);
+            }, new Vector2(0f, 0f), Vector2.zero, Vector2.zero, 21, UIKit.Danger);
+            Cell((RectTransform)cancel.transform, 0.5f, 1f);
         }
         attackBanner.gameObject.SetActive(attack);
         if (attack) { attackBanner.SetAsLastSibling(); RefreshDigBox(); }
@@ -264,8 +272,23 @@ public class SidePanel : MonoBehaviour
         int n = b != null ? b.QueuedDigCount : 0;
         digBox.gameObject.SetActive(n > 0);
         if (n <= 0) return;
-        digText.text = b.DigPaused ? $"Creusement suspendu · {n} case(s) en attente" : $"Creusement en cours · {n} case(s) en attente";
+        digText.text = b.DigPaused ? $"<color=#FFC266>Suspendu</color> · {n} case(s)" : $"En cours · {n} case(s)";
         UIKit.SetLabel(digPause, b.DigPaused ? "Reprendre" : "Suspendre");
+    }
+
+    /// <summary>Bande horizontale de l'encart (fractions de sa hauteur, du haut vers le bas).</summary>
+    private static void Band(RectTransform rt, float top, float bottom)
+    {
+        rt.anchorMin = new Vector2(0f, bottom); rt.anchorMax = new Vector2(1f, top);
+        rt.offsetMin = new Vector2(14f, 0f); rt.offsetMax = new Vector2(-14f, 0f);
+    }
+
+    /// <summary>Bouton occupant une moitié de la rangée du bas de l'encart.</summary>
+    private static void Cell(RectTransform rt, float left, float right)
+    {
+        rt.anchorMin = new Vector2(left, 0.08f); rt.anchorMax = new Vector2(right, 0.44f);
+        rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.offsetMin = new Vector2(left == 0f ? 14f : 6f, 0f); rt.offsetMax = new Vector2(right == 1f ? -14f : -6f, 0f);
     }
 
     private string Signature()
@@ -346,15 +369,37 @@ public class SidePanel : MonoBehaviour
             items.RemoveAll(it => !TrapRules.ThemeOk(it.id, viewTheme));
 
         const float bw = 202f, bh = 118f, gap = 8f;
+        // pièges et décors : sections avec en-tête (au sol, muraux... / utile, lumières...), triées par niveau puis coût
+        var positions = new List<Vector2>();
+        var groups = CatalogSections.Group(currentTab, items);
+        if (groups != null)
+        {
+            items = new List<CatalogItem>();
+            float y = 0f;
+            foreach (var (title, list) in groups)
+            {
+                var head = Txt(content, title, 22, GameHUD.GoldColor, TextAlignmentOptions.BottomLeft);
+                head.fontStyle = FontStyles.SmallCaps | FontStyles.Bold;
+                Place(head.rectTransform, new Vector2(4, -y), new Vector2(2 * bw + gap - 8, 34));
+                y += 40f;
+                for (int k = 0; k < list.Count; k++)
+                {
+                    items.Add(list[k]);
+                    positions.Add(new Vector2((k % 2) * (bw + gap), -(y + (k / 2) * (bh + gap))));
+                }
+                y += ((list.Count + 1) / 2) * (bh + gap) + 6f;
+            }
+        }
+        else
+            for (int i = 0; i < items.Count; i++) positions.Add(new Vector2((i % 2) * (bw + gap), -(i / 2) * (bh + gap)));
         for (int i = 0; i < items.Count; i++)
         {
-            int col = i % 2, row = i / 2;
             var item = items[i];
             var b = Btn(content, "Item_" + item.id, "", () => OnItemClicked(item));
             var rt = (RectTransform)b.transform;
             rt.anchorMin = rt.anchorMax = new Vector2(0, 1);
             rt.pivot = new Vector2(0, 1);
-            rt.anchoredPosition = new Vector2(col * (bw + gap), -row * (bh + gap));
+            rt.anchoredPosition = positions[i];
             rt.sizeDelta = new Vector2(bw, bh);
 
             if (item.icon != null)

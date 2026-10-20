@@ -349,11 +349,20 @@ public class GameHUD : MonoBehaviour
         viewButton.GetComponent<Image>().color = new Color(0.27f, 0.19f, 0.15f, 0.97f);
         WithIcon(viewButton, "volcano");
         // talents du Noyau, avec le nombre de points libres
-        talentButton = MakeButton(root, "Talents", "Talents", new Vector2(0, 1), new Vector2(0, 1), new Vector2(588, -224), new Vector2(150, 58),
+        talentButton = MakeButton(root, "Talents", "Talents", new Vector2(0, 1), new Vector2(0, 1), new Vector2(588, -92), new Vector2(150, 58),
             () => TalentTreeWindow.Instance?.Toggle(), 19);
         talentButton.GetComponent<Image>().color = new Color(0.25f, 0.2f, 0.36f, 0.97f);
         WithIcon(talentButton, "star");
-        talentBadge = Label((RectTransform)talentButton.transform, "", 15, GoldColor, new Vector2(0, -38), new Vector2(150, 22), TextAlignmentOptions.Center, true);
+        // points libres : pastille dorée dans le coin du bouton (ne déborde plus sous la colonne)
+        talentPill = Place(NewRect("Pastille", talentButton.transform), new Vector2(1, 1), new Vector2(0.5f, 0.5f), new Vector2(-6, -6), new Vector2(36, 36));
+        var pillImg = talentPill.gameObject.AddComponent<Image>();
+        pillImg.sprite = SpriteUtil.Circle;
+        pillImg.color = GoldColor;
+        pillImg.raycastTarget = false;
+        talentBadge = Label(talentPill, "", 20, new Color(0.16f, 0.1f, 0.04f), new Vector2(0, 0), new Vector2(36, 36), TextAlignmentOptions.Center, true);
+        talentBadge.fontStyle = FontStyles.Bold;
+        talentPill.gameObject.SetActive(false);
+        StackLeftColumn();
 
         // ── Centre : jour ──
         var center = Panel("DayPanel", root, new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -16), new Vector2(460, 112));
@@ -470,6 +479,20 @@ public class GameHUD : MonoBehaviour
         UIKit.SetLabel(digPauseBtn, paused ? "Reprendre" : "Suspendre");
     }
 
+    private RectTransform talentPill;
+
+    /// <summary>Colonne sous « Menu » : Talents, Vue île, puis Colonie quand elle existe — sans trou.</summary>
+    private void StackLeftColumn()
+    {
+        float y = -92f;
+        foreach (var b in new[] { talentButton, viewButton, colonyButton })
+        {
+            if (b == null || !b.gameObject.activeSelf) continue;
+            ((RectTransform)b.transform).anchoredPosition = new Vector2(588, y);
+            y -= 66f;
+        }
+    }
+
     private void BuildSelectionPanel()
     {
         selectionPanel = Panel("SelectionPanel", root, new Vector2(0, 0), new Vector2(0, 0), new Vector2(16, 96), new Vector2(360, 306));
@@ -499,7 +522,15 @@ public class GameHUD : MonoBehaviour
             () => { var s = MonsterSelector.Instance; if (s != null && s.SelectedGoblins.Count == 1) MonsterMind.For(s.SelectedGoblins[0]).Talk(); }, 21);
         tb.GetComponent<Image>().color = new Color(0.3f, 0.25f, 0.5f, 1f);
         talkButton = tb.gameObject;
+        // rien de sélectionné : seul un petit bouton « Tous » reste, à la place du panneau
+        var all = MakeButton(root, "SelectAll", "Tous les monstres", new Vector2(0, 0), new Vector2(0, 0), new Vector2(16, 96), new Vector2(230, 56),
+            () => MonsterSelector.Instance?.SelectAllGoblins(), 20);
+        WithIcon(all, "skull");
+        selectAllButton = all.gameObject;
+        selectAllButton.SetActive(false);
     }
+
+    private GameObject selectAllButton;
 
     private void BuildPossessionPanel()
     {
@@ -745,7 +776,7 @@ public class GameHUD : MonoBehaviour
             string layerLabel = lay != null && lay.layers.Count > 1 ? $"  ·  {lay.layers[lay.CurrentView].name}" : "";
             var ev = IslandEvents.Instance;
             string evLabel = ev != null && ev.Current != IslandEvent.None ? $"  ·  <color=#FFB36B>{ev.Name}</color>" : "";
-            if (talentBadge != null) { int tp = Talents.Points; talentBadge.text = tp > 0 ? $"{tp} point{(tp > 1 ? "s" : "")}" : ""; }
+            if (talentBadge != null) { int tp = Talents.Points; talentPill.gameObject.SetActive(tp > 0); talentBadge.text = tp > 9 ? "9+" : tp.ToString(); }
             dayText.text = $"Jour {gm.CurrentDay}  ·  {Seasons.CurrentName}  ·  {gm.GetTimeOfDayLabel()}{layerLabel}{evLabel}";
             SetBar(dayFill, gm.DayProgress);
             pauseButtonImage.color = gm.UserPaused ? ButtonActiveColor : SegmentColor;
@@ -778,7 +809,7 @@ public class GameHUD : MonoBehaviour
         {
             colonyButton.gameObject.SetActive(hasColony);
             colonyText.gameObject.SetActive(hasColony);
-            ((RectTransform)viewButton.transform).anchoredPosition = new Vector2(588, hasColony ? -158 : -92);
+            StackLeftColumn();
             if (!hasColony && ColonyWindow.Instance != null && ColonyWindow.Instance.IsOpen) ColonyWindow.Instance.Toggle();
         }
         if (hasColony)
@@ -887,12 +918,13 @@ public class GameHUD : MonoBehaviour
             skillCd.anchorMax = new Vector2(1f, pg.SkillCooldown01);
         }
         bool selectMode = DungeonBuilder.Instance == null || DungeonBuilder.Instance.GetCurrentMode() == DungeonBuilder.BuildMode.None;
-        selectionPanel.gameObject.SetActive(selectMode && !possessing);
-        if (!selectionPanel.gameObject.activeSelf) return;
-
         var sel = MonsterSelector.Instance;
         int n = sel != null ? sel.SelectedGoblins.Count : 0;
         bool anchor = sel != null && sel.SelectedAnchor != null;
+        bool show = selectMode && !possessing && (n > 0 || anchor);
+        selectionPanel.gameObject.SetActive(show);
+        if (selectAllButton != null) selectAllButton.SetActive(selectMode && !possessing && !show && GobelinAI.All.Count > 0 && !CrawlerMode.Active);
+        if (!show) return;
         MonsterUnit unit = n == 1 ? sel.SelectedGoblins[0].GetComponent<MonsterUnit>() : null;
         if (n == 1)
         {
