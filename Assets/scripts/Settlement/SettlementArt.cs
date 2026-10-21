@@ -26,6 +26,12 @@ public class SettlementArt : ScriptableObject
         public string kind;
         /// <summary>Couches et images d'origine (repérer le bibliothécaire, le lit...).</summary>
         public string names;
+        /// <summary>Animation sur événement : « door » (quelqu'un passe), « shutter » (volets : ouverts le jour), « gate » (herse) ; vide = en boucle.</summary>
+        public string role;
+        /// <summary>Hauteur de tri (unités depuis le bas du tampon) : celle du bâtiment qui porte la porte ou le volet.</summary>
+        public float sortY;
+        public int openFrame;
+        public bool cycle;
     }
 
     /// <summary>Scène complète d'un pack (bâtiment, cour, jardin, habitants) : sol plat + morceaux triés (Tools~/make_stamps.py).</summary>

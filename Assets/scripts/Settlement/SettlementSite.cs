@@ -10,6 +10,14 @@ public class SettlementPlot
     public RectInt rect;
 }
 
+/// <summary>Route tracée par la colonie à un stade donné (cases).</summary>
+[Serializable]
+public class RoadSet
+{
+    public int stage;
+    public List<Vector3Int> cells = new List<Vector3Int>();
+}
+
 [Serializable]
 public class PlanMark
 {
@@ -47,6 +55,8 @@ public class SettlementSite : MonoBehaviour
     [Tooltip("Portes de l'enceinte : nord (donjon), ouest (port), est (manoir et fermes)")]
     public List<Vector3Int> cityGates = new List<Vector3Int>();
     public UnityEngine.Tilemaps.TileBase streetDirt, streetBrick;
+    [Tooltip("Routes entre les quartiers, par stade (la forêt recule à leur passage)")]
+    public List<RoadSet> roads = new List<RoadSet>();
 
     public Vector3 CellCenter(Vector3Int c) => new Vector3(c.x + 0.5f, c.y + 0.5f, 0f);
     public Vector3 LandingWorld => CellCenter(landing);

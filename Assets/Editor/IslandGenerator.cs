@@ -22,11 +22,13 @@ public static class IslandGenerator
     const int LayerW = 180, LayerH = 54, LayerGap = 12;   // étages souterrains larges (la grille A* fait 196 cases)
     /// <summary>Cases ajoutées au sud de la carte : l'île s'y prolonge pour loger la cité (plan validé du 20/10).</summary>
     const int ExtraSouth = 70;
+    /// <summary>Colonnes ajoutées à l'est (21/10) : l'île s'arrondit du côté de la ferme et du manoir.</summary>
+    const int ExtraEast = 40;
 
     static void InitBounds()
     {
         minX = -(W / 2 + Margin); minY = -(H / 2 + Margin + ExtraSouth);
-        sizeX = W + 2 * Margin; sizeY = H + 2 * Margin + ExtraSouth;
+        sizeX = W + 2 * Margin + ExtraEast; sizeY = H + 2 * Margin + ExtraSouth;
     }
 
     /// <summary>
@@ -43,6 +45,17 @@ public static class IslandGenerator
         return 1f + sdf / 70f;
     }
 
+    /// <summary>
+    /// Renflement est (21/10) : une grande ellipse qui comble le côté de la ferme et du manoir, du nord-est au
+    /// sud-est — l'île retrouve une silhouette ronde malgré la cité. Même échelle de distance que l'île.
+    /// </summary>
+    static float EastDistance(float x, float y)
+    {
+        Vector2 c = new Vector2(50f, -30f), r = new Vector2(80f, 84f);
+        float e = new Vector2((x - c.x) / r.x, (y - c.y) / r.y).magnitude;
+        return 1f + (e - 1f) * Mathf.Sqrt(r.x * r.y) / 70f;
+    }
+
     /// <summary>Minimum adouci : la jonction entre l'île et les terres du sud n'a pas d'angle rentrant.</summary>
     static float SmoothMin(float a, float b, float k)
     {
@@ -53,9 +66,9 @@ public static class IslandGenerator
     /// <summary>Emprises du plan qui doivent rester sur la terre ferme (cité, manoir, ferme, terrain du héros), avec leur marge.</summary>
     static readonly RectInt[] Protected =
     {
-        new RectInt(-13, -109, 78, 46),   // cité (-10, -106, 72×40)
-        new RectInt(62, -96, 23, 16),     // manoir
-        new RectInt(43, -11, 28, 22),     // ferme
+        new RectInt(-13, -109, 69, 42),   // cité (-10, -106, 63×36)
+        new RectInt(79, -95, 23, 16),     // manoir
+        new RectInt(65, -6, 28, 22),      // ferme
         new RectInt(-19, -59, 19, 15),    // terrain du héros
     };
 
@@ -115,7 +128,7 @@ public static class IslandGenerator
         BuildHeightmap();
         FixInland();
         CarveLakes();
-        CarveLake(new Vector2(80f, -76f), 3.6f);   // le lac du manoir
+        CarveLake(new Vector2(99f, -71f), 3.8f);   // le lac du manoir
         AddCliffs();
         var (grotto, doorstep, dir) = PlaceGrotto();
         var landing = TracePath(doorstep);
@@ -140,7 +153,7 @@ public static class IslandGenerator
         BuildHeightmap();
         FixInland();
         CarveLakes();
-        CarveLake(new Vector2(80f, -76f), 3.6f);
+        CarveLake(new Vector2(99f, -71f), 3.8f);
         AddCliffs();
         var (grotto, doorstep, dir) = PlaceGrotto();
         var landing = TracePath(doorstep);
@@ -226,7 +239,7 @@ public static class IslandGenerator
                 float d0 = Mathf.Sqrt(nx * nx + ny * ny);
                 float n1 = Fbm(x * 0.045f + o1.x, y * 0.045f + o1.y, 4);
                 float hOld = 1.02f - d0 + (n1 - 0.5f) * 0.6f;   // relief d'origine : il donne l'altitude
-                float d = SmoothMin(d0, SouthDistance(x, y), 0.12f);   // + les terres du sud (plan de la cité)
+                float d = SmoothMin(SmoothMin(d0, SouthDistance(x, y), 0.12f), EastDistance(x, y), 0.14f);   // + terres du sud et de l'est
                 float h = Mathf.Max(1.02f - d + (n1 - 0.5f) * 0.6f, CityFloor(x, y));
 
                 float ds = float.MaxValue;
@@ -332,7 +345,7 @@ public static class IslandGenerator
             int x = rng.Next(minX, minX + sizeX), y = rng.Next(minY, minY + sizeY);
             if (Get(x, y) != K.Low) continue;
             // les terres du sud et le camp suivent le plan de la cité : pas de lac au hasard
-            if (y < -46 || Vector2.Distance(new Vector2(x, y), new Vector2(24f, -30f)) < 13f || (x > 38 && x < 74 && y > -16 && y < 16)) continue;
+            if (y < -46 || Vector2.Distance(new Vector2(x, y), new Vector2(24f, -30f)) < 13f || (x > 60 && x < 96 && y > -12 && y < 20)) continue;
             float r = centers.Count < 2 ? 3.4f + (float)rng.NextDouble() * 1.6f : 1.7f + (float)rng.NextDouble() * 1.1f;
             var c = new Vector2(x, y);
             if (centers.Any(o => Vector2.Distance(o, c) < 20f)) continue;
@@ -617,8 +630,9 @@ public static class IslandGenerator
     /// Route de terre : plus court chemin praticable (8 directions, sans couper les coins), puis tracé simplifié,
     /// lissé (courbes de Chaikin) et peint au pinceau rond : des routes qui tournent en douceur, sans escaliers.
     /// </summary>
-    static void Road(Vector3Int a, Vector3Int b, float width = 2.5f)
+    static void Road(Vector3Int a, Vector3Int b, float width = 2.5f, int stage = 1)
     {
+        if (!roadsByStage.TryGetValue(stage, out var stageCells)) roadsByStage[stage] = stageCells = new List<Vector3Int>();
         var dist = new Dictionary<Vector3Int, float> { [a] = 0f };
         var parent = new Dictionary<Vector3Int, Vector3Int>();
         var open = new SortedSet<(float, int, int, int)>();
@@ -674,7 +688,7 @@ public static class IslandGenerator
                         if (Vector2.Distance(new Vector2(x + 0.5f, y + 0.5f), p) > r) continue;
                         var cc = new Vector3Int(x, y, 0);
                         if (reservedCells.Contains(cc) || (cityRect.Contains(new Vector2Int(x, y)) && !roadCells.Contains(cc))) continue;
-                        if (OpenGround(Ground(x, y))) { roadCells.Add(cc); MarkPath(cc); }
+                        if (OpenGround(Ground(x, y)) && roadCells.Add(cc)) stageCells.Add(cc);
                     }
             }
         }
@@ -736,6 +750,7 @@ public static class IslandGenerator
     }
 
     static readonly HashSet<Vector3Int> reservedCells = new HashSet<Vector3Int>();
+    static readonly Dictionary<int, List<Vector3Int>> roadsByStage = new Dictionary<int, List<Vector3Int>>();
     static readonly List<Vector3Int> cityStreets = new List<Vector3Int>();
     static readonly List<Vector3Int> cityWall = new List<Vector3Int>();
     static readonly List<Vector3Int> cityGates = new List<Vector3Int>();
@@ -750,7 +765,7 @@ public static class IslandGenerator
     static void LayoutSettlement(Vector3Int doorstep, Vector3Int landing)
     {
         plots.Clear(); planMarks.Clear(); roadCells.Clear(); pavedCells.Clear();
-        cityStreets.Clear(); cityWall.Clear(); cityGates.Clear(); reservedCells.Clear();
+        cityStreets.Clear(); cityWall.Clear(); cityGates.Clear(); reservedCells.Clear(); roadsByStage.Clear();
         var reserved = reservedCells;
         cityRect = new RectInt(0, 0, 0, 0);
         int ox = doorstep.x + 8, oy = doorstep.y + 10;   // le plan est dessiné pour une entrée en (-8, -10)
@@ -764,32 +779,32 @@ public static class IslandGenerator
         var camp = P(24, -30);
         var port = P(-24, -66);
         var hero = P(-10, -52);
-        cityRect = new RectInt(-10 + ox, -106 + oy, 72, 40);
+        cityRect = new RectInt(-10 + ox, -106 + oy, 63, 36);
         int cx0 = cityRect.x, cy0 = cityRect.y;
         Vector3Int C(float x, float y) => new Vector3Int(cx0 + Mathf.RoundToInt(x), cy0 + Mathf.RoundToInt(y), 0);
-        // colonnes : rempart 0 | ronde 1-2 | A 3-18 | rue 19-21 | B 22-33 | avenue 34-37 | C 38-49 | rue 50-52 | D 53-68 | ronde 69-70 | rempart 71
-        // rangées : rempart 0 | ronde 1-2 | sud 3-11 | rue 12-14 | milieu 15-23 | rue 24-26 | nord 27-36 | ronde 37-38 | rempart 39
-        // les bâtiments sont posés au bas de leur îlot : leur porte donne sur la rue
+        // cité dense (21/10) : rues de 2 cases, avenue de 3, pas de chemin de ronde ; chaque bâtiment ouvre sur une rue
+        // colonnes : rempart 0 | A 1-16 | rue 17-18 | B 19-30 | avenue 31-33 | C 34-45 | rue 46-47 | D 48-61 | rempart 62
+        // rangées  : rempart 0 | ruelle 1-2 | sud 3-11 | rue 12-13 | milieu 14-22 | rue 23-24 | nord 25-34 | rempart 35
+        const int CW = 63, CH = 36;
         bool Street(int rx, int ry) =>
-            rx == 1 || rx == 2 || rx == 69 || rx == 70 || ry == 1 || ry == 2 || ry == 37 || ry == 38
-            || (rx >= 19 && rx <= 21) || (rx >= 34 && rx <= 37) || (rx >= 50 && rx <= 52)
-            || (ry >= 12 && ry <= 14) || (ry >= 24 && ry <= 26);
+            ry == 1 || ry == 2 || ry == 12 || ry == 13 || ry == 23 || ry == 24
+            || (rx == 17 || rx == 18 || rx == 46 || rx == 47) && ry < CH - 1
+            || (rx >= 31 && rx <= 33);
         bool Gate(int rx, int ry) =>
-            (ry == 39 && rx >= 34 && rx <= 37) || (rx == 0 && ry >= 12 && ry <= 14) || (rx == 71 && ry >= 24 && ry <= 26);
-        var gateN = C(35, 40);
-        var gateW = C(-1, 13);
-        var gateE = C(72, 25);
-        var manor = C(83, 18);
-        var farm = P(57, 0);
+            (ry == CH - 1 && rx >= 31 && rx <= 33) || (rx == 0 && (ry == 12 || ry == 13)) || (rx == CW - 1 && (ry == 23 || ry == 24));
+        var gateN = C(32, CH);
+        var gateW = C(-1, 12);
+        var gateE = C(CW, 23);
+        var manor = C(100, 18);
+        var farm = P(79, 5);
 
         // la cité : tout l'enclos dégagé (pas d'arbre) ; rues de terre ; tracé de l'enceinte et des portes
         foreach (var pp in cityRect.allPositionsWithin)
         {
             var c = new Vector3Int(pp.x, pp.y, 0);
             if (!OpenGround(Ground(c.x, c.y))) continue;
-            MarkPath(c);
             int rx = c.x - cx0, ry = c.y - cy0;
-            bool edge = rx == 0 || ry == 0 || rx == 71 || ry == 39;
+            bool edge = rx == 0 || ry == 0 || rx == CW - 1 || ry == CH - 1;
             if (Gate(rx, ry)) { cityGates.Add(c); roadCells.Add(c); cityStreets.Add(c); }
             else if (edge) { cityWall.Add(c); reserved.Add(c); }
             else if (Street(rx, ry)) { roadCells.Add(c); cityStreets.Add(c); }
@@ -800,11 +815,13 @@ public static class IslandGenerator
             var def = SettlementPlan.Get(id);
             if (def == null || def.w <= 0) return;
             bool stamp = !string.IsNullOrEmpty(def.stamp);
-            var r = FindRect(at.x, at.y, def.w, def.h, reserved, radius, stamp ? 0 : 1);
+            int w = def.w, h = def.h;
+            var st = stamp ? SettlementArt.Get()?.GetStamp(def.stamp) : null;
+            if (st != null) { w = Mathf.CeilToInt(st.size.x - 0.01f); h = Mathf.CeilToInt(st.size.y - 0.01f); }
+            var r = FindRect(at.x - def.w / 2 + w / 2, at.y - def.h / 2 + h / 2, w, h, reserved, radius, 0);
             if (r == null) { Debug.LogWarning($"[Île] pas de place pour {id} près de {at}"); return; }
             plots.Add(new SettlementPlot { buildingId = id, rect = r.Value });
-            Reserve(r.Value, 0);
-            foreach (var pp in r.Value.allPositionsWithin) MarkPath(new Vector3Int(pp.x, pp.y, 0));   // pas d'arbre sur l'emprise
+            Reserve(r.Value, stamp ? 0 : 1);
         }
         void Mark(string name, Vector3Int at, int w, int h, bool adventureOnly = false)
         {
@@ -832,34 +849,57 @@ public static class IslandGenerator
         Plot("fish_rack", port + new Vector3Int(-6, 0, 0));
         Plot("tent_c", port + new Vector3Int(6, 5, 0));
         Plot("crates", port + new Vector3Int(-1, -5, 0));
-        // la cité — rangée nord : tour des mages, bibliothèque, taverne, Guilde et armurerie
-        At("tent_magic", 4, 27);
-        At("library", 22, 27);
-        At("house_1", 38, 27);
-        At("house_4", 53, 27);
-        At("stall_weapons", 64, 28);
-        // milieu : maisons, marché, entraînement, forge et étal
+        // la cité — rangée nord : tour des mages, bibliothèque (maisons derrière), taverne, Guilde et armurerie
+        At("tent_magic", 2, 25, 2);
+        At("library", 19, 25, 2);
+        At("house_1", 34, 25, 2);
+        At("house_4", 48, 25, 2);
+        At("stall_weapons", 58, 25, 2);
         int home = 1;
-        foreach (var (hx, hy) in new[] { (4, 16), (10, 16), (16, 16), (4, 20), (10, 20), (16, 20) })
-            At("home_" + home++, hx - 1, hy, 1);
-        At("market", 22, 15);
-        At("training", 38, 15);
-        At("house_3", 53, 15);
-        At("stall_fruits", 64, 16);
-        // sud : vieille chapelle, maisons, verrerie, prison
-        At("chapel", 5, 3);
-        foreach (var (hx, hy) in new[] { (23, 4), (28, 4), (23, 8), (28, 8) })
-            At("home_" + home++, hx - 1, hy, 1);
-        At("glass", 38, 3);
-        At("prison", 54, 3);
+        foreach (var (hx, hy) in new[] { (19, 32), (24, 32), (48, 32), (53, 32) })
+            At("home_" + home++, hx, hy, 1);
+        // milieu : maisons serrées, marché, entraînement, forge et étal
+        foreach (var (hx, hy) in new[] { (2, 14), (7, 14), (12, 14), (2, 18), (7, 18), (12, 18) })
+            At("home_" + home++, hx, hy, 1);
+        At("market", 19, 14, 2);
+        At("training", 34, 14, 2);
+        At("house_3", 48, 14, 2);
+        At("stall_fruits", 58, 14, 2);
+        // sud (porte sur la ruelle du rempart) : vieille chapelle, maisons, verrerie, prison
+        At("chapel", 2, 3, 2);
+        foreach (var (hx, hy) in new[] { (19, 3), (24, 3), (19, 7), (24, 7) })
+            At("home_" + home++, hx, hy, 1);
+        At("glass", 34, 3, 2);
+        At("prison", 48, 3, 2);
+        // remplissage des îlots : maisons serrées dans les places libres, d'abord le long des rues (bas des îlots)
+        var blocks = new[] { (1, 16), (19, 30), (34, 45), (48, 61) };
+        var bands = new[] { (3, 11), (14, 22), (25, 34) };
+        var homeDef = SettlementPlan.Get("home_1");
+        int firstInfill = home;
+        foreach (var (by0, by1) in bands)
+            foreach (var (bx0, bx1) in blocks)
+                for (int yy = by0; yy + homeDef.h - 1 <= by1 && home <= SettlementPlan.HomeCount - 6; yy += homeDef.h + 1)
+                    for (int xx = bx0; xx + homeDef.w - 1 <= bx1 && home <= SettlementPlan.HomeCount - 6; xx++)
+                    {
+                        var r = new RectInt(cx0 + xx, cy0 + yy, homeDef.w, homeDef.h);
+                        bool free = true;
+                        for (int x = r.x; x < r.xMax && free; x++)
+                            for (int y = r.y; y < r.yMax && free; y++)
+                                if (!BuildableAt(x, y, reserved)) free = false;
+                        if (!free) continue;
+                        string hid = "home_" + home++;
+                        plots.Add(new SettlementPlot { buildingId = hid, rect = r });
+                        Reserve(r, 1);
+                        xx += homeDef.w;
+                    }
         // faubourgs : porte ouest (route du port) et porte nord (route du camp)
         Plot("house_2", C(-7, 20), 6);
-        var faubourg = new[] { C(-7, 6), C(-7, 26), C(-14, 14), C(26, 45), C(45, 45), C(20, 50), C(51, 50), C(-13, 30) };
+        var faubourg = new[] { C(-7, 5), C(-7, 21), C(-14, 13), C(24, 40), C(42, 40), C(18, 45), C(47, 45), C(-13, 27) };
         for (int i = 0; home <= SettlementPlan.HomeCount && i < faubourg.Length; i++)
             Plot("home_" + home++, faubourg[i], 7);
         // devant la porte nord : boulangerie et pavillon
-        Plot("stall_bread", C(31, 43), 5);
-        Plot("tent_round", C(40, 43), 5);
+        Plot("stall_bread", C(28, 38), 5);
+        Plot("tent_round", C(37, 38), 5);
         // champs du hameau puis grande ferme
         Plot("farm", farm, 8);
         Plot("field_1", farm + new Vector3Int(-16, 6, 0), 6);
@@ -872,6 +912,13 @@ public static class IslandGenerator
         if (hp != null)
             planMarks.Add(new PlanMark { name = "Terrain du héros (à acheter)", cell = new Vector3Int(hp.rect.x + hp.rect.width / 2, hp.rect.y, 0), adventureOnly = true });
 
+        // déplacements faits à la main dans l'aperçu de l'éditeur (DungeonCore › Enregistrer les déplacements de l'aperçu)
+        foreach (var mv in CityPreview.LoadMoves().list)
+        {
+            var pl = plots.Find(x => x.buildingId == mv.id);
+            if (pl != null) pl.rect = new RectInt(mv.x, mv.y, pl.rect.width, pl.rect.height);
+        }
+
         // routes entre les quartiers, tracées après les emplacements : elles les contournent et finissent devant les portes
         Vector3Int Door(string id, Vector3Int fallback)
         {
@@ -880,16 +927,20 @@ public static class IslandGenerator
         }
         var campDoor = Door("campfire", camp);
         var portDoor = Door("fisher_hut", port);
-        Road(doorstep, campDoor, 2.2f);
-        Road(campDoor, gateN, 2.6f);
-        Road(gateW, portDoor, 2.6f);
-        Road(portDoor, landing, 2.2f);
-        Road(portDoor, Door("hero_home", hero), 2f);
-        Road(gateE, Door("manor", manor), 2.2f);
-        Road(gateE, Door("farm", farm), 2.2f);
-        Road(campDoor, Door("farm", farm), 2f);
+        Road(doorstep, campDoor, 2.2f, 1);                    // camp de la Guilde
+        Road(portDoor, landing, 2.2f, 2);                     // port de pêche
+        Road(campDoor, gateN, 2.6f, 3);                       // hameau : le camp rejoint la future cité
+        Road(gateW, portDoor, 2.6f, 3);
+        Road(campDoor, Door("farm", farm), 2f, 3);            // champs du hameau
+        Road(gateE, Door("farm", farm), 2.2f, 4);             // village : la grande ferme
+        Road(gateE, Door("manor", manor), 2.2f, 6);           // cité : le manoir
+        Road(portDoor, Door("hero_home", hero), 2f, 6);       // terrain du héros (mode Aventurier : ville finale)
         var outside = new List<string> { "house_2", "stall_bread", "tent_round", "crates", "field_1", "field_2" };
-        for (int i = 11; i <= SettlementPlan.HomeCount; i++) outside.Add("home_" + i);
+        for (int i = 1; i <= SettlementPlan.HomeCount; i++)
+        {
+            var hp2 = plots.Find(x => x.buildingId == "home_" + i);
+            if (hp2 != null && !cityRect.Overlaps(hp2.rect)) outside.Add("home_" + i);   // maisons des faubourgs
+        }
         foreach (var id in outside)
         {
             var pl = plots.Find(x => x.buildingId == id);
@@ -898,7 +949,8 @@ public static class IslandGenerator
             // petit chemin jusqu'à la route la plus proche
             Vector3Int best = d; float bd = float.MaxValue;
             foreach (var rc in roadCells) { float dd = Vector3Int.Distance(rc, d); if (dd < bd) { bd = dd; best = rc; } }
-            if (bd < 14f && bd > 1.5f) Road(d, best, 1.6f);
+            var def = SettlementPlan.Get(id);
+            if (bd < 14f && bd > 1.5f) Road(d, best, 1.6f, def != null ? Mathf.Max(1, def.stage) : 3);
         }
     }
 
@@ -1249,8 +1301,7 @@ public static class IslandGenerator
         BuildSeaColour(seaPixels, env0);
 
         // routes de terre entre les quartiers, dallage de la cité
-        foreach (var c in pavedCells) lRoutes.SetTile(c, tPaved);
-        foreach (var c in roadCells) if (!pavedCells.Contains(c)) lRoutes.SetTile(c, tDirt);
+        // routes et rues : tracées en jeu au fil des stades (SettlementManager), pas peintes ici
 
         // Lacs : roseaux sur les rives, nénuphars sur l'eau
         foreach (var c in lakeCells)
@@ -1435,6 +1486,7 @@ public static class IslandGenerator
         site.cityRect = cityRect;
         site.cityStreets = new List<Vector3Int>(cityStreets);
         site.cityWall = new List<Vector3Int>(cityWall);
+        site.roads = roadsByStage.OrderBy(kv => kv.Key).Select(kv => new RoadSet { stage = kv.Key, cells = new List<Vector3Int>(kv.Value) }).ToList();
         site.cityGates = new List<Vector3Int>(cityGates);
         site.streetDirt = tDirt;
         site.streetBrick = TerrainArt.Blob("brick");
@@ -1586,6 +1638,10 @@ public static class IslandGenerator
             {
                 // végétation par masses : clairières nues, lisières clairsemées, jungle dense
                 double dens = f < 0.34f ? 0.0 : f < 0.44f ? 0.1 : f < 0.56f ? 0.45 : 0.9;
+                // bois clair là où la cité grandira (sous-bois, bosquets, clairières), plus dense en s'éloignant
+                var cr = Protected[0];
+                int ddx = Mathf.Max(cr.x - c.x, 0, c.x - (cr.xMax - 1)), ddy = Mathf.Max(cr.y - c.y, 0, c.y - (cr.yMax - 1));
+                dens *= Mathf.Lerp(0.35f, 1f, Mathf.Clamp01(Mathf.Sqrt(ddx * ddx + ddy * ddy) / 10f));
                 if (rng.NextDouble() > dens) continue;
                 kind = f > 0.56f ? (rng.NextDouble() < 0.7 ? BigTree : MidTree)
                      : f > 0.44f ? (rng.NextDouble() < 0.6 ? MidTree : SmallTree)
@@ -1735,7 +1791,7 @@ public static class IslandGenerator
         int bottom = minY - 3 * (LayerH + LayerGap) - 2;
         int depth = top - bottom; if (depth % 2 == 1) depth++;
         int width = sizeX + 4; if (width % 2 == 1) width++;
-        gg.center = new Vector3(0f, (top + bottom) / 2, 0f);
+        gg.center = new Vector3(minX + sizeX / 2, (top + bottom) / 2, 0f);
         gg.SetDimensions(width, depth, 1f);
         ap.data.cacheStartup = false;
         ap.scanOnStartup = true;

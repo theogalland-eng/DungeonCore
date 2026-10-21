@@ -337,14 +337,14 @@ public static class DevInspect3
     public static string BushBehind() { sortProp = "Bush"; sortDy = 0.15f; return SortShot(); }
     public static string TreeFront() { sortProp = "Tree"; sortDy = -0.2f; return SortShot(); }
     public static string TreeBehind() { sortProp = "Tree"; sortDy = 0.2f; return SortShot(); }
-    public static string IslandShot() => DevInspect.Shot(0f, -36f, 106f, 2400, 1600, "island");
+    public static string IslandShot() => DevInspect.Shot(18f, -36f, 108f, 2400, 1600, "island");
     public static string CityNorthShot() => DevInspect.Shot(26f, -73f, 11f, 2000, 1250, "city_n");
     public static string CityMidShot() => DevInspect.Shot(26f, -86f, 11f, 2000, 1250, "city_m");
     public static string CitySouthShot() => DevInspect.Shot(26f, -99f, 11f, 2000, 1250, "city_s");
-    public static string ManorShot() => DevInspect.Shot(73f, -87f, 9f, 1600, 1000, "manor");
-    public static string FarmShot() => DevInspect.Shot(57f, 0f, 10f, 1600, 1000, "farm");
+    public static string ManorShot() => DevInspect.Shot(90f, -83f, 9f, 1600, 1000, "manor");
+    public static string FarmShot() => DevInspect.Shot(79f, 5f, 10f, 1600, 1000, "farm");
     public static string HeroPlotShot() => DevInspect.Shot(-12f, -55f, 9f, 1600, 1000, "hero");
-    public static string CityShot() => DevInspect.Shot(26f, -84f, 26f, 2400, 1500, "city");
+    public static string CityShot() => DevInspect.Shot(21f, -88f, 24f, 2400, 1500, "city");
     public static string PortShot() => DevInspect.Shot(-28f, -68f, 16f, 1600, 1000, "port");
     public static string CampPlanShot() => DevInspect.Shot(18f, -24f, 16f, 1600, 1000, "camp");
     public static string SouthCoastShot() => DevInspect.Shot(26f, -100f, 22f, 1600, 1000, "southcoast");
@@ -1871,6 +1871,64 @@ public static class DevInspect3
         var parents = logs.GroupBy(r => r.transform.parent != null ? r.transform.parent.name : "-").Select(g => g.Key + " x" + g.Count());
         var b = SettlementManager.Instance.Buildings;
         return $"rondins={logs.Count} ({string.Join(", ", parents.Take(12))}) | bâtiments={b.Count} finis={b.Count(x => x.IsComplete)}";
+    }
+    public static string WallInfo()
+    {
+        var site = SettlementManager.Instance.Site;
+        var pal = GameObject.Find("Palissade"); var stone = GameObject.Find("Remparts");
+        return $"mur={site.cityWall.Count} portes={site.cityGates.Count} routes={site.roads.Count} palissade={(pal ? pal.transform.childCount : -1)} remparts={(stone ? stone.transform.childCount : -1)} stade={SettlementManager.Instance.stage}";
+    }
+    public static string Noon() { GameManager.Instance.DebugSetDayProgress(0.3f); return "midi"; }
+    public static string FolkInfo()
+    {
+        var f = TownFolk.All.Where(x => x != null).ToList();
+        return $"passants={f.Count} visibles={f.Count(x => x.GetComponent<SpriteRenderer>().enabled)} ex: " + string.Join(" | ", f.Take(4).Select(x => x.Title + "@" + x.transform.position));
+    }
+    public static string GoTavern() => GoDoor("house_1");
+    public static string TavernDoorShot()
+    {
+        var b = SettlementManager.Instance.Buildings.FirstOrDefault(x => x != null && x.def.id == "house_1");
+        return DevInspect.Shot(b.transform.position.x, b.transform.position.y + 1.5f, 4f, 1200, 900, "tavern_door");
+    }
+    public static string Night() { GameManager.Instance.DebugSetDayProgress(0.95f); return "nuit"; }
+    public static string GoGuild() => GoDoor("house_4");
+    public static string GoSpot()
+    {
+        // va au premier point d'interaction de la pièce dont la clé commence par « floor: »
+        var i = InteriorSystem.Instance;
+        var sp = i.Spots.FirstOrDefault(x => x.key.StartsWith("floor:"));
+        if (sp == null) return "pas d'escalier";
+        var pl = CrawlerMode.Instance.Player;
+        pl.transform.position = sp.World; var rb = pl.GetComponent<Rigidbody2D>(); if (rb) rb.position = sp.World;
+        return "escalier " + sp.key + " | " + Prompt();
+    }
+    public static string GoRoomSpot()
+    {
+        var i = InteriorSystem.Instance;
+        var sp = i.Spots.FirstOrDefault(x => x.key == "tavern_room");
+        if (sp == null) return "pas de chambre";
+        var pl = CrawlerMode.Instance.Player;
+        pl.transform.position = sp.World; var rb = pl.GetComponent<Rigidbody2D>(); if (rb) rb.position = sp.World;
+        return Prompt();
+    }
+    public static string RentRoom() { CrawlerMode.Instance.roomRented = true; return "chambre louée"; }
+    public static string PreviewMoveTest()
+    {
+        CityPreview.Show();
+        var root = GameObject.Find("[Aperçu] Cité finale (non enregistré)");
+        Transform t = null;
+        foreach (Transform c in root.transform) if (c.name.StartsWith("plot:stall_bread ")) t = c;
+        if (t == null) return "pas trouvé";
+        var site = Object.FindFirstObjectByType<SettlementSite>();
+        var before = site.plots.Find(p => p.buildingId == "stall_bread").rect;
+        t.position += new Vector3(2f, 0f, 0f);
+        string r = CityPreview.SaveMoves();
+        var after = site.plots.Find(p => p.buildingId == "stall_bread").rect;
+        site.plots.Find(p => p.buildingId == "stall_bread").rect = before;   // test : on remet en place
+        System.IO.File.Delete(CityPreview.OverridesPath);
+        UnityEditor.AssetDatabase.Refresh();
+        CityPreview.Clear();
+        return $"{r} | avant {before.position} après {after.position} (remis en place)";
     }
 }
 #endif

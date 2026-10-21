@@ -50,7 +50,12 @@ STAMPS = {
     'glass':   dict(tmx=lambda: pack(692491, 'Tiled_files', 'Exterior.tmx')),
     'farm':    dict(tmx=lambda: pack(471853, 'Tiled_files', 'Farm.tmx'), margin=None, feather=28),
     'training': dict(tmx=lambda: pack(626036, 'Tiled_files', 'Training_ground.tmx'), drop=['Tile Layer 33'], margin=None),
-    'chapel':  dict(tmx=lambda: pack(160005, 'Tiled_files', 'Ruined_temple_exterior.tmx'), drop=['water', 'water_detailization', 'Discoverers'], ground=['site', 'House_platform', 'Bricks']),
+    'chapel':  dict(tmx=lambda: pack(477438, 'Tiled_files', 'Exterior.tmx')),
+    'int_chapel':  dict(tmx=lambda: pack(477438, 'Tiled_files', 'Interior.tmx'), interior=True),
+    'int_tavern':  dict(tmx=lambda: pack(666104, 'Tiled_files', 'Tavern_interior_1nd_floor.tmx'), interior=True, drop=['Tile Layer 13']),
+    'int_tavern_up': dict(tmx=lambda: pack(666104, 'Tiled_files', 'Tavern_interior_2st_floor.tmx'), interior=True, noExit=True),
+    'int_guild':   dict(tmx=lambda: pack(189780, 'Tiled_files', 'Interior_1st_floor.tmx'), interior=True),
+    'int_guild_up': dict(tmx=lambda: pack(189780, 'Tiled_files', 'Interior_2nd_floor.tmx'), interior=True, noExit=True),
     'int_library': dict(tmx=lambda: pack(845649, 'Tiled_files', 'Interior.tmx'), interior=True),
     'int_prison':  dict(tmx=lambda: pack(659586, 'Tiled_files', 'Interior.tmx'), interior=True),
     'int_manor':   dict(tmx=lambda: pack(653272, 'Tiled_files', 'Interior_1st_floor.tmx'), interior=True, ground=['Ladder']),
@@ -58,7 +63,8 @@ STAMPS = {
     'market':  dict(tmx=lambda: pack(587497, 'Tiled_files', 'Market_square.tmx'), drop=['Walls_top'], margin=None),
 }
 
-INTERIOR_GROUND = re.compile(r'floor|carpet|wall|window|tile layer', re.I)
+TRIGGER = re.compile(r"door|window|gate", re.I)
+INTERIOR_GROUND = re.compile(r"floor|carpet|wall|window|tile layer", re.I)
 GROUND = re.compile(r'floor|ground|grass|street|brick|plate|spot|detail|shadow|carpet|road|straw|water|bed|hill|walls_grass|walls_sand|platform|crack|fish$', re.I)
 CHARACTER = re.compile(r'drinker|eater|girl|guard|archer|fighter|trainer|aristocrat|servant|trader|lute|flutist|chief|librarian|reader|visitor|smoke_guy|cat_|bird|animal|chicken|cow|pig|bandit|old_man|sleeping|prisoner|npc|character|blacksmith|glassblower|player', re.I)
 LIGHT = re.compile(r'flag|smoke|sign|banner|window|candle|ivy|cornice|arrow', re.I)
@@ -233,6 +239,9 @@ def build(sid, opt):
         r = rect(c)
         g.alpha_composite(c.image(), (r[0] - X0, r[1] - Y0))
 
+    trig = [c for c in objs if c.frames() and TRIGGER.search(c.ts.image_name)]
+    trig_ids = set(id(c) for c in trig)
+    objs = [c for c in objs if id(c) not in trig_ids]
     # objets : 1) groupes par couche (4 voisins ; clôtures : seulement sur la rangée) ;
     # 2) un groupe se fond dans un plus grand qu'il recouvre sans descendre plus bas que lui et sans en déborder
     #    sur les côtés (fenêtres, toit, enseigne, lierre sur un mur) ; ce qui est devant (tables, habitants,
@@ -309,6 +318,7 @@ def build(sid, opt):
     pieces = []
     door = None
     biggest = 0
+    main_piece = None
     for i, (fence, cells) in enumerate(sorted(groups, key=lambda g: min(c.y for c in g[1]))):
         rs = [rect(c) for c in cells]
         x0, y0 = min(r[0] for r in rs), min(r[1] for r in rs)
@@ -349,12 +359,106 @@ def build(sid, opt):
         pieces.append(piece)
         if kind == 'building' and wcell * hcell > biggest and re.search(r'house|wall|roof|tower|prison|tent', names, re.I):
             biggest = wcell * hcell
+            main_piece = piece
             doors = [c for c in cells if 'door' in c.ts.image_name.lower() or 'door' in c.layer.lower()]
             if doors:
                 d = max(doors, key=lambda c: c.y)
                 door = ((d.x + 0.5) * tw - X0, Y1 - (d.y + 1) * th)
             else:
                 door = ((x0 + x1) / 2 - X0, Y1 - y1)
+    # 2) portes, volets, herses : groupes de cases voisines, triés comme le bâtiment qui les porte
+    def strip_of(cells):
+        rs = [rect(c) for c in cells]
+        x0, y0 = min(r[0] for r in rs), min(r[1] for r in rs)
+        x1, y1 = max(r[2] for r in rs), max(r[3] for r in rs)
+        n = min(24, max(len(c.frames()) for c in cells))
+        frames = []
+        for k in range(n):
+            f = Image.new('RGBA', (x1 - x0, y1 - y0), (0, 0, 0, 0))
+            for c in sorted(cells, key=lambda c: c.order):
+                im = c.image(k)
+                if im is not None:
+                    r = rect(c)
+                    f.alpha_composite(im, (r[0] - x0, r[1] - y0))
+            frames.append(f)
+        return (x0, y0, x1, y1), frames
+
+    def diff(a, b):
+        from PIL import ImageChops
+        d = ImageChops.difference(a, b).convert('L')
+        return sum(d.histogram()[i] * i for i in range(256))
+
+    tpos = {}
+    for c in trig:
+        tpos.setdefault((c.x, c.y), []).append(c)
+    seen = set()
+    for start in list(tpos):
+        if start in seen:
+            continue
+        comp, todo = [], [start]
+        seen.add(start)
+        while todo:
+            q = todo.pop()
+            comp.append(q)
+            for nb in ((q[0] + 1, q[1]), (q[0] - 1, q[1]), (q[0], q[1] + 1), (q[0], q[1] - 1)):
+                if nb in tpos and nb not in seen:
+                    seen.add(nb)
+                    todo.append(nb)
+        cells = [c for q in comp for c in tpos[q]]
+        (x0, y0, x1, y1), frames = strip_of(cells)
+        if not frames or frames[0].getbbox() is None and all(f.getbbox() is None for f in frames):
+            continue
+        # le bâtiment porteur : le plus grand morceau qui recouvre le groupe
+        cx, cy = (x0 + x1) / 2 - X0, Y1 - (y0 + y1) / 2
+        owner = None
+        for pc in pieces:
+            if pc['x'] <= cx <= pc['x'] + pc['w'] and pc['y'] <= cy <= pc['y'] + pc['h'] and pc['kind'] != 'character':
+                if owner is None or pc['w'] * pc['h'] > owner['w'] * owner['h']:
+                    owner = pc
+        base = owner['y'] if owner else Y1 - y1
+        bottom = Y1 - y1
+        img = ' '.join(sorted({c.ts.image_name.lower() for c in cells}))
+        if 'gate' in img:
+            role = 'gate'
+        elif 'window' in img and 'door' not in img:
+            role = 'shutter'
+        elif 'door' in img and 'window' not in img:
+            role = 'door'
+        else:
+            role = 'door' if bottom - base <= th else 'shutter'
+        ds = [diff(frames[0], f) for f in frames]
+        open_frame = max(range(len(ds)), key=lambda i: ds[i])
+        cycle = ds[-1] < 0.3 * max(1, ds[open_frame])
+        n = len(frames)
+        strip = Image.new('RGBA', ((x1 - x0) * n, y1 - y0), (0, 0, 0, 0))
+        for k, f in enumerate(frames):
+            strip.paste(f, (k * (x1 - x0), 0))
+        dur = cells[0].frames()[0][1]
+        fname = 'p%d_%dx%d.png' % (len(pieces), x1 - x0, y1 - y0)
+        strip.save(os.path.join(out, fname))
+        pieces.append(dict(file=fname, x=x0 - X0, y=bottom, w=x1 - x0, h=y1 - y0, frames=n, names=img, kind=role,
+                           fps=round(1000.0 / dur, 2) if dur else 8, solid=False, role=role, sortY=base,
+                           openFrame=open_frame, cycle=cycle,
+                           _owner=id(owner) if owner else None, _mixed='door' in img and 'window' in img,
+                           _ocx=owner['x'] + owner['w'] / 2 if owner else cx))
+    # tuiles mixtes (portes et fenêtres dans la même planche) : la porte est celle du milieu de la façade, les autres sont des volets
+    by_owner = {}
+    for pc in pieces:
+        if pc.get('_mixed') and pc.get('role') == 'door':
+            by_owner.setdefault(pc['_owner'], []).append(pc)
+    for lst in by_owner.values():
+        keep = min(lst, key=lambda pc: abs(pc['x'] + pc['w'] / 2 - pc['_ocx']))
+        for pc in lst:
+            if pc is not keep:
+                pc['role'] = pc['kind'] = 'shutter'
+    for pc in pieces:
+        if pc.get('role') in ('door', 'gate') and main_piece is not None and pc.get('_owner') == id(main_piece):
+            door = (pc['x'] + pc['w'] / 2, pc['y'])
+    for pc in pieces:
+        for k in ('_owner', '_mixed', '_ocx'):
+            pc.pop(k, None)
+    if door is None and main_piece is not None:
+        door = (main_piece['x'] + main_piece['w'] / 2, main_piece['y'])
     if door is None:
         door = (W / 2, 0)
     # le sol ne déborde que d'un peu autour des objets (la place dallée des packs n'est pas recopiée)
@@ -373,6 +477,24 @@ def build(sid, opt):
         from PIL import ImageChops
         g.putalpha(ImageChops.multiply(alpha, keep))
     feather(g, 0 if opt.get('interior') else opt.get('feather', 18))
+    if not opt.get('interior'):
+        # recadrage sur le contenu réel (sol restant + morceaux) : emprises plus justes, cité plus serrée
+        bb = g.getbbox() or (0, 0, W, H)
+        x0, y0, x1, y1 = bb
+        for p in pieces:
+            x0, x1 = min(x0, p['x']), max(x1, p['x'] + p['w'])
+            y0, y1 = min(y0, H - p['y'] - p['h']), max(y1, H - p['y'])
+        x0, y0 = (x0 // 8) * 8, (y0 // 8) * 8
+        x1, y1 = min(W, -(-x1 // 8) * 8), min(H, -(-y1 // 8) * 8)
+        if (x0, y0, x1, y1) != (0, 0, W, H):
+            g = g.crop((x0, y0, x1, y1))
+            for p in pieces:
+                p['x'] -= x0
+                p['y'] -= H - y1
+                if 'sortY' in p:
+                    p['sortY'] -= H - y1
+            door = (door[0] - x0, door[1] - (H - y1))
+            W, H = x1 - x0, y1 - y0
     g.save(os.path.join(out, 'ground.png'))
     solids = []
     if opt.get('interior'):
@@ -403,7 +525,7 @@ def build(sid, opt):
                     reach.add(n); todo.append(n)
         walk = reach
         # le passage de la porte descend jusqu'au bas de la carte (on sort par le bas)
-        gap = [x for x in range(dx - 2, dx + 3) if (x, dy) in walk]
+        gap = [x for x in range(dx - 2, dx + 3) if (x, dy) in walk] if not opt.get('noExit') else []
         for x in gap:
             for y in range(dy + 1, min(dy + 4, cy0 + ch)):   # le seuil : trois cases sous la porte, pour sortir
                 walk.add((x, y))

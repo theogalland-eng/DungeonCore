@@ -41,6 +41,8 @@ public class InteriorSystem : MonoBehaviour
         /// <summary>Habitants à qui parler dans une pièce-tampon : repérés par le nom de leur couche, sinon position relative (0..1).</summary>
         public readonly List<(string key, string label, string near, Vector2 fallback)> stampSpots = new List<(string, string, string, Vector2)>();
         public Vector2 doorLocal = new Vector2(float.NaN, 0f);
+        /// <summary>Étage sans porte sur la rue (on y monte par l'escalier).</summary>
+        public bool noExit;
     }
 
     private static readonly Dictionary<string, Layout> Layouts = BuildLayouts();
@@ -107,8 +109,8 @@ public class InteriorSystem : MonoBehaviour
         void N(Layout l, string a, float x, float y, float fps = 7f, bool flip = false) => l.npcs.Add(new Npc { anim = a, x = x, y = y, fps = fps, flip = flip });
         void S(Layout l, string key, string label, float x, float y) => l.spots.Add(new Spot { key = key, label = label, local = new Vector3(x, y, 0f) });
 
-        // Taverne : comptoir, tables, barde, buveurs
-        var t = L("house_1", "La Taverne du Donjon", "floor_wood", "wall_tavern", 12f, 7f);
+        // Taverne : comptoir, tables, barde, buveurs (ancienne pièce, gardée si les tampons manquent)
+        var t = L("house_1_old", "La Taverne du Donjon", "floor_wood", "wall_tavern", 12f, 7f);
         P(t, "tav_rug", 0f, -0.6f, 1);
         P(t, "tav_shelf_bottles", -3.6f, 2.1f); P(t, "tav_shelf", -1.9f, 2.1f); P(t, "tav_stairs", 5f, 1.2f);
         P(t, "tav_bar", -2.8f, 0.9f);
@@ -121,8 +123,8 @@ public class InteriorSystem : MonoBehaviour
         S(t, "tavern_host", "Parler à la tavernière", -2.8f, 0.1f); S(t, "tavern_bard", "Écouter le barde", 0.2f, -2.3f);
         S(t, "tavern_drinkers", "Trinquer avec les buveurs", 1.6f, -0.75f);
 
-        // Hall de la Guilde : tableau des contrats, maître de guilde, lecteurs
-        var g = L("house_4", "Hall de la Guilde des Aventuriers", "floor_wood", "wall_guild", 12f, 7f);
+        // Hall de la Guilde : tableau des contrats, maître de guilde, lecteurs (ancienne pièce)
+        var g = L("house_4_old", "Hall de la Guilde des Aventuriers", "floor_wood", "wall_guild", 12f, 7f);
         P(g, "gld_rug", 0f, -0.8f, 1);
         P(g, "gld_board", -1.3f, 2.1f); P(g, "gld_board2", 1.3f, 2.1f); P(g, "gld_banner", 0f, 2.35f);
         P(g, "gld_bookshelf", -4.6f, 2.0f); P(g, "gld_cabinet", 4.6f, 2.0f); P(g, "gld_armor", 3.0f, 2.0f);
@@ -168,6 +170,28 @@ public class InteriorSystem : MonoBehaviour
         pri.stampSpots.Add(("prison_chief", "Parler au chef des gardes", "Chief", new Vector2(0.75f, 0.7f)));
         var man = ST("manor", "Le Manoir des nobles", "int_manor");
         man.stampSpots.Add(("manor_lord", "Saluer le seigneur", "Characters1", new Vector2(0.5f, 0.7f)));
+        var tav = ST("house_1", "La Taverne du Donjon", "int_tavern");
+        tav.stampSpots.Add(("tavern_host", "Parler à la tavernière", "Animation_host", new Vector2(0.45f, 0.62f)));
+        tav.stampSpots.Add(("tavern_bard", "Écouter le barde", "Lute_player", new Vector2(0.45f, 0.4f)));
+        tav.stampSpots.Add(("tavern_drinkers", "Trinquer avec les buveurs", "Drinker3", new Vector2(0.2f, 0.3f)));
+        tav.stampSpots.Add(("floor:house_1_up", "Monter à l'étage (chambres)", "Stairs", new Vector2(0.85f, 0.62f)));
+        var tavUp = ST("house_1_up", "La Taverne — les chambres", "int_tavern_up");
+        tavUp.noExit = true;
+        tavUp.stampSpots.Add(("tavern_room", "Dormir dans votre chambre", "Beds_plants", new Vector2(0.2f, 0.4f)));
+        tavUp.stampSpots.Add(("floor:house_1", "Descendre dans la salle", "Stairs", new Vector2(0.85f, 0.5f)));
+        var gui = ST("house_4", "Hall de la Guilde des Aventuriers", "int_guild");
+        gui.stampSpots.Add(("guild_master", "Guichet du maître de guilde", "Guildmaster", new Vector2(0.5f, 0.45f)));
+        gui.stampSpots.Add(("guild_board", "Tableau des recrues (former un groupe)", null, new Vector2(0.86f, 0.42f)));
+        gui.stampSpots.Add(("guild_talkers", "Écouter les aventuriers", "Fighter2_Idle", new Vector2(0.6f, 0.3f)));
+        gui.stampSpots.Add(("floor:house_4_up", "Monter à l'étage (salle d'entraînement)", "Ladder", new Vector2(0.2f, 0.2f)));
+        var guiUp = ST("house_4_up", "Hall de la Guilde — salle d'entraînement", "int_guild_up");
+        guiUp.noExit = true;
+        guiUp.light = new Color(0.8f, 0.75f, 1f);
+        guiUp.stampSpots.Add(("guild_mages", "Écouter les mages", "Mage3", new Vector2(0.75f, 0.4f)));
+        guiUp.stampSpots.Add(("floor:house_4", "Redescendre", null, new Vector2(0.2f, 0.22f)));
+        var cha = ST("chapel", "La Chapelle", "int_chapel");
+        cha.light = new Color(1f, 0.92f, 0.8f);
+        cha.stampSpots.Add(("chapel_priest", "Parler au prêtre", "Priest", new Vector2(0.5f, 0.75f)));
         var hom = ST("hero_home", "Votre maison", "int_home");
         hom.stampSpots.Add(("home_bed", "Dormir (gratuit)", null, new Vector2(0.5f, 0.6f)));
         return d;
@@ -296,11 +320,42 @@ public class InteriorSystem : MonoBehaviour
         Physical = true;
         Vector3 o = root.transform.position;
         RoomRect = new Rect(o.x - layout.w / 2f, o.y - layout.h / 2f, layout.w, layout.h + 1.5f);
-        DoorInside = o + (float.IsNaN(layout.doorLocal.x) ? new Vector3(0f, -layout.h / 2f + 0.55f, 0f) : new Vector3(layout.doorLocal.x, layout.doorLocal.y + 0.25f, 0f));
+        DoorInside = o + (float.IsNaN(layout.doorLocal.x) ? new Vector3(0f, -layout.h / 2f + 0.55f, 0f) : new Vector3(layout.doorLocal.x, layout.doorLocal.y + 1.2f, 0f));
         Place(DoorInside);
         var cam = Camera.main;
         if (cam != null) cam.transform.position = new Vector3(DoorInside.x, DoorInside.y + 1.5f, cam.transform.position.z);
         Sfx.Play("door_break", null, 0.35f);
+        yield return FadeTo(0f, 0.25f);
+        moving = false;
+        OnEntered?.Invoke(layout.id);
+    }
+
+    /// <summary>Escalier : on passe à l'étage voulu (même bâtiment), en arrivant au pied de l'escalier de cet étage.</summary>
+    public void GoToFloor(string id)
+    {
+        if (!Inside || !Physical || moving || !Layouts.TryGetValue(id, out var layout)) return;
+        StartCoroutine(FloorRoutine(layout));
+    }
+
+    private System.Collections.IEnumerator FloorRoutine(Layout layout)
+    {
+        moving = true;
+        string from = current != null ? current.id : null;
+        yield return FadeTo(1f, 0.25f);
+        if (current != null && built.TryGetValue(current.id, out var old)) old.SetActive(false);
+        var root = Build(layout);
+        root.SetActive(true);
+        current = layout;
+        Vector3 o = root.transform.position;
+        RoomRect = new Rect(o.x - layout.w / 2f, o.y - layout.h / 2f, layout.w, layout.h + 1.5f);
+        DoorInside = o + (float.IsNaN(layout.doorLocal.x) ? new Vector3(0f, -layout.h / 2f + 0.55f, 0f) : new Vector3(layout.doorLocal.x, layout.doorLocal.y + 1.2f, 0f));
+        // arrivée : l'escalier qui ramène à l'étage d'où l'on vient
+        Vector3 at = DoorInside;
+        foreach (var sp in layout.spots) if (from != null && sp.key == "floor:" + from) at = sp.World;
+        Place(at);
+        var cam = Camera.main;
+        if (cam != null) cam.transform.position = new Vector3(at.x, at.y + 1f, cam.transform.position.z);
+        Sfx.Play("door_break", null, 0.2f);
         yield return FadeTo(0f, 0.25f);
         moving = false;
         OnEntered?.Invoke(layout.id);
@@ -324,7 +379,10 @@ public class InteriorSystem : MonoBehaviour
         if (moving || walkers.Count == 0 || walkers[0] == null) return;
         // on ressort en franchissant le seuil
         Vector3 p = walkers[0].position;
-        if (p.y < DoorInside.y - 0.45f && Mathf.Abs(p.x - DoorInside.x) < 1f) ExitPhysical();
+        if (current != null && current.noExit) return;
+        // pièce d'un pack : on sort en franchissant le seuil de la porte (sous la case d'arrivée)
+        float exitY = current != null && !float.IsNaN(current.doorLocal.x) ? DoorInside.y - 1.3f : DoorInside.y - 0.45f;
+        if (p.y < exitY && Mathf.Abs(p.x - DoorInside.x) < 1.5f) ExitPhysical();
     }
 
     public void ExitPhysical()

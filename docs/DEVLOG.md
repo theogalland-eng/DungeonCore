@@ -370,3 +370,14 @@ Les retours sur la première itération : cité trop petite et serrée, trop peu
 - 🏡 **La maison du héros** : terrain à vendre près du port (500 or), maison commandée au charpentier (1000 or), chantier visible pendant trois jours (les colons y travaillent). Ensuite on y dort gratuitement, et c'est là qu'on se réveille.
 - 🚪 **Nouveaux intérieurs** tirés des cartes des packs : bibliothèque (le bibliothécaire parle de l'étage suivant), prison (le chef des gardes), manoir (banquet des nobles, le seigneur), maison du héros (son lit). Murs solides calculés d'après les cases de sol, entrée par la vraie porte.
 - 💾 Île encore agrandie au sud et à l'est : les sauvegardes v1 et v2 sont converties (v3).
+
+### La cité qui grandit (21/10, suite des retours)
+
+- 🌳 **Plus de chemins au début** : les routes naissent avec la colonie — le chemin du camp à sa fondation, celui du port au stade 2, les routes vers la future cité et les champs au hameau, la grande ferme au village, le manoir à la cité. L'emplacement de la cité est un bois clair ; au hameau on y trace les rues et la forêt s'éclaircit (trois arbres sur dix restent dans les jardins), la palissade dégage sa ligne.
+- 🏘️ **Cité plus dense** (63 × 36) : rues de deux cases, avenue de trois, plus de chemin de ronde ; les îlots se remplissent de maisons serrées le long des rues ; les emprises des bâtiments suivent la taille réelle de leur scène. La **vraie chapelle et son cimetière** (pack ajouté) remplacent le temple en ruine, avec un intérieur et un prêtre (bénédiction payante).
+- 🧱 **Remparts refaits** : grès chaud (accordé aux rues de briques), grandes tours octogonales aux angles, de part et d'autre des portes et le long des murs.
+- 🚪 **Portes, volets et herses** : plus d'animation en boucle. Les portes (et la herse de la prison) s'ouvrent quand quelqu'un passe et se referment derrière lui ; les volets s'ouvrent le matin et se ferment le soir.
+- 🍺 **Taverne et Guilde sur deux étages**, tirées des cartes des packs (comme les images de référence) : la salle de la taverne et ses chambres à l'étage — on loue une chambre à la tavernière, on monte l'escalier et on dort dans sa chambre ; le hall de la Guilde et sa salle d'entraînement magique à l'étage.
+- 🧑‍🌾 **La ville vit** : des passants vont et viennent (marché, taverne, portes), bavardent, rentrent chez eux le soir ; on peut parler aux passants et aux colons.
+- 🏝️ **Île arrondie** : elle s'élargit du côté de la ferme et du manoir, jusqu'au bout de l'île.
+- 🛠️ **Aperçu dans l'éditeur** (*DungeonCore › Aperçu de la cité finale*) : les bâtiments et les intérieurs, qui naissent en jeu, s'affichent dans la vue Scène sans être enregistrés ; un bâtiment déplacé dans l'aperçu garde sa place (*Enregistrer les déplacements de l'aperçu*, repris par le générateur).

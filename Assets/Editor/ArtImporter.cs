@@ -241,6 +241,14 @@ public static class ArtImporter
         }
         foreach (var n in names.OrderBy(x => x))
             art.entries.Add(new SettlementArt.Entry { name = n, frames = Frames(SettlementDir, n) });
+        // pièces de l'enceinte (Tools~/make_citywalls.py, importées par StampImporter) : gardées à chaque reconstruction
+        const string walls = SettlementDir + "/Walls";
+        if (Directory.Exists(walls))
+            foreach (var f in Directory.GetFiles(walls, "*.png").Select(x => x.Replace(Path.DirectorySeparatorChar, '/')))
+            {
+                var sp = AssetDatabase.LoadAssetAtPath<Sprite>(f);
+                if (sp != null) art.entries.Add(new SettlementArt.Entry { name = Path.GetFileNameWithoutExtension(f), frames = new[] { sp } });
+            }
         if (!AssetDatabase.IsValidFolder("Assets/Tiles/Settlement")) AssetDatabase.CreateFolder("Assets/Tiles", "Settlement");
         art.pierLeft = MakeTile("Assets/Tiles/Settlement/pier_left.asset", Single(SettlementDir, "pier_left"), Tile.ColliderType.None);
         art.pierRight = MakeTile("Assets/Tiles/Settlement/pier_right.asset", Single(SettlementDir, "pier_right"), Tile.ColliderType.None);

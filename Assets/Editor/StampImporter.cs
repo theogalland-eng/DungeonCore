@@ -15,7 +15,7 @@ public static class StampImporter
     public const string Dir = "Assets/Art/Settlement/Stamps";
     const float Ppu = 32f;   // tuile de 16 px = une demi-case
 
-    [System.Serializable] class JPiece { public string file; public int x, y, w, h, frames; public float fps; public string kind, names; public bool solid; }
+    [System.Serializable] class JPiece { public string file; public int x, y, w, h, frames, sortY, openFrame; public float fps; public string kind, names, role; public bool solid, cycle; }
     [System.Serializable] class JStamp { public string id; public int w, h, tile; public float[] door; public JPiece[] pieces; public float[] solids; }
 
     [MenuItem("DungeonCore/Importer les tampons de la cité")]
@@ -52,6 +52,10 @@ public static class StampImporter
                     solid = p.solid,
                     kind = p.kind,
                     names = p.names,
+                    role = p.role,
+                    sortY = p.sortY / Ppu,
+                    openFrame = p.openFrame,
+                    cycle = p.cycle,
                 });
                 pieces++;
             }

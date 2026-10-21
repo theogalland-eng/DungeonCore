@@ -60,6 +60,8 @@ public static class SettlementPlan
         (5, "town_3"), (5, "bld_farmhouse"), (5, "town_1"), (5, "town_2"), (5, "house_b"),
         (3, "house_a"), (4, "town_4"), (5, "house_b"), (5, "town_1"), (6, "bld_farmhouse"), (6, "town_3"),
         (6, "house_a"), (6, "town_2"), (6, "town_4"), (6, "house_b"),
+        (5, "town_3"), (5, "house_a"), (6, "town_1"), (6, "bld_farmhouse"), (6, "town_2"), (6, "house_b"),
+        (6, "town_4"), (6, "house_a"), (6, "town_3"), (6, "town_1"), (6, "house_b"), (6, "town_2"),
     };
     public static int HomeCount => Homes.Length;
 
@@ -102,8 +104,8 @@ public static class SettlementPlan
             new BuildingDef { id = "training", name = "Terrain d'entraînement", stage = 4, w = 12, h = 8, wood = 24, stone = 6, buildTime = 35, stamp = "training",
                 description = "Les aventuriers s'entraînent : +15 % de dégâts." },
             new BuildingDef { id = "glass", name = "Verrerie", stage = 4, w = 11, h = 7, wood = 22, stone = 12, buildTime = 40, pop = 2, stamp = "glass", prosperityPerDay = 3 },
-            new BuildingDef { id = "chapel", name = "Vieille chapelle", stage = 4, w = 12, h = 8, wood = 12, stone = 30, buildTime = 50, stamp = "chapel", prosperityPerDay = 2,
-                description = "Une chapelle en ruine relevée par les colons : les blessés y sont soignés." },
+            new BuildingDef { id = "chapel", name = "Chapelle", stage = 4, w = 13, h = 9, wood = 12, stone = 30, buildTime = 50, stamp = "chapel", prosperityPerDay = 2,
+                description = "Chapelle et cimetière : les blessés y sont soignés, les aventuriers tombés y reposent." },
             new BuildingDef { id = "stall_fruits", name = "Étal de fruits", stage = 4, w = 4, h = 2, wood = 14, stone = 4, buildTime = 25, sprite = "stall_fruits", prosperityPerDay = 3 },
             new BuildingDef { id = "stall_bread", name = "Boulangerie", stage = 4, w = 3, h = 2, wood = 12, stone = 4, buildTime = 25, sprite = "stall_bread", prosperityPerDay = 3, foodPerDay = 3 },
 

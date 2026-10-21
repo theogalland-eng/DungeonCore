@@ -49,6 +49,8 @@ public class CrawlerMode : MonoBehaviour
     /// 50 % : l'endurance revient moins vite ; 80 % : coups plus faibles, roulade plus coûteuse ; 100 % : il s'effondre.
     /// </summary>
     public float fatigue;
+    /// <summary>Chambre louée à la taverne : on monte à l'étage pour y dormir.</summary>
+    public bool roomRented;
     [Tooltip("Secondes debout pour passer de reposé à épuisé")] public float fatigueDuration = 1500f;
     public const float FatiguePerFloor = 6f;
     /// <summary>Maison du héros : 0 rien, 1 terrain acheté, 2 maison commandée (chantier), 3 bâtie.</summary>
@@ -866,6 +868,26 @@ public class CrawlerMode : MonoBehaviour
             act = () => GoToFloor(cp, true);
             return $"Cercle de passage : descendre à l'étage {cp}";
         }
+        // passants et colons : on peut leur parler (une porte toute proche reste prioritaire)
+        if (floor == 0 && DoorNear(1.1f) == null)
+        {
+            TownFolk bestF = null; float bf = 1.3f;
+            foreach (var f in TownFolk.All) { if (f == null || !f.isActiveAndEnabled) continue; float d = Vector2.Distance(f.transform.position, p); if (d < bf) { bf = d; bestF = f; } }
+            SettlerAI bestS = null; float bs = Mathf.Min(bf, 1.3f);
+            foreach (var st in SettlerAI.All) { if (st == null || st.IsHidden) continue; float d = Vector2.Distance(st.transform.position, p); if (d < bs) { bs = d; bestS = st; } }
+            if (bestS != null)
+            {
+                var who = bestS;
+                act = () => StoryManager.Instance?.Play(new StoryManager.Line(who.Title, TownTalk.Talk()));
+                return $"Parler à {who.settlerName}";
+            }
+            if (bestF != null)
+            {
+                var who = bestF;
+                act = () => { who.FaceAndStop(Player.transform.position); StoryManager.Instance?.Play(new StoryManager.Line(who.Title, TownTalk.Talk())); };
+                return $"Parler à {who.folkName}";
+            }
+        }
         var plot = HeroPlot();
         if (plot != null && floor == 0)
         {
@@ -1012,6 +1034,7 @@ public class CrawlerMode : MonoBehaviour
             case "guild_talkers": return "Les aventuriers";
             case "forge_smith": case "forge_rack": return "La forgeronne";
             case "mage_seller": return "L'apothicaire";
+            case "chapel_priest": return "Le prêtre";
             default: return "L'orbe de scrutation";
         }
     }
@@ -1034,6 +1057,21 @@ public class CrawlerMode : MonoBehaviour
             return;
         }
         if (key == "home_bed") { if (heroHome >= 3) Sleep(true); return; }
+        if (key.StartsWith("floor:")) { InteriorSystem.Instance?.GoToFloor(key.Substring(6)); return; }
+        if (key == "tavern_room")
+        {
+            if (!roomRented) { GameHUD.Toast("Louez d'abord une chambre à la tavernière (en bas)", GameHUD.WarningColor); return; }
+            roomRented = false;
+            Sleep(false);
+            return;
+        }
+        if (key == "guild_mages")
+        {
+            StoryManager.Instance?.Play(
+                new StoryManager.Line("Mage de la Guilde", "Ici, on apprend aux recrues à ne pas mourir. Le cercle protège... la plupart du temps."),
+                new StoryManager.Line("Mage de la Guilde", "Un conseil : les créatures du Noyau craignent le feu plus que l'acier. Ou l'inverse. Ça dépend des étages."));
+            return;
+        }
         if (key == "library_keeper")
         {
             int next = Mathf.Clamp(deepest + 1, 1, CrawlerDungeon.FloorCount);
@@ -1122,11 +1160,14 @@ public class CrawlerMode : MonoBehaviour
                 Line("<i>« Un lit, une soupe, et on n'en parle plus. Tes compagnons aussi, s'ils ont de quoi payer — c'est toi qui paies. »</i>", 70f);
                 int cost = RoomCost;
                 if (fatigue >= 50f) Line($"<color=#B9A8FF>Vous êtes {(fatigue >= 80f ? "épuisé" : "fatigué")} ({Mathf.RoundToInt(fatigue)} %).</color>", 30f);
-                Button($"Louer une chambre pour la nuit ({cost} or) : sommeil, santé pleine pour le groupe", () =>
-                {
-                    if (!Pay(cost)) return;
-                    Sleep(false);
-                }, gold >= cost);
+                if (roomRented) Line("<color=#B9E3A8>Votre chambre est prête : montez l'escalier, au fond à droite.</color>", 30f);
+                else
+                    Button($"Louer une chambre pour la nuit ({cost} or) : santé pleine pour le groupe", () =>
+                    {
+                        if (!Pay(cost)) return;
+                        roomRented = true;
+                        GameHUD.Toast("Votre chambre est à l'étage : montez l'escalier pour dormir", GameHUD.InfoColor);
+                    }, gold >= cost);
                 Button("Une soupe chaude (6 or) : satiété pleine", () => { if (Pay(6)) { satiety = 100f; Sfx.Play("coin"); GameHUD.Toast("Rassasié", GameHUD.InfoColor); } }, gold >= 6);
                 Button("Provisions : 3 rations (14 or)", () => { if (Pay(14)) { rations += 3; Sfx.Play("coin"); } }, gold >= 14);
                 foreach (var r in Rumors.Generate(1)) Line($"<color=#FFD9A0>{r.who}</color> : <i>« {r.text} »</i>", 80f);
@@ -1146,6 +1187,20 @@ public class CrawlerMode : MonoBehaviour
                         Sfx.Play("hit_sword");
                     }, gold >= 40 * PartyCount);
                 break;
+            case "chapel_priest":
+            {
+                Line("<i>« Ceux que la montagne a gardés reposent dehors. Toi, tu respires encore : remercie la Lumière. »</i>", 60f);
+                int blessCost = 15 + 5 * PartyCount;
+                Button($"Bénédiction ({blessCost} or) : soins complets pour le groupe", () =>
+                {
+                    if (!Pay(blessCost)) return;
+                    Player.Combat.currentHealth = Player.Combat.maxHealth;
+                    foreach (var c in CrawlerCompanion.All) if (c != null && !c.IsDead) c.Combat.currentHealth = c.Combat.maxHealth;
+                    Sfx.Play("heal", Player.transform.position);
+                    GameHUD.Toast("La Lumière vous soigne", GameHUD.InfoColor);
+                }, gold >= blessCost);
+                break;
+            }
             case "mage_seller":
                 Line("<i>« Rouge pour les blessures. Bleu pour rentrer. Ne buvez pas les vertes. »</i>", 50f);
                 Button("Potion de soins (25 or)", () => { if (Pay(25)) { potions++; Sfx.Play("coin"); } }, gold >= 25);

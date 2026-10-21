@@ -90,7 +90,10 @@ public class SettlementManager : MonoBehaviour
     private readonly List<Vector2> felled = new List<Vector2>();
     private readonly List<Vector3Int> mined = new List<Vector3Int>();
     private Tilemap sol, blocked, decor, trunks, routes;
-    private bool streetsPaved;
+    private int streetsState = -1;                       // -1 inconnu, 0 forêt, 1 terre, 2 briques
+    private readonly HashSet<int> roadsDone = new HashSet<int>();
+    private bool cityCleared, wallsCleared;
+    private List<Transform> forestAll;
     private Transform root;
     private int expeditionsSeen;
     private float arrivalTimer;
@@ -219,9 +222,9 @@ public class SettlementManager : MonoBehaviour
         }
         foreach (var b in buildings)
         {
-            for (int k = 0; k < 80; k++) { var t = TreeInRect(b.rect); if (t == null) break; FellTree(t); }
-            // parvis dégagé : aucun arbre (ni souche) devant la porte
-            for (int k = 0; k < 16; k++) { var t = TreeInRect(Apron(b.rect)); if (t == null) break; FellTree(t); t.gameObject.SetActive(false); }
+            // emprise et parvis nets : ni arbre ni souche
+            var r = b.rect.width > 0 ? new RectInt(b.rect.x - 1, b.rect.y - 3, b.rect.width + 2, b.rect.height + 4) : b.rect;
+            if (r.width > 0) ClearTrees(p => r.Contains(Vector2Int.FloorToInt(p)), new Bounds(new Vector3(r.center.x, r.center.y, 0f), new Vector3(r.width + 2, r.height + 2, 1f)));
             if (!b.IsComplete) b.Complete();
         }
         RefreshCityLook();
@@ -235,6 +238,7 @@ public class SettlementManager : MonoBehaviour
         prosperity = Mathf.Max(prosperity, 10f);
         for (int i = 0; i < campSettlers; i++) SpawnSettler(i == 0 ? "settler_fisher" : null);
         CreateSites(1);
+        RefreshCityLook();   // le chemin du camp
         GameHUD.Toast("Des colons installent un campement sur l'île !", GameHUD.WarningColor);
         StoryManager.Instance?.OnSettlementStage(1, StageName);
         OnChanged?.Invoke();
@@ -271,23 +275,125 @@ public class SettlementManager : MonoBehaviour
     /// <summary>
     /// Allure de la cité selon le stade : rues de terre, puis pavées de briques quand la cité se fortifie.
     /// </summary>
+    // ─────────────────────────────────────────────
+    // FORÊT ET ROUTES : la forêt recule à mesure que la colonie grandit
+    // ─────────────────────────────────────────────
+
+    private void EnsureForestList()
+    {
+        if (forestAll != null) return;
+        forestAll = new List<Transform>();
+        var forest = GameObject.Find("Forêt");
+        if (forest != null) foreach (Transform t in forest.transform) forestAll.Add(t);
+    }
+
+    /// <summary>Arbres effacés (route, rue, emprise) : sans souche, la place est nette. Une seule mise à jour du graphe.</summary>
+    private void ClearTrees(System.Func<Vector2, bool> inside, Bounds area)
+    {
+        EnsureForestList();
+        bool any = false;
+        foreach (var t in forestAll)
+        {
+            if (t == null || !t.gameObject.activeSelf || !inside(t.position)) continue;
+            trees.Remove(t);
+            reservedTrees.Remove(t);
+            if (trunks != null) trunks.SetTile(trunks.WorldToCell(t.position), null);
+            t.gameObject.SetActive(false);
+            any = true;
+        }
+        if (any) AstarPath.active?.UpdateGraphs(area, 0.2f);
+    }
+
+    private static Bounds BoundsOf(IList<Vector3Int> cells)
+    {
+        var b = new Bounds(new Vector3(cells[0].x + 0.5f, cells[0].y + 0.5f, 0f), Vector3.one);
+        foreach (var c in cells) b.Encapsulate(new Vector3(c.x + 0.5f, c.y + 0.5f, 0f));
+        b.Expand(new Vector3(3f, 3f, 0f));
+        return b;
+    }
+
+    /// <summary>Une route ou une rue apparaît : terre battue, arbres et cailloux dégagés de part et d'autre.</summary>
+    private void OpenRoad(IList<Vector3Int> cells, TileBase tile)
+    {
+        if (cells == null || cells.Count == 0) return;
+        var set = new HashSet<Vector3Int>(cells);
+        if (routes != null && tile != null)
+        {
+            var tiles = new TileBase[cells.Count];
+            for (int i = 0; i < tiles.Length; i++) tiles[i] = tile;
+            routes.SetTiles(new List<Vector3Int>(cells).ToArray(), tiles);
+        }
+        if (decor != null) foreach (var c in cells) if (decor.HasTile(c)) decor.SetTile(c, null);
+        ClearTrees(p =>
+        {
+            var c = Vector3Int.FloorToInt(p);
+            return set.Contains(c) || set.Contains(c + Vector3Int.left) || set.Contains(c + Vector3Int.right) || set.Contains(c + Vector3Int.up);
+        }, BoundsOf(cells));
+    }
+
+    /// <summary>Travaux des stades atteints : routes entre les quartiers, rues de la cité, forêt de la cité éclaircie, enceinte.</summary>
+    private void ApplyStageWorks()
+    {
+        if (Site == null || Outpost) return;
+        if (Site.roads != null)
+            for (int i = 0; i < Site.roads.Count; i++)
+            {
+                var rs = Site.roads[i];
+                if (rs.stage > stage || roadsDone.Contains(i)) continue;
+                roadsDone.Add(i);
+                OpenRoad(rs.cells, Site.streetDirt);
+            }
+        // le hameau gagne l'emplacement de la cité : on y trace les rues, la forêt s'éclaircit (quelques arbres restent dans les jardins)
+        if (stage >= 3 && !cityCleared && Site.cityRect.width > 0)
+        {
+            cityCleared = true;
+            var r = Site.cityRect;
+            var keepOut = new HashSet<Vector3Int>(Site.cityStreets);
+            foreach (var pl in Site.plots)
+                if (r.Overlaps(pl.rect))
+                    for (int x = pl.rect.x - 2; x < pl.rect.xMax + 2; x++)
+                        for (int y = pl.rect.y - 3; y < pl.rect.yMax + 1; y++) keepOut.Add(new Vector3Int(x, y, 0));
+            ClearTrees(p =>
+            {
+                var c = Vector3Int.FloorToInt(p);
+                if (!r.Contains(new Vector2Int(c.x, c.y))) return false;
+                if (keepOut.Contains(c) || keepOut.Contains(c + Vector3Int.left) || keepOut.Contains(c + Vector3Int.right)) return true;
+                uint h = (uint)(c.x * 73856093 ^ c.y * 19349663);
+                return (h % 100) >= 30;   // trois arbres sur dix restent : vergers et jardins
+            }, new Bounds(new Vector3(r.center.x, r.center.y, 0f), new Vector3(r.width + 4, r.height + 4, 1f)));
+        }
+        if (stage >= SettlementPlan.PalisadeStage && !wallsCleared && Site.cityWall != null && Site.cityWall.Count > 0)
+        {
+            wallsCleared = true;
+            var wall = new HashSet<Vector3Int>(Site.cityWall);
+            foreach (var g in Site.cityGates) wall.Add(g);
+            ClearTrees(p =>
+            {
+                var c = Vector3Int.FloorToInt(p);
+                for (int dx = -1; dx <= 1; dx++) for (int dy = -1; dy <= 2; dy++) if (wall.Contains(c + new Vector3Int(dx, dy, 0))) return true;
+                return false;
+            }, BoundsOf(Site.cityWall));
+        }
+    }
+
     public void RefreshCityLook()
     {
         if (Site == null) return;
+        ApplyStageWorks();
+        // passants : la ville vit (dès le hameau, plus nombreux à chaque stade ; la ville complète en mode Aventurier)
+        int folk = Outpost || stage < 3 ? 0 : CrawlerMode.Active ? 16 : 4 + 3 * (stage - 3);
+        if (root != null) TownFolk.Populate(this, folk, root);
         // enceinte : palissade au stade Village, remparts de pierre une fois fortifiée
         CityWalls.Apply(Site, Outpost ? CityWalls.Kind.None
             : stage >= SettlementPlan.FortifiedStage ? CityWalls.Kind.Stone
             : stage >= SettlementPlan.PalisadeStage ? CityWalls.Kind.Palisade : CityWalls.Kind.None);
-        if (routes == null || Site.cityStreets == null) return;
-        bool paved = stage >= SettlementPlan.FortifiedStage && !Outpost;
-        if (paved == streetsPaved) return;
-        var tile = paved ? Site.streetBrick : Site.streetDirt;
-        if (tile == null) return;
-        streetsPaved = paved;
-        var cells = Site.cityStreets.ToArray();
-        var tiles = new TileBase[cells.Length];
-        for (int i = 0; i < tiles.Length; i++) tiles[i] = tile;
-        routes.SetTiles(cells, tiles);
+        if (routes == null || Site.cityStreets == null || Site.cityStreets.Count == 0) return;
+        // rues de la cité : rien avant le hameau, terre battue ensuite, briques une fois fortifiée
+        int want = Outpost || stage < 3 ? 0 : stage >= SettlementPlan.FortifiedStage ? 2 : 1;
+        if (want == streetsState) return;
+        streetsState = want;
+        if (want == 0) return;
+        OpenRoad(Site.cityStreets, want == 2 ? Site.streetBrick : Site.streetDirt);
     }
 
     public void OnBuildingComplete(SettlementBuilding b)

@@ -107,6 +107,43 @@ def wall_front():
     return out
 
 
+def warm(img):
+    """Pierre bleutée des packs → grès chaud, accordé aux rues de briques et aux cours des bâtiments."""
+    img = img.convert('RGBA')
+    px = img.load()
+    ramp = [(40, 33, 30), (74, 62, 54), (118, 100, 84), (160, 140, 116), (200, 182, 152), (226, 212, 184)]
+    for y in range(img.height):
+        for x in range(img.width):
+            r, g, b, a = px[x, y]
+            if a == 0:
+                continue
+            l = (0.3 * r + 0.59 * g + 0.11 * b) / 255.0
+            l = min(1.0, max(0.0, (l - 0.12) / 0.62))
+            t = l * (len(ramp) - 1)
+            i = min(int(t), len(ramp) - 2)
+            f = t - i
+            c = tuple(int(ramp[i][k] * (1 - f) + ramp[i + 1][k] * f) for k in range(3))
+            px[x, y] = (c[0], c[1], c[2], a)
+    return img
+
+
+def tower_big():
+    """Tour octogonale de la prison (couche « Prison_tower »)."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location('ms', os.path.join(ROOT, 'Tools~', 'make_stamps.py'))
+    ms = importlib.util.module_from_spec(spec); spec.loader.exec_module(ms)
+    tw, th, tilesets, layers = ms.load_map(ms.pack(659586, 'Tiled_files', 'Exterior.tmx'))
+    cells = dict(next(c for n, c in layers if n == 'Prison_tower'))
+    xs = [x for x, y in cells]; ys = [y for x, y in cells]
+    img = Image.new('RGBA', ((max(xs) - min(xs) + 1) * tw, (max(ys) - min(ys) + 1) * th))
+    for (x, y), gid in cells.items():
+        ts, local, flags = ms.resolve(tilesets, gid)
+        if ts is None or ts.im is None:
+            continue
+        img.alpha_composite(ts.tile(local, flags), ((x - min(xs)) * tw, (y - min(ys)) * th))
+    return img.crop(img.getbbox())
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
     sheet = Image.open(SRC).convert('RGBA')
@@ -121,15 +158,19 @@ def main():
         'wall_v_cap': px(8, 0, 40, 32),
         'wall_v_face': px(8, 32, 40, 80),
         'wall_tower': px(8, 0, 40, 80),
+        'wall_tower_big': tower_big(),
         'palisade_h': palisade_h(),
         'palisade_v': palisade_v(),
     }
     for name, im in pieces.items():
+        if name.startswith('wall'):
+            im = warm(im)
+            pieces[name] = im
         im.save(os.path.join(OUT, name + '.png'))
-    prev = Image.new('RGBA', (sum(p.width for p in pieces.values()) + 8 * len(pieces), 80), (60, 90, 50, 255))
+    prev = Image.new('RGBA', (sum(p.width for p in pieces.values()) + 8 * len(pieces), 110), (60, 90, 50, 255))
     x = 0
     for p in pieces.values():
-        prev.alpha_composite(p, (x, 80 - p.height))
+        prev.alpha_composite(p, (x, 110 - p.height))
         x += p.width + 8
     os.makedirs(os.path.join(ROOT, 'Temp'), exist_ok=True)
     prev.resize((prev.width * 4, prev.height * 4), Image.NEAREST).save(os.path.join(ROOT, 'Temp', 'citywalls.png'))
