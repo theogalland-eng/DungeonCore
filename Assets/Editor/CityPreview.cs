@@ -28,6 +28,15 @@ public static class CityWorkshopBuilder
     [MenuItem("DungeonCore/Atelier de la cité/Régénérer l'élément sélectionné")]
     public static void RegenerateMenu() => Debug.Log(RegenerateSelected());
 
+    [MenuItem("DungeonCore/Atelier de la cité/Afficher le sol de l'île sous l'atelier")]
+    public static void GroundMenu()
+    {
+        var ws = CityWorkshop.Instance;
+        var site = Object.FindFirstObjectByType<SettlementSite>();
+        if (ws == null || site == null) { Debug.Log("pas d'atelier"); return; }
+        Debug.Log($"sol de référence : {CopyGround(ws, site)} tuiles (non enregistrées)");
+    }
+
     [MenuItem("DungeonCore/Atelier de la cité/Voir la cité")]
     public static void FrameCity() => Frame(CityWorkshop.Instance != null ? CityWorkshop.Instance.buildings : null);
 
@@ -185,13 +194,17 @@ public static class CityWorkshopBuilder
             area = new RectInt(x0, y0, x1 - x0, y1 - y0);
         }
         area = new RectInt(area.x - 6, area.y - 6, area.width + 12, area.height + 12);
-        var grid = ws.reference.gameObject.AddComponent<Grid>();
+        // jamais enregistré dans la scène (des dizaines de Mo) : recréé à la demande par le menu de l'atelier
+        for (int k = ws.reference.childCount - 1; k >= 0; k--) Object.DestroyImmediate(ws.reference.GetChild(k).gameObject);
+        var holder = new GameObject("Sol (non enregistré — menu « Afficher le sol de l'île sous l'atelier »)") { hideFlags = HideFlags.DontSave };
+        holder.transform.SetParent(ws.reference, false);
+        var grid = holder.AddComponent<Grid>();
         int n = 0;
         foreach (var src in Object.FindObjectsByType<Tilemap>(FindObjectsSortMode.None))
         {
             if (!src.name.StartsWith("T_") || src.name == "T_Neige" || src.transform.IsChildOf(ws.transform)) continue;   // pas la neige d'hiver
             var srcR = src.GetComponent<TilemapRenderer>();
-            var dst = new GameObject(src.name).AddComponent<Tilemap>();
+            var dst = new GameObject(src.name) { hideFlags = HideFlags.DontSave }.AddComponent<Tilemap>();
             dst.transform.SetParent(grid.transform, false);
             var r = dst.gameObject.AddComponent<TilemapRenderer>();
             if (srcR != null) { r.sortingOrder = srcR.sortingOrder; r.sharedMaterial = srcR.sharedMaterial; }
