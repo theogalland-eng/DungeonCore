@@ -289,6 +289,15 @@ MonoBehaviour:
   - name: palisade_v
     frames:
     - {fileID: 21300000, guid: 9e9af5ff79f748348a90f5f023657ff5, type: 3}
+  - name: pier_end
+    frames:
+    - {fileID: 21300000, guid: 1be6ff08e44b52f42aeaa5024b715c33, type: 3}
+  - name: pier_seg
+    frames:
+    - {fileID: 21300000, guid: 7d635e399966fff4797f4bf802012c9c, type: 3}
+  - name: pier_start
+    frames:
+    - {fileID: 21300000, guid: 3019a564fa6b59540b4ebfaa4feb5cc3, type: 3}
   - name: wall_h
     frames:
     - {fileID: 21300000, guid: f5a13a42a4b45da4bb376e0f4cb7f5a5, type: 3}
@@ -3094,6 +3103,326 @@ MonoBehaviour:
       y: 0
       width: 0.5
       height: 3
+  - id: int_forge
+    size: {x: 11.5, y: 10.5}
+    door: {x: 5.75, y: 2}
+    ground: {fileID: 21300000, guid: 3669cb720b85faa4e9027bb762f72fe3, type: 3}
+    pieces:
+    - frames:
+      - {fileID: -5987664226311690636, guid: 28bd3c6d0a876f142bb3764f12ad5a93, type: 3}
+      - {fileID: -8786927319024644965, guid: 28bd3c6d0a876f142bb3764f12ad5a93, type: 3}
+      - {fileID: 7639799788374738454, guid: 28bd3c6d0a876f142bb3764f12ad5a93, type: 3}
+      - {fileID: -8332068098858338054, guid: 28bd3c6d0a876f142bb3764f12ad5a93, type: 3}
+      - {fileID: -8293748016503380494, guid: 28bd3c6d0a876f142bb3764f12ad5a93, type: 3}
+      - {fileID: 7924390941638671622, guid: 28bd3c6d0a876f142bb3764f12ad5a93, type: 3}
+      pos: {x: 5.75, y: 5.5}
+      size: {x: 2.5, y: 4}
+      fps: 6.67
+      solid: 1
+      kind: building
+      names: Forge_animation.png Forge_pillars_boxes House_interior_objects.png
+      role: 
+      sortY: 0
+      openFrame: 0
+      cycle: 0
+    - frames:
+      - {fileID: -3109064007290169510, guid: 487061ae60cfcfc41b3ef332bd09ad36, type: 3}
+      - {fileID: -6966552067392070837, guid: 487061ae60cfcfc41b3ef332bd09ad36, type: 3}
+      - {fileID: 6662737258929113315, guid: 487061ae60cfcfc41b3ef332bd09ad36, type: 3}
+      - {fileID: 2638977013415255581, guid: 487061ae60cfcfc41b3ef332bd09ad36, type: 3}
+      pos: {x: 4.25, y: 4.5}
+      size: {x: 2.5, y: 4}
+      fps: 6.67
+      solid: 1
+      kind: building
+      names: Forge_pillars_boxes House_interior_objects.png Various_objects water_animation.png
+      role: 
+      sortY: 0
+      openFrame: 0
+      cycle: 0
+    - frames:
+      - {fileID: 21300000, guid: d16f352a522995643ba7f2a64ea9269b, type: 3}
+      pos: {x: 7.25, y: 6}
+      size: {x: 2.5, y: 2.5}
+      fps: 0
+      solid: 1
+      kind: building
+      names: Bellows_tannery_rack_table Forge_pillars_boxes House_interior_objects.png
+        Various_objects
+      role: 
+      sortY: 0
+      openFrame: 0
+      cycle: 0
+    - frames:
+      - {fileID: 1961542349827139084, guid: 843e2d9e810ae5348ba420aad9a7646d, type: 3}
+      - {fileID: 9158847732773934836, guid: 843e2d9e810ae5348ba420aad9a7646d, type: 3}
+      - {fileID: -4414060973165171752, guid: 843e2d9e810ae5348ba420aad9a7646d, type: 3}
+      - {fileID: 8876692381712373598, guid: 843e2d9e810ae5348ba420aad9a7646d, type: 3}
+      - {fileID: -8277455763472954278, guid: 843e2d9e810ae5348ba420aad9a7646d, type: 3}
+      - {fileID: -1153327885085092568, guid: 843e2d9e810ae5348ba420aad9a7646d, type: 3}
+      pos: {x: 1.75, y: 4.5}
+      size: {x: 1.5, y: 3.5}
+      fps: 6.67
+      solid: 1
+      kind: prop
+      names: Boxes_grindstone_barrel_rack Forge_pillars_boxes House_interior_objects.png
+        Torch_animation.png Torches_pillar_n_front
+      role: 
+      sortY: 0
+      openFrame: 0
+      cycle: 0
+    - frames:
+      - {fileID: 1064740916735576440, guid: cb02165252250814c943d2d869e46130, type: 3}
+      - {fileID: -7357450547719691668, guid: cb02165252250814c943d2d869e46130, type: 3}
+      - {fileID: 2012009182976286618, guid: cb02165252250814c943d2d869e46130, type: 3}
+      - {fileID: -406970961183104278, guid: cb02165252250814c943d2d869e46130, type: 3}
+      - {fileID: -6887252408635641032, guid: cb02165252250814c943d2d869e46130, type: 3}
+      - {fileID: 7124793486959590492, guid: cb02165252250814c943d2d869e46130, type: 3}
+      pos: {x: 9.75, y: 4.5}
+      size: {x: 1.5, y: 3.5}
+      fps: 6.67
+      solid: 1
+      kind: prop
+      names: Boxes_grindstone_barrel_rack Forge_pillars_boxes House_interior_objects.png
+        Torch_animation.png Torches_pillar_n_front
+      role: 
+      sortY: 0
+      openFrame: 0
+      cycle: 0
+    - frames:
+      - {fileID: 77836967080961983, guid: 94f0589989eed154d8c117819539e5e0, type: 3}
+      - {fileID: -8040654413519443530, guid: 94f0589989eed154d8c117819539e5e0, type: 3}
+      - {fileID: -715140157067901222, guid: 94f0589989eed154d8c117819539e5e0, type: 3}
+      - {fileID: -8132961842705667585, guid: 94f0589989eed154d8c117819539e5e0, type: 3}
+      - {fileID: -3804944732532528540, guid: 94f0589989eed154d8c117819539e5e0, type: 3}
+      - {fileID: 465197050469972714, guid: 94f0589989eed154d8c117819539e5e0, type: 3}
+      pos: {x: 2.25, y: 5.5}
+      size: {x: 2.5, y: 2}
+      fps: 6.67
+      solid: 1
+      kind: building
+      names: House_interior_objects.png Tables_shields_w_weapon Torch_animation.png
+        Torches_back Various_objects
+      role: 
+      sortY: 0
+      openFrame: 0
+      cycle: 0
+    - frames:
+      - {fileID: -7021665125215110158, guid: 17f9d61f0b2eb82449a14d6a9c29368c, type: 3}
+      - {fileID: 5378287999911214327, guid: 17f9d61f0b2eb82449a14d6a9c29368c, type: 3}
+      - {fileID: 4487968375877401521, guid: 17f9d61f0b2eb82449a14d6a9c29368c, type: 3}
+      - {fileID: 401768453820897135, guid: 17f9d61f0b2eb82449a14d6a9c29368c, type: 3}
+      - {fileID: -9071443631056249086, guid: 17f9d61f0b2eb82449a14d6a9c29368c, type: 3}
+      - {fileID: 8875712038334579379, guid: 17f9d61f0b2eb82449a14d6a9c29368c, type: 3}
+      pos: {x: 9.25, y: 5.5}
+      size: {x: 2.5, y: 2}
+      fps: 6.67
+      solid: 1
+      kind: building
+      names: House_interior_objects.png Tables_shields_w_weapon Torch_animation.png
+        Torches_back Various_objects
+      role: 
+      sortY: 0
+      openFrame: 0
+      cycle: 0
+    - frames:
+      - {fileID: 21300000, guid: d76f25c25e12bfc45a01c3a658c661a2, type: 3}
+      pos: {x: 8.25, y: 5}
+      size: {x: 1.5, y: 1}
+      fps: 0
+      solid: 1
+      kind: prop
+      names: Boxes_grindstone_barrel_rack House_interior_objects.png
+      role: 
+      sortY: 0
+      openFrame: 0
+      cycle: 0
+    - frames:
+      - {fileID: 2612780627859450790, guid: c96b713eaee6b214fbd2aab3e7865544, type: 3}
+      - {fileID: -4214558773482846617, guid: c96b713eaee6b214fbd2aab3e7865544, type: 3}
+      - {fileID: 6518643244960283345, guid: c96b713eaee6b214fbd2aab3e7865544, type: 3}
+      - {fileID: -5415507208416831950, guid: c96b713eaee6b214fbd2aab3e7865544, type: 3}
+      - {fileID: -1150929182174378851, guid: c96b713eaee6b214fbd2aab3e7865544, type: 3}
+      - {fileID: -1839751755108867370, guid: c96b713eaee6b214fbd2aab3e7865544, type: 3}
+      pos: {x: 5.75, y: 4}
+      size: {x: 1.5, y: 2}
+      fps: 6.67
+      solid: 1
+      kind: prop
+      names: Anvil.png Smith_anvil Smith_forge_full.png
+      role: 
+      sortY: 0
+      openFrame: 0
+      cycle: 0
+    - frames:
+      - {fileID: 21300000, guid: fba2f1cd8bb538944ac82602b6a2b98b, type: 3}
+      pos: {x: 7.75, y: 2.5}
+      size: {x: 2.5, y: 3}
+      fps: 0
+      solid: 1
+      kind: building
+      names: Boxes_grindstone_barrel_rack House_interior_objects.png Tables_shields_w_weapon
+      role: 
+      sortY: 0
+      openFrame: 0
+      cycle: 0
+    - frames:
+      - {fileID: 21300000, guid: b010b1c4381e89247bada28b4882cad9, type: 3}
+      pos: {x: 2, y: 3.5}
+      size: {x: 2, y: 2}
+      fps: 0
+      solid: 1
+      kind: building
+      names: Bellows_tannery_rack_table House_interior_objects.png
+      role: 
+      sortY: 0
+      openFrame: 0
+      cycle: 0
+    - frames:
+      - {fileID: 21300000, guid: f133436bf9598a440b8b2f82e025d307, type: 3}
+      pos: {x: 9.75, y: 4}
+      size: {x: 1.5, y: 1.5}
+      fps: 0
+      solid: 1
+      kind: prop
+      names: Bellows_tannery_rack_table House_interior_objects.png
+      role: 
+      sortY: 0
+      openFrame: 0
+      cycle: 0
+    - frames:
+      - {fileID: 21300000, guid: 026477ef22bf25b4e8beac194dca2b00, type: 3}
+      pos: {x: 4.75, y: 2}
+      size: {x: 1.5, y: 2}
+      fps: 0
+      solid: 1
+      kind: prop
+      names: House_interior_objects.png Various_objects
+      role: 
+      sortY: 0
+      openFrame: 0
+      cycle: 0
+    - frames:
+      - {fileID: 21300000, guid: 24097d32be343d649a51df7f0f574f69, type: 3}
+      pos: {x: 6.25, y: 2.5}
+      size: {x: 1.5, y: 1.5}
+      fps: 0
+      solid: 1
+      kind: prop
+      names: Bellows_tannery_rack_table House_interior_objects.png Various_objects
+      role: 
+      sortY: 0
+      openFrame: 0
+      cycle: 0
+    - frames:
+      - {fileID: 21300000, guid: 1dba7bdc1176ec54a93d48f023550076, type: 3}
+      pos: {x: 9.5, y: 2.5}
+      size: {x: 2, y: 1.5}
+      fps: 0
+      solid: 1
+      kind: prop
+      names: House_interior_objects.png Various_objects
+      role: 
+      sortY: 0
+      openFrame: 0
+      cycle: 0
+    - frames:
+      - {fileID: 21300000, guid: 277fffb63abbf4549aeb20ff1600d436, type: 3}
+      pos: {x: 1.5, y: 2.5}
+      size: {x: 1, y: 1.5}
+      fps: 0
+      solid: 1
+      kind: prop
+      names: House_interior_objects.png Tables_shields_w_weapon
+      role: 
+      sortY: 0
+      openFrame: 0
+      cycle: 0
+    - frames:
+      - {fileID: 21300000, guid: 36d483476ac26a242a0df8fe7ef62e9c, type: 3}
+      pos: {x: 3.75, y: 2}
+      size: {x: 1.5, y: 1.5}
+      fps: 0
+      solid: 1
+      kind: prop
+      names: Forge_pillars_boxes House_interior_objects.png
+      role: 
+      sortY: 0
+      openFrame: 0
+      cycle: 0
+    - frames:
+      - {fileID: 3624360729985423905, guid: 5a704ad2c8ee2984ea841941cc64732b, type: 3}
+      - {fileID: -7069912933880992034, guid: 5a704ad2c8ee2984ea841941cc64732b, type: 3}
+      - {fileID: 6949782702020789585, guid: 5a704ad2c8ee2984ea841941cc64732b, type: 3}
+      - {fileID: -2586116724111660426, guid: 5a704ad2c8ee2984ea841941cc64732b, type: 3}
+      - {fileID: 8067333212439285917, guid: 5a704ad2c8ee2984ea841941cc64732b, type: 3}
+      - {fileID: -1517966060883257565, guid: 5a704ad2c8ee2984ea841941cc64732b, type: 3}
+      pos: {x: 3.25, y: 2}
+      size: {x: 1.5, y: 1.5}
+      fps: 6.67
+      solid: 1
+      kind: prop
+      names: Torch_animation.png Torches_pillar_n_front
+      role: 
+      sortY: 0
+      openFrame: 0
+      cycle: 0
+    solids:
+    - serializedVersion: 2
+      x: 0
+      y: 7
+      width: 11.5
+      height: 3.5
+    - serializedVersion: 2
+      x: 0
+      y: 0
+      width: 11.5
+      height: 0.5
+    - serializedVersion: 2
+      x: 0
+      y: 6
+      width: 3.5
+      height: 1
+    - serializedVersion: 2
+      x: 8
+      y: 6
+      width: 3.5
+      height: 1
+    - serializedVersion: 2
+      x: 0
+      y: 5.5
+      width: 2
+      height: 0.5
+    - serializedVersion: 2
+      x: 10
+      y: 3
+      width: 1.5
+      height: 3
+    - serializedVersion: 2
+      x: 0
+      y: 3
+      width: 1.5
+      height: 2.5
+    - serializedVersion: 2
+      x: 0
+      y: 2
+      width: 0.5
+      height: 1
+    - serializedVersion: 2
+      x: 10.5
+      y: 2
+      width: 1
+      height: 1
+    - serializedVersion: 2
+      x: 0
+      y: 0.5
+      width: 4.5
+      height: 1.5
+    - serializedVersion: 2
+      x: 7
+      y: 0.5
+      width: 4.5
+      height: 1.5
   - id: int_guild
     size: {x: 10.5, y: 7}
     door: {x: 5.25, y: 0.5}
@@ -3870,6 +4199,124 @@ MonoBehaviour:
       y: 0
       width: 4
       height: 0.5
+  - id: int_magetower
+    size: {x: 7, y: 7}
+    door: {x: 3.25, y: 1.5}
+    ground: {fileID: 21300000, guid: 13736ca882809bb499d1ec737c24208b, type: 3}
+    pieces:
+    - frames:
+      - {fileID: -2730372683925606580, guid: 8d8b18a65de24b142810039f0f19d6b5, type: 3}
+      - {fileID: 2209252519781679361, guid: 8d8b18a65de24b142810039f0f19d6b5, type: 3}
+      - {fileID: -402699952831292916, guid: 8d8b18a65de24b142810039f0f19d6b5, type: 3}
+      - {fileID: -5112726655443904917, guid: 8d8b18a65de24b142810039f0f19d6b5, type: 3}
+      - {fileID: 3565001904565780889, guid: 8d8b18a65de24b142810039f0f19d6b5, type: 3}
+      - {fileID: -5023327187253250626, guid: 8d8b18a65de24b142810039f0f19d6b5, type: 3}
+      - {fileID: 5108719842815030821, guid: 8d8b18a65de24b142810039f0f19d6b5, type: 3}
+      - {fileID: -375795024859224149, guid: 8d8b18a65de24b142810039f0f19d6b5, type: 3}
+      - {fileID: 3479970763541250905, guid: 8d8b18a65de24b142810039f0f19d6b5, type: 3}
+      - {fileID: 1096737490234995606, guid: 8d8b18a65de24b142810039f0f19d6b5, type: 3}
+      - {fileID: 1841868961479046210, guid: 8d8b18a65de24b142810039f0f19d6b5, type: 3}
+      - {fileID: -1930011344199342564, guid: 8d8b18a65de24b142810039f0f19d6b5, type: 3}
+      - {fileID: -5053145628609869101, guid: 8d8b18a65de24b142810039f0f19d6b5, type: 3}
+      - {fileID: 3690631270988177716, guid: 8d8b18a65de24b142810039f0f19d6b5, type: 3}
+      - {fileID: 6632787314870201660, guid: 8d8b18a65de24b142810039f0f19d6b5, type: 3}
+      - {fileID: -3291073335108302563, guid: 8d8b18a65de24b142810039f0f19d6b5, type: 3}
+      - {fileID: 6310950253878070002, guid: 8d8b18a65de24b142810039f0f19d6b5, type: 3}
+      - {fileID: 3467735030413016683, guid: 8d8b18a65de24b142810039f0f19d6b5, type: 3}
+      - {fileID: -536646518051898009, guid: 8d8b18a65de24b142810039f0f19d6b5, type: 3}
+      - {fileID: -2088010019460463124, guid: 8d8b18a65de24b142810039f0f19d6b5, type: 3}
+      - {fileID: 5535841696821338419, guid: 8d8b18a65de24b142810039f0f19d6b5, type: 3}
+      - {fileID: 8620330214051717937, guid: 8d8b18a65de24b142810039f0f19d6b5, type: 3}
+      - {fileID: 6489087865027378532, guid: 8d8b18a65de24b142810039f0f19d6b5, type: 3}
+      - {fileID: -2492817208008204323, guid: 8d8b18a65de24b142810039f0f19d6b5, type: 3}
+      pos: {x: 3.5, y: 4}
+      size: {x: 1, y: 1.5}
+      fps: 6.67
+      solid: 1
+      kind: prop
+      names: Mage Mage1_fit2.png
+      role: 
+      sortY: 0
+      openFrame: 0
+      cycle: 0
+    - frames:
+      - {fileID: 6944465471570965791, guid: c0affae0f365b9b47ba9a4f7d01dcfa1, type: 3}
+      - {fileID: 4783920503196621009, guid: c0affae0f365b9b47ba9a4f7d01dcfa1, type: 3}
+      - {fileID: 4830563158735692631, guid: c0affae0f365b9b47ba9a4f7d01dcfa1, type: 3}
+      - {fileID: 42365766144404453, guid: c0affae0f365b9b47ba9a4f7d01dcfa1, type: 3}
+      - {fileID: -7468967352593571169, guid: c0affae0f365b9b47ba9a4f7d01dcfa1, type: 3}
+      - {fileID: 2041351044567508563, guid: c0affae0f365b9b47ba9a4f7d01dcfa1, type: 3}
+      - {fileID: 4704636157289599511, guid: c0affae0f365b9b47ba9a4f7d01dcfa1, type: 3}
+      - {fileID: -6256489020941577215, guid: c0affae0f365b9b47ba9a4f7d01dcfa1, type: 3}
+      - {fileID: 6522140642581528150, guid: c0affae0f365b9b47ba9a4f7d01dcfa1, type: 3}
+      - {fileID: -6776823092353637900, guid: c0affae0f365b9b47ba9a4f7d01dcfa1, type: 3}
+      - {fileID: -8299718771292898764, guid: c0affae0f365b9b47ba9a4f7d01dcfa1, type: 3}
+      - {fileID: 8389892589895984822, guid: c0affae0f365b9b47ba9a4f7d01dcfa1, type: 3}
+      - {fileID: -8774410900569214758, guid: c0affae0f365b9b47ba9a4f7d01dcfa1, type: 3}
+      - {fileID: 7951421127031782172, guid: c0affae0f365b9b47ba9a4f7d01dcfa1, type: 3}
+      - {fileID: -8597018333888515911, guid: c0affae0f365b9b47ba9a4f7d01dcfa1, type: 3}
+      - {fileID: 798472224311926754, guid: c0affae0f365b9b47ba9a4f7d01dcfa1, type: 3}
+      pos: {x: 3.5, y: 1}
+      size: {x: 4, y: 3.5}
+      fps: 6.67
+      solid: 1
+      kind: building
+      names: Demon Demon.png Pupils Pupils_together_floor1.png
+      role: 
+      sortY: 0
+      openFrame: 0
+      cycle: 0
+    solids:
+    - serializedVersion: 2
+      x: 0
+      y: 4.5
+      width: 7
+      height: 2.5
+    - serializedVersion: 2
+      x: 0
+      y: 4
+      width: 3
+      height: 0.5
+    - serializedVersion: 2
+      x: 4
+      y: 4
+      width: 3
+      height: 0.5
+    - serializedVersion: 2
+      x: 0
+      y: 3.5
+      width: 2
+      height: 0.5
+    - serializedVersion: 2
+      x: 0
+      y: 0
+      width: 2
+      height: 2
+    - serializedVersion: 2
+      x: 5
+      y: 3.5
+      width: 2
+      height: 0.5
+    - serializedVersion: 2
+      x: 5
+      y: 1.5
+      width: 2
+      height: 0.5
+    - serializedVersion: 2
+      x: 0
+      y: 2
+      width: 1.5
+      height: 1.5
+    - serializedVersion: 2
+      x: 5.5
+      y: 2
+      width: 1.5
+      height: 1.5
+    - serializedVersion: 2
+      x: 4.5
+      y: 0
+      width: 2.5
+      height: 1.5
   - id: int_manor
     size: {x: 15, y: 10}
     door: {x: 7.25, y: 1.5}

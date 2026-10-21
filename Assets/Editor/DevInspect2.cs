@@ -1912,23 +1912,24 @@ public static class DevInspect3
         return Prompt();
     }
     public static string RentRoom() { CrawlerMode.Instance.roomRented = true; return "chambre louée"; }
-    public static string PreviewMoveTest()
+    public static string ForestInCity()
     {
-        CityPreview.Show();
-        var root = GameObject.Find("[Aperçu] Cité finale (non enregistré)");
-        Transform t = null;
-        foreach (Transform c in root.transform) if (c.name.StartsWith("plot:stall_bread ")) t = c;
-        if (t == null) return "pas trouvé";
+        var f = GameObject.Find("Forêt");
         var site = Object.FindFirstObjectByType<SettlementSite>();
-        var before = site.plots.Find(p => p.buildingId == "stall_bread").rect;
-        t.position += new Vector3(2f, 0f, 0f);
-        string r = CityPreview.SaveMoves();
-        var after = site.plots.Find(p => p.buildingId == "stall_bread").rect;
-        site.plots.Find(p => p.buildingId == "stall_bread").rect = before;   // test : on remet en place
-        System.IO.File.Delete(CityPreview.OverridesPath);
-        UnityEditor.AssetDatabase.Refresh();
-        CityPreview.Clear();
-        return $"{r} | avant {before.position} après {after.position} (remis en place)";
+        if (f == null) return "pas de Forêt";
+        int n = 0, all = f.transform.childCount, deep = f.GetComponentsInChildren<Transform>().Length;
+        foreach (Transform t in f.transform) if (site.cityRect.Contains(Vector2Int.FloorToInt(t.position))) n++;
+        return $"forêt enfants={all} profondeur={deep} dans la cité={n} cityRect={site.cityRect} ex={(all > 0 ? f.transform.GetChild(0).name + "@" + f.transform.GetChild(0).position : "")}";
+    }
+    public static string AtelierCityShot() => DevInspect.Shot(321f, -86f, 26f, 2400, 1500, "atelier_city");
+    public static string AtelierInteriorsShot() => DevInspect.Shot(520f, -58f, 34f, 2400, 1500, "atelier_rooms");
+    public static string PierShot() => DevInspect.Shot(-36f, -75f, 7f, 1600, 1000, "pier");
+    public static string CopiesInfo()
+    {
+        var b = SettlementManager.Instance.Buildings;
+        int copies = 0; foreach (var x in b) if (x != null && x.GetComponentInChildren<CityTemplate>() != null) copies++;
+        var ws = CityWorkshop.Instance;
+        return $"bâtiments={b.Count} copiés de l'atelier={copies} atelier={(ws != null)} rues={SettlementManager.Instance.Site.cityStreets.Count} décor={(GameObject.Find("Décor de la cité") != null)} remparts={(GameObject.Find("Enceinte — remparts (cité fortifiée)(Clone)") != null || GameObject.Find("Remparts") != null)}";
     }
 }
 #endif

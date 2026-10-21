@@ -2,9 +2,24 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
+/// Animation d'un morceau de tampon, enregistrée dans la scène (les morceaux peuvent être déplacés, copiés, ajoutés
+/// à la main dans l'atelier de la cité) : images, cadence, et rôle pour les animations sur événement.
+/// </summary>
+public class StampPart : MonoBehaviour
+{
+    public Sprite[] frames;
+    public float fps = 7f;
+    /// <summary>« door » (quelqu'un passe), « shutter » (volets : ouverts le jour), « gate » (herse) ; vide = en boucle.</summary>
+    public string role;
+    public int openFrame;
+    public bool cycle;
+}
+
+/// <summary>
 /// Pose un tampon de la cité (SettlementArt.Stamp) : le sol à plat sous les personnages, chaque morceau trié à ses
 /// pieds (le héros passe devant ou derrière), les morceaux animés (drapeaux, fumée, fontaine, habitants) animés
-/// ensemble, et des collisions au pied des bâtiments, clôtures, arbres et gros objets.
+/// ensemble, portes et volets joués sur événement, et des collisions au pied des bâtiments, clôtures, arbres et gros
+/// objets. Tout est porté par des objets de la scène : un tampon copié ou retouché dans l'atelier reste vivant.
 /// </summary>
 public class StampVisual : MonoBehaviour
 {
@@ -22,7 +37,6 @@ public class StampVisual : MonoBehaviour
         public int open;
         public bool cycle;
         public float fps;
-        public Vector2 at;          // seuil (monde)
         public float frame;         // image courante (fractionnaire)
         public int target;          // image visée
         public float lastSeen = -99f;
@@ -30,8 +44,7 @@ public class StampVisual : MonoBehaviour
     }
     private readonly List<Trigger> triggers = new List<Trigger>();
     private float nextScan;
-    private readonly List<SpriteRenderer> renderers = new List<SpriteRenderer>();
-    private readonly List<Collider2D> colliders = new List<Collider2D>();
+    private bool collected;
     public SettlementArt.Stamp Stamp { get; private set; }
 
     /// <summary>Crée le tampon, coin bas-gauche en <paramref name="bottomLeft"/>.</summary>
@@ -55,7 +68,6 @@ public class StampVisual : MonoBehaviour
             var sr = g.AddComponent<SpriteRenderer>();
             sr.sprite = Stamp.ground;
             sr.sortingOrder = GroundOrder;
-            renderers.Add(sr);
         }
         int i = 0;
         foreach (var p in Stamp.pieces)
@@ -68,34 +80,31 @@ public class StampVisual : MonoBehaviour
             sr.sprite = p.frames[0];
             sr.sortingOrder = 3;
             sr.spriteSortPoint = SpriteSortPoint.Pivot;
-            renderers.Add(sr);
-            if (p.frames.Length > 1 && !string.IsNullOrEmpty(p.role))
+            if (p.frames.Length > 1)
             {
-                // trié comme le bâtiment qui le porte (juste devant sa façade)
-                float key = Mathf.Min(p.sortY, p.pos.y);
-                go.transform.localPosition = new Vector3(p.pos.x, p.pos.y, key - p.pos.y - 0.02f);
-                var t = new Trigger
-                {
-                    sr = sr, frames = p.frames, role = p.role, cycle = p.cycle, fps = Mathf.Max(6f, p.fps),
-                    open = Mathf.Clamp(p.openFrame, 0, p.frames.Length - 1),
-                    at = (Vector2)transform.position + p.pos,
-                };
-                if (t.role == "shutter" && !IsNight()) { t.frame = t.target = t.open; sr.sprite = p.frames[t.open]; }
-                triggers.Add(t);
+                var part = go.AddComponent<StampPart>();
+                part.frames = p.frames;
+                part.fps = p.fps > 0f ? p.fps : 7f;
+                part.role = p.role;
+                part.openFrame = Mathf.Clamp(p.openFrame, 0, p.frames.Length - 1);
+                part.cycle = p.cycle;
+                // porte ou volet : trié comme le bâtiment qui le porte (juste devant sa façade)
+                if (!string.IsNullOrEmpty(p.role))
+                    go.transform.localPosition = new Vector3(p.pos.x, p.pos.y, Mathf.Min(p.sortY, p.pos.y) - p.pos.y - 0.02f);
             }
-            else if (p.frames.Length > 1) animated.Add((sr, p.frames, p.fps > 0f ? p.fps : 7f, Random.value * 10f));
-            if (withColliders && p.solid) AddCollider(go, p);
+            if (withColliders && p.solid) AddCollider(go, p.kind, p.size);
         }
-        if (animated.Count == 0 && triggers.Count == 0) enabled = false;
+        collected = false;
     }
 
-    private void AddCollider(GameObject go, SettlementArt.StampPiece p)
+    /// <summary>Collision au pied d'un morceau (bâtiment, clôture, arbre, objet).</summary>
+    public static BoxCollider2D AddCollider(GameObject go, string kind, Vector2 sizeUnits)
     {
         var col = go.AddComponent<BoxCollider2D>();
         go.layer = ObstacleLayer;
-        float w = p.size.x, h = p.size.y;
+        float w = sizeUnits.x, h = sizeUnits.y;
         Vector2 size;
-        switch (p.kind)
+        switch (kind)
         {
             case "building": size = new Vector2(w * 0.9f, Mathf.Max(0.5f, h * 0.42f)); break;
             case "fence": size = new Vector2(w, 0.22f); break;
@@ -103,26 +112,66 @@ public class StampVisual : MonoBehaviour
             default: size = new Vector2(w * 0.8f, Mathf.Clamp(h * 0.35f, 0.2f, 0.7f)); break;
         }
         col.size = size;
-        col.offset = new Vector2(0f, size.y * 0.5f + (p.kind == "fence" ? 0.02f : 0.04f));
-        colliders.Add(col);
+        col.offset = new Vector2(0f, size.y * 0.5f + (kind == "fence" ? 0.02f : 0.04f));
+        return col;
+    }
+
+    /// <summary>Recense les morceaux animés (après chargement de la scène, copie ou retouche dans l'atelier).</summary>
+    private void Collect()
+    {
+        collected = true;
+        animated.Clear();
+        triggers.Clear();
+        bool night = IsNight();
+        foreach (var part in GetComponentsInChildren<StampPart>(true))
+        {
+            var sr = part.GetComponent<SpriteRenderer>();
+            if (sr == null || part.frames == null || part.frames.Length < 2) continue;
+            if (!string.IsNullOrEmpty(part.role))
+            {
+                var t = new Trigger
+                {
+                    sr = sr, frames = part.frames, role = part.role, cycle = part.cycle, fps = Mathf.Max(6f, part.fps),
+                    open = Mathf.Clamp(part.openFrame, 0, part.frames.Length - 1),
+                };
+                t.frame = t.target = 0;
+                if (t.role == "shutter" && !night) { t.frame = t.target = t.open; }
+                sr.sprite = part.frames[(int)t.frame];
+                triggers.Add(t);
+            }
+            else animated.Add((sr, part.frames, part.fps > 0f ? part.fps : 7f, Random.value * 10f));
+        }
     }
 
     /// <summary>Chantier : silhouette translucide ; achevé : opaque.</summary>
     public void SetAlpha(float a)
     {
-        foreach (var sr in renderers) if (sr != null) sr.color = new Color(1f, 1f, 1f, a);
+        foreach (var sr in GetComponentsInChildren<SpriteRenderer>(true)) if (sr != null) sr.color = new Color(1f, 1f, 1f, a);
     }
 
     public void SetColliders(bool on)
     {
-        foreach (var c in colliders) if (c != null) c.enabled = on;
+        foreach (var c in GetComponentsInChildren<Collider2D>(true)) if (c != null) c.enabled = on;
     }
 
-    /// <summary>Le tampon contient-il ce point (monde) dans un de ses morceaux ou son sol ?</summary>
+    /// <summary>Le tampon contient-il ce point (monde) ?</summary>
     public bool Contains(Vector2 world)
     {
-        var b = new Bounds(transform.position + (Vector3)(Stamp.size * 0.5f), Stamp.size);
+        var b = Bounds();
         return b.Contains(new Vector3(world.x, world.y, b.center.z));
+    }
+
+    /// <summary>Emprise visible (tous les dessins).</summary>
+    public Bounds Bounds()
+    {
+        bool any = false;
+        var b = new Bounds(transform.position, Vector3.zero);
+        foreach (var sr in GetComponentsInChildren<SpriteRenderer>())
+        {
+            if (sr.sprite == null) continue;
+            if (!any) { b = sr.bounds; any = true; } else b.Encapsulate(sr.bounds);
+        }
+        return b;
     }
 
     private static bool IsNight() => GameManager.Instance != null && GameManager.Instance.IsNight;
@@ -158,7 +207,7 @@ public class StampVisual : MonoBehaviour
             else if (scan)
             {
                 float radius = t.role == "gate" ? 2.2f : 1.5f;
-                if (SomeoneNear(t.at, radius)) t.lastSeen = Time.time;
+                if (SomeoneNear(t.sr.transform.position, radius)) t.lastSeen = Time.time;
                 bool keepOpen = Time.time - t.lastSeen < (t.role == "gate" ? 2.5f : 1.2f);
                 int want = keepOpen ? t.open : 0;
                 if (want != t.target) { t.target = want; t.closingForward = t.cycle && want == 0; }
@@ -180,6 +229,7 @@ public class StampVisual : MonoBehaviour
 
     private void Update()
     {
+        if (!collected) Collect();
         UpdateTriggers();
         float t = Time.time;
         for (int i = 0; i < animated.Count; i++)

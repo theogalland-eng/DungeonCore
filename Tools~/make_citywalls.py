@@ -144,6 +144,31 @@ def tower_big():
     return img.crop(img.getbbox())
 
 
+def pier_kit():
+    """Ponton du village de pêcheurs (pack 885927) : bras est-ouest du quai, planches et pilotis.
+    pier_seg : un tronçon d'une case (deux tuiles) ; pier_end : le bout du ponton. 32 x 96 : pilotis arrière (16 px),
+    planches (64 px = deux cases de large), pilotis avant et pieds dans l'eau (16 px)."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location('ms', os.path.join(ROOT, 'Tools~', 'make_stamps.py'))
+    ms = importlib.util.module_from_spec(spec); spec.loader.exec_module(ms)
+    tw, th, tilesets, layers = ms.load_map(ms.pack(885927, 'Tiled_foles', 'Fishing_dock.tmx'))
+    L = dict(layers)
+    order = ['piles_bottom', 'floor', 'Piles_top_back', 'piles_top_front', 'ropes']
+
+    def render(xa, xb, y0=0, y1=5):
+        img = Image.new('RGBA', ((xb - xa + 1) * tw, (y1 - y0 + 1) * th))
+        for name in order:
+            for (x, y), gid in L.get(name, {}).items():
+                if xa <= x <= xb and y0 <= y <= y1:
+                    ts, local, flags = ms.resolve(tilesets, gid)
+                    if ts is None or ts.im is None:
+                        continue
+                    img.alpha_composite(ts.tile(local, flags), ((x - xa) * tw, (y - y0) * th))
+        return img
+    # bras est : planches en x 15..22 (tuiles), rangées 1..4 ; pilotis tous les deux tuiles (x impairs : 16, 18, 20, 22)
+    return {'pier_seg': render(17, 18), 'pier_end': render(21, 22), 'pier_start': render(15, 16)}
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
     sheet = Image.open(SRC).convert('RGBA')
@@ -159,6 +184,7 @@ def main():
         'wall_v_face': px(8, 32, 40, 80),
         'wall_tower': px(8, 0, 40, 80),
         'wall_tower_big': tower_big(),
+        **pier_kit(),
         'palisade_h': palisade_h(),
         'palisade_v': palisade_v(),
     }

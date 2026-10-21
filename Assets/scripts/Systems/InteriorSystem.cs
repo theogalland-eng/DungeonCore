@@ -136,7 +136,7 @@ public class InteriorSystem : MonoBehaviour
         S(g, "guild_talkers", "Écouter les aventuriers", 2.3f, -2.4f);
 
         // Forge : fourneau, enclume, trempe
-        var f = L("house_3", "La Forge", "floor_stone", "wall_smith", 11f, 6.5f);
+        var f = L("house_3_old", "La Forge", "floor_stone", "wall_smith", 11f, 6.5f);
         f.light = new Color(1f, 0.62f, 0.35f);
         N(f, "fx_forge", -3.6f, 1.2f, 9f);
         P(f, "smt_anvil", -1.2f, 0.2f); P(f, "smt_quench", 1.2f, 0.6f); P(f, "smt_rack", 3.6f, 1.9f); P(f, "smt_hide", 1.6f, 1.9f);
@@ -147,7 +147,7 @@ public class InteriorSystem : MonoBehaviour
         S(f, "forge_smith", "Parler à la forgeronne", -0.2f, 0.25f); S(f, "forge_rack", "Râtelier d'armes", 3.6f, 1.35f);
 
         // Tour des mages : bibliothèques, cercle, cristaux
-        var m = L("tent_magic", "La Tour des Mages", "floor_stone", "wall_mage", 10f, 7f);
+        var m = L("tent_magic_old", "La Tour des Mages", "floor_stone", "wall_mage", 10f, 7f);
         m.light = new Color(0.65f, 0.7f, 1f);
         P(m, "mag_circle", 0f, -0.6f, 1); P(m, "mag_rug", 0f, -2.4f, 1);
         P(m, "mag_bookshelves", -2.2f, 2.0f); P(m, "mag_bookshelf", 2.6f, 2.0f); P(m, "mag_shelf", 4.3f, 1.9f);
@@ -189,6 +189,14 @@ public class InteriorSystem : MonoBehaviour
         guiUp.light = new Color(0.8f, 0.75f, 1f);
         guiUp.stampSpots.Add(("guild_mages", "Écouter les mages", "Mage3", new Vector2(0.75f, 0.4f)));
         guiUp.stampSpots.Add(("floor:house_4", "Redescendre", null, new Vector2(0.2f, 0.22f)));
+        var frg = ST("house_3", "La Forge", "int_forge");
+        frg.light = new Color(1f, 0.7f, 0.45f);
+        frg.stampSpots.Add(("forge_smith", "Parler à la forgeronne", "Smith_anvil", new Vector2(0.5f, 0.45f)));
+        frg.stampSpots.Add(("forge_rack", "Râtelier d'armes", "Tables_shields_w_weapon", new Vector2(0.75f, 0.3f)));
+        var mag = ST("tent_magic", "La Tour des Mages", "int_magetower");
+        mag.light = new Color(0.7f, 0.75f, 1f);
+        mag.stampSpots.Add(("mage_seller", "Parler à l'apothicaire", "Mage1_fit2", new Vector2(0.5f, 0.7f)));
+        mag.stampSpots.Add(("mage_orb", "Consulter le cercle de scrutation", null, new Vector2(0.5f, 0.45f)));
         var cha = ST("chapel", "La Chapelle", "int_chapel");
         cha.light = new Color(1f, 0.92f, 0.8f);
         cha.stampSpots.Add(("chapel_priest", "Parler au prêtre", "Priest", new Vector2(0.5f, 0.75f)));
@@ -319,7 +327,7 @@ public class InteriorSystem : MonoBehaviour
         current = layout;
         Physical = true;
         Vector3 o = root.transform.position;
-        RoomRect = new Rect(o.x - layout.w / 2f, o.y - layout.h / 2f, layout.w, layout.h + 1.5f);
+        RoomRect = RoomOf(root, layout, o);
         DoorInside = o + (float.IsNaN(layout.doorLocal.x) ? new Vector3(0f, -layout.h / 2f + 0.55f, 0f) : new Vector3(layout.doorLocal.x, layout.doorLocal.y + 1.2f, 0f));
         Place(DoorInside);
         var cam = Camera.main;
@@ -347,7 +355,7 @@ public class InteriorSystem : MonoBehaviour
         root.SetActive(true);
         current = layout;
         Vector3 o = root.transform.position;
-        RoomRect = new Rect(o.x - layout.w / 2f, o.y - layout.h / 2f, layout.w, layout.h + 1.5f);
+        RoomRect = RoomOf(root, layout, o);
         DoorInside = o + (float.IsNaN(layout.doorLocal.x) ? new Vector3(0f, -layout.h / 2f + 0.55f, 0f) : new Vector3(layout.doorLocal.x, layout.doorLocal.y + 1.2f, 0f));
         // arrivée : l'escalier qui ramène à l'étage d'où l'on vient
         Vector3 at = DoorInside;
@@ -359,6 +367,14 @@ public class InteriorSystem : MonoBehaviour
         yield return FadeTo(0f, 0.25f);
         moving = false;
         OnEntered?.Invoke(layout.id);
+    }
+
+    /// <summary>Cadre de la pièce (la caméra y reste) : le sol de la pièce s'il existe.</summary>
+    private static Rect RoomOf(GameObject root, Layout layout, Vector3 o)
+    {
+        foreach (var sr in root.GetComponentsInChildren<SpriteRenderer>())
+            if (sr.name == "Sol") { var b = sr.bounds; return new Rect(b.min.x, b.min.y, b.size.x, b.size.y + 1.5f); }
+        return new Rect(o.x - layout.w / 2f, o.y - layout.h / 2f, layout.w, layout.h + 1.5f);
     }
 
     private void Place(Vector3 at)
@@ -460,6 +476,8 @@ public class InteriorSystem : MonoBehaviour
         root.transform.position = new Vector3(600f + k * 40f, 600f, 0f);
         Vector3 o = root.transform.position;
         var stamp = string.IsNullOrEmpty(l.stamp) ? null : SettlementArt.Get()?.GetStamp(l.stamp);
+        var model = CityWorkshop.Instance != null ? CityWorkshop.Instance.Room(l.id) : null;
+        if (model != null) return BuildFromModel(l, model, root, o);
         if (stamp != null) return BuildStamp(l, stamp, root, o);
 
         // fond noir autour de la pièce
@@ -582,28 +600,131 @@ public class InteriorSystem : MonoBehaviour
     }
 
     /// <summary>Pièce-tampon : la scène d'intérieur du pack, murs solides d'après ses cases de sol, sortie par le bas.</summary>
+    /// <summary>Pièces des packs : identifiants des intérieurs, titres et tampons (atelier de la cité).</summary>
+    public static IEnumerable<(string id, string title, string stamp)> StampLayouts()
+    {
+        foreach (var kv in Layouts)
+            if (!string.IsNullOrEmpty(kv.Value.stamp)) yield return (kv.Key, kv.Value.title, kv.Value.stamp);
+    }
+
+    /// <summary>
+    /// Contenu d'une pièce-tampon (sans lumières) sous <paramref name="root"/> placé au centre de la pièce : la scène
+    /// du pack, ses murs solides, et des repères « door » (seuil d'arrivée) et « spot:clé » (points d'interaction).
+    /// Sert en jeu et pour l'atelier de la cité (où l'on peut tout retoucher).
+    /// </summary>
+    public static bool BuildRoomContent(string id, Transform root, bool markers)
+    {
+        if (!Layouts.TryGetValue(id, out var l)) return false;
+        var st = string.IsNullOrEmpty(l.stamp) ? null : SettlementArt.Get()?.GetStamp(l.stamp);
+        if (st == null) return false;
+        float w = st.size.x, h = st.size.y;
+        var bl = new Vector2(-w / 2f, -h / 2f);
+        var doorLocal = bl + st.door;
+        Vector3 o = root.position;
+        StampVisual.Create(st, root, o + (Vector3)bl, true);
+        var walls = new GameObject("Murs").transform;
+        walls.SetParent(root, false);
+        foreach (var r in st.solids) Solid(walls, "Mur", bl + r.center, r.size);
+        // on ne sort de la pièce que par la porte
+        Solid(walls, "MurHaut", new Vector2(0f, h / 2f + 0.4f), new Vector2(w + 2f, 0.8f));
+        Solid(walls, "MurGauche", new Vector2(-w / 2f - 0.4f, 0f), new Vector2(0.8f, h + 2f));
+        Solid(walls, "MurDroit", new Vector2(w / 2f + 0.4f, 0f), new Vector2(0.8f, h + 2f));
+        if (!l.noExit) Solid(walls, "Seuil", new Vector2(doorLocal.x, doorLocal.y - 1.4f), new Vector2(2.6f, 0.6f));
+        Marker(root, "door", doorLocal, l.noExit ? "arrivée" : "porte", new Color(1f, 0.4f, 0.9f), markers);
+        foreach (var (key, label, near, fb) in l.stampSpots)
+        {
+            Vector2 pos = bl + new Vector2(fb.x * w, fb.y * h);
+            if (!string.IsNullOrEmpty(near))
+                foreach (var pc in st.pieces)
+                    if (pc.names != null && pc.names.Contains(near)) { pos = bl + pc.pos + new Vector2(0f, -0.45f); break; }
+            Marker(root, "spot:" + key, pos, label, new Color(1f, 0.85f, 0.3f), markers);
+        }
+        return true;
+    }
+
+    private static void Marker(Transform root, string name, Vector2 local, string label, Color col, bool visible)
+    {
+        var go = new GameObject(name);
+        go.transform.SetParent(root, false);
+        go.transform.localPosition = local;
+        if (!visible) return;
+        var sr = go.AddComponent<SpriteRenderer>();
+        sr.sprite = SpriteUtil.Circle;
+        sr.color = new Color(col.r, col.g, col.b, 0.75f);
+        sr.sortingOrder = 50;
+        go.transform.localScale = Vector3.one * 0.35f;
+        var t = new GameObject("Étiquette");
+        t.transform.SetParent(go.transform, false);
+        t.transform.localPosition = new Vector3(0f, 1.6f, 0f);
+        t.transform.localScale = Vector3.one / 0.35f;
+        var tmp = t.AddComponent<TextMeshPro>();
+        tmp.text = label;
+        tmp.fontSize = 2f;
+        tmp.alignment = TextAlignmentOptions.Center;
+        tmp.color = col;
+        tmp.rectTransform.sizeDelta = new Vector2(8f, 1f);
+        tmp.sortingOrder = 51;
+    }
+
+    /// <summary>Pièce copiée de l'atelier : repères lus puis cachés, taille d'après le sol.</summary>
+    private GameObject BuildFromModel(Layout l, GameObject model, GameObject root, Vector3 o)
+    {
+        var copy = Instantiate(model, root.transform);
+        copy.transform.position = o;
+        copy.SetActive(true);
+        // taille de la pièce : le sol du tampon
+        var sol = copy.GetComponentInChildren<StampVisual>();
+        Bounds b = sol != null ? sol.Bounds() : new Bounds(o, new Vector3(10f, 8f, 0f));
+        foreach (var sr in copy.GetComponentsInChildren<SpriteRenderer>()) if (sr.name == "Sol") b = sr.bounds;
+        l.w = b.size.x; l.h = b.size.y;
+        Vector3 c = new Vector3(b.center.x, b.center.y, 0f) - o;   // le sol peut avoir été décalé dans l'atelier
+        l.spots.Clear();
+        l.doorLocal = new Vector2(0f, -l.h / 2f);
+        foreach (Transform t in copy.GetComponentsInChildren<Transform>(true))
+        {
+            if (t.name == "door") l.doorLocal = t.position - o;
+            else if (t.name.StartsWith("spot:"))
+            {
+                string key = t.name.Substring(5);
+                string label = key;
+                foreach (var sp in l.stampSpots) if (sp.key == key) label = sp.label;
+                var tmp = t.GetComponentInChildren<TextMeshPro>();
+                if (tmp != null && string.IsNullOrEmpty(label)) label = tmp.text;
+                l.spots.Add(new Spot { key = key, label = label, local = t.position - o, World = t.position });
+            }
+            else continue;
+            foreach (var r in t.GetComponentsInChildren<Renderer>()) r.enabled = false;   // repères invisibles en jeu
+        }
+        Quad(root.transform, "Fond", new Color(0.03f, 0.02f, 0.04f), new Vector2(l.w + 30f, l.h + 30f), c, -10);
+        var amb = new GameObject("Ambiance").AddComponent<Light2D>(); Light2DCleanup.Attach(amb);
+        amb.transform.SetParent(root.transform, false);
+        amb.transform.localPosition = c;
+        amb.lightType = Light2D.LightType.Point;
+        amb.pointLightOuterRadius = Mathf.Max(l.w, l.h) * 0.9f;
+        amb.pointLightInnerRadius = Mathf.Max(l.w, l.h) * 0.5f;
+        amb.intensity = 1f;
+        amb.color = Color.Lerp(Color.white, l.light, 0.3f);
+        root.SetActive(false);
+        built[l.id] = root;
+        return root;
+    }
+
     private GameObject BuildStamp(Layout l, SettlementArt.Stamp st, GameObject root, Vector3 o)
     {
         l.w = st.size.x; l.h = st.size.y;
         var bl = new Vector2(-l.w / 2f, -l.h / 2f);
         l.doorLocal = bl + st.door;
         Quad(root.transform, "Fond", new Color(0.03f, 0.02f, 0.04f), new Vector2(l.w + 30f, l.h + 30f), Vector2.zero, -10);
-        var v = StampVisual.Create(st, root.transform, o + (Vector3)bl, true);
-        foreach (var r in st.solids) Solid(root.transform, "Mur", bl + r.center, r.size);
-        // on ne sort de la pièce que par la porte
-        Solid(root.transform, "MurHaut", new Vector2(0f, l.h / 2f + 0.4f), new Vector2(l.w + 2f, 0.8f));
-        Solid(root.transform, "MurGauche", new Vector2(-l.w / 2f - 0.4f, 0f), new Vector2(0.8f, l.h + 2f));
-        Solid(root.transform, "MurDroit", new Vector2(l.w / 2f + 0.4f, 0f), new Vector2(0.8f, l.h + 2f));
-        Solid(root.transform, "Seuil", new Vector2(l.doorLocal.x, l.doorLocal.y - 1.4f), new Vector2(2.6f, 0.6f));
+        BuildRoomContent(l.id, root.transform, false);
         l.spots.Clear();
-        foreach (var (key, label, near, fb) in l.stampSpots)
-        {
-            Vector2 pos = bl + new Vector2(fb.x * l.w, fb.y * l.h);
-            if (!string.IsNullOrEmpty(near))
-                foreach (var pc in st.pieces)
-                    if (pc.names != null && pc.names.Contains(near)) { pos = bl + pc.pos + new Vector2(0f, -0.45f); break; }
-            l.spots.Add(new Spot { key = key, label = label, local = pos, World = o + (Vector3)pos });
-        }
+        foreach (Transform t in root.GetComponentsInChildren<Transform>(true))
+            if (t.name.StartsWith("spot:"))
+            {
+                string key = t.name.Substring(5);
+                string label = key;
+                foreach (var sp in l.stampSpots) if (sp.key == key) label = sp.label;
+                l.spots.Add(new Spot { key = key, label = label, local = t.position - o, World = t.position });
+            }
         var amb = new GameObject("Ambiance").AddComponent<Light2D>(); Light2DCleanup.Attach(amb);
         amb.transform.SetParent(root.transform, false);
         amb.lightType = Light2D.LightType.Point;

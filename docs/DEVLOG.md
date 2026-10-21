@@ -381,3 +381,10 @@ Les retours sur la première itération : cité trop petite et serrée, trop peu
 - 🧑‍🌾 **La ville vit** : des passants vont et viennent (marché, taverne, portes), bavardent, rentrent chez eux le soir ; on peut parler aux passants et aux colons.
 - 🏝️ **Île arrondie** : elle s'élargit du côté de la ferme et du manoir, jusqu'au bout de l'île.
 - 🛠️ **Aperçu dans l'éditeur** (*DungeonCore › Aperçu de la cité finale*) : les bâtiments et les intérieurs, qui naissent en jeu, s'affichent dans la vue Scène sans être enregistrés ; un bâtiment déplacé dans l'aperçu garde sa place (*Enregistrer les déplacements de l'aperçu*, repris par le générateur).
+
+### L'atelier de la cité et le ponton (21/10)
+
+- 🛠️ **Atelier de la cité** (*DungeonCore › Atelier de la cité*) : à côté de l'île (x + 300), la cité finale en vrais objets de la scène — chaque bâtiment (camp, port, cité, ferme, manoir, maison du héros), l'enceinte (remparts et palissade), les rues (une couche de tuiles à peindre), le décor (arbres gardés, objets à ajouter) et le sol de l'île en référence ; plus loin (x 480), chaque intérieur avec ses repères (porte, points d'interaction). Tout se retouche à la main et s'enregistre avec la scène ; en jeu, l'atelier est caché et sert de modèle : bâtiments, enceinte, rues, décor et intérieurs sont copiés à leur place. *Régénérer l'élément sélectionné* refait un bâtiment ou un intérieur depuis son pack.
+- 🧩 Les animations des morceaux (`StampPart`) sont enregistrées dans la scène : un morceau copié ou déplacé reste animé.
+- 🔨 Forge et tour des mages : intérieurs tirés des cartes de leurs packs.
+- ⚓ **Ponton du village de pêcheurs** : planches et pilotis du pack, départ sur la grève, bout au large ; il s'allonge avec le port (plus de plateforme en T).

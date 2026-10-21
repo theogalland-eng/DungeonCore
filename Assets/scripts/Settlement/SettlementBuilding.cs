@@ -38,9 +38,23 @@ public class SettlementBuilding : MonoBehaviour
         var b = go.AddComponent<SettlementBuilding>();
         b.def = def;
         b.rect = rect;
+        // modèle de l'atelier de la cité (retouché à la main) : copié à sa place, porte et emprise suivent le modèle
+        var ws = CityWorkshop.Instance;
+        var model = ws != null ? ws.Template(def.id) : null;
+        var ct = model != null ? model.GetComponent<CityTemplate>() : null;
         // tampon : la scène est centrée sur sa parcelle ; le bâtiment se tient au seuil de sa porte
         var st = SettlementArt.Get()?.GetStamp(def.stamp);
-        if (st != null)
+        if (ct != null)
+        {
+            var copy = ws.Spawn(model, go.transform);
+            var delta = copy.transform.position - ct.islandOrigin;
+            b.rect = new RectInt(ct.rect.x + Mathf.RoundToInt(delta.x), ct.rect.y + Mathf.RoundToInt(delta.y), ct.rect.width, ct.rect.height);
+            var at = copy.transform.position;
+            go.transform.position = at + ct.doorLocal;
+            copy.transform.position = at;   // la copie ne bouge pas quand on déplace son parent
+            b.stampVisual = copy.GetComponent<StampVisual>() ?? copy.AddComponent<StampVisual>();
+        }
+        else if (st != null)
         {
             var bl = new Vector3(rect.x + (rect.width - st.size.x) * 0.5f, rect.y, 0f);
             go.transform.position = bl + (Vector3)st.door + new Vector3(0f, 0.3f, 0f);

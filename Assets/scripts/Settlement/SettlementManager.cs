@@ -124,8 +124,14 @@ public class SettlementManager : MonoBehaviour
             else if (tm.name == "trees_trunk") trunks = tm;
             else if (tm.name == "Routes") routes = tm;
         }
-        WidenPier();
         root = new GameObject("Colonie").transform;
+        var ws = CityWorkshop.Instance;
+        if (ws != null && ws.streets != null)
+        {
+            var cells = ws.StreetCells();
+            if (cells.Count > 0) Site.cityStreets = cells;
+        }
+        BuildPierVisual(false);
         var forest = GameObject.Find("Forêt");
         if (forest != null)
             foreach (Transform t in forest.transform)
@@ -227,6 +233,7 @@ public class SettlementManager : MonoBehaviour
             if (r.width > 0) ClearTrees(p => r.Contains(Vector2Int.FloorToInt(p)), new Bounds(new Vector3(r.center.x, r.center.y, 0f), new Vector3(r.width + 2, r.height + 2, 1f)));
             if (!b.IsComplete) b.Complete();
         }
+        if (buildings.Any(x => x != null && x.def.id == "pier" && x.IsComplete)) BuildPier();   // ponton du port
         RefreshCityLook();
         wood += 200; stone += 100; food += 120;
         OnChanged?.Invoke();
@@ -344,6 +351,21 @@ public class SettlementManager : MonoBehaviour
                 OpenRoad(rs.cells, Site.streetDirt);
             }
         // le hameau gagne l'emplacement de la cité : on y trace les rues, la forêt s'éclaircit (quelques arbres restent dans les jardins)
+        var wsd = CityWorkshop.Instance;
+        if (stage >= 3 && !cityCleared && Site.cityRect.width > 0 && wsd != null && wsd.decor != null)
+        {
+            // décor retouché dans l'atelier : la forêt de l'enceinte disparaît, le décor (arbres gardés, objets ajoutés) le remplace
+            cityCleared = true;
+            var rc = Site.cityRect;
+            ClearTrees(p => rc.Contains(Vector2Int.FloorToInt(p)), new Bounds(new Vector3(rc.center.x, rc.center.y, 0f), new Vector3(rc.width + 4, rc.height + 4, 1f)));
+            if (wsd.decor.childCount > 0)
+            {
+                var d = wsd.Spawn(wsd.decor.gameObject, root);
+                d.name = "Décor de la cité";
+                var bd = new Bounds(new Vector3(rc.center.x, rc.center.y, 0f), new Vector3(rc.width + 4, rc.height + 4, 1f));
+                AstarPath.active?.UpdateGraphs(bd, 0.2f);
+            }
+        }
         if (stage >= 3 && !cityCleared && Site.cityRect.width > 0)
         {
             cityCleared = true;
@@ -1042,6 +1064,46 @@ public class SettlementManager : MonoBehaviour
         }
     }
 
+    private GameObject pierVisual;
+
+    /// <summary>
+    /// Ponton du village de pêcheurs : un tronçon de planches et de pilotis par case, le départ côté plage, le bout au
+    /// large (tourné vers la mer). Avec l'extension du port (stade 2), il s'allonge.
+    /// </summary>
+    private void BuildPierVisual(bool withExtension)
+    {
+        var art = SettlementArt.Get();
+        if (art == null || Site == null || Site.dockCells == null || Site.dockCells.Count == 0) return;
+        if (pierVisual != null) Destroy(pierVisual);
+        var cells = new List<Vector3Int>(Site.dockCells);
+        if (withExtension) cells.AddRange(Site.pierExtension);
+        // ponton est-ouest : une colonne de deux cases par tronçon
+        int y0 = int.MaxValue;
+        var cols = new SortedSet<int>();
+        foreach (var c in cells) { cols.Add(c.x); y0 = Mathf.Min(y0, c.y); }
+        if (cols.Count == 0) return;
+        bool west = Site.landing.x > cols.Max;            // le ponton part vers l'ouest
+        int land = west ? cols.Max : cols.Min, sea = west ? cols.Min : cols.Max;
+        pierVisual = new GameObject("Ponton");
+        pierVisual.transform.SetParent(root, false);
+        // le ponton couvre aussi la case de plage au départ (raccord avec la grève)
+        cols.Add(west ? land + 1 : land - 1);
+        foreach (int x in cols)
+        {
+            string name = x == sea ? "pier_end" : (x == (west ? land + 1 : land - 1)) ? "pier_start" : "pier_seg";
+            var sp = art.Sprite(name);
+            if (sp == null) continue;
+            var go = new GameObject(name);
+            go.transform.SetParent(pierVisual.transform, false);
+            // planches : deux cases de large (rangées y0 et y0 + 1), pilotis dessous ; le dessin regarde vers l'est
+            go.transform.position = new Vector3(x + 0.5f, y0 - 0.5f, 0f);
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = sp;
+            sr.flipX = west;
+            sr.sortingOrder = -1;
+        }
+    }
+
     private void BuildPier()
     {
         var art = SettlementArt.Get();
@@ -1052,9 +1114,8 @@ public class SettlementManager : MonoBehaviour
             sol.SetTile(c, art.seaFloor);
             sol.SetTileFlags(c, TileFlags.None);
             sol.SetColor(c, Color.clear);   // l'eau est dessinée par la couche T_Eau, dessous
-            if (decor != null) decor.SetTile(c, (c.x - Site.landing.x) % 2 == 0 ? art.pierLeft : art.pierRight);
         }
-        WidenPier();
+        BuildPierVisual(true);
         if (blocked != null)
         {
             var tc = blocked.GetComponent<TilemapCollider2D>();

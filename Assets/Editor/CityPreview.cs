@@ -1,148 +1,266 @@
 #if UNITY_EDITOR
+using System.Collections.Generic;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 /// <summary>
-/// APERÇU DE LA CITÉ DANS L'ÉDITEUR : les bâtiments de la colonie et les intérieurs ne sont pas posés dans la scène
-/// (ils naissent en jeu, stade par stade, depuis SettlementArt et les emplacements du générateur). Ce menu les
-/// affiche dans la vue Scène pour les regarder ; l'aperçu n'est jamais enregistré dans la scène.
+/// ATELIER DE LA CITÉ (éditeur) : génère à côté de l'île la cité finale (bâtiments, rues, enceintes, décor) et, plus
+/// loin, chaque intérieur, comme objets de la scène que l'on retouche librement (déplacer, supprimer, ajouter des
+/// objets, peindre les rues). Le jeu copie ces modèles à leur place sur l'île (CityWorkshop).
 /// </summary>
-public static class CityPreview
+public static class CityWorkshopBuilder
 {
-    const string RootName = "[Aperçu] Cité finale (non enregistré)";
+    const string RootName = "Atelier de la cité (modifiable)";
+    static readonly Vector3 CityOffset = new Vector3(300f, 0f, 0f);
+    static readonly Vector3 InteriorsOrigin = new Vector3(480f, -40f, 0f);
 
-    [MenuItem("DungeonCore/Aperçu de la cité finale (vue Scène)")]
-    public static void ShowMenu() => Debug.Log(Show());
+    [MenuItem("DungeonCore/Atelier de la cité/Générer l'atelier (remplace les retouches !)")]
+    public static void GenerateMenu()
+    {
+        if (CityWorkshop.Instance != null &&
+            !EditorUtility.DisplayDialog("Atelier de la cité", "L'atelier existe déjà : le régénérer efface toutes les retouches faites à la main. Continuer ?", "Régénérer", "Annuler"))
+            return;
+        Debug.Log(Generate());
+    }
 
-    [MenuItem("DungeonCore/Effacer l'aperçu de la cité")]
-    public static void ClearMenu() => Debug.Log(Clear());
+    [MenuItem("DungeonCore/Atelier de la cité/Régénérer l'élément sélectionné")]
+    public static void RegenerateMenu() => Debug.Log(RegenerateSelected());
 
-    public static string Show()
+    [MenuItem("DungeonCore/Atelier de la cité/Voir la cité")]
+    public static void FrameCity() => Frame(CityWorkshop.Instance != null ? CityWorkshop.Instance.buildings : null);
+
+    [MenuItem("DungeonCore/Atelier de la cité/Voir les intérieurs")]
+    public static void FrameInteriors() => Frame(CityWorkshop.Instance != null ? CityWorkshop.Instance.interiors : null);
+
+    static void Frame(Transform t)
+    {
+        if (t == null) { Debug.Log("pas d'atelier : DungeonCore › Atelier de la cité › Générer l'atelier"); return; }
+        Selection.activeGameObject = t.gameObject;
+        SceneView.lastActiveSceneView?.FrameSelected();
+    }
+
+    static Transform Node(Transform parent, string name, Vector3 pos)
+    {
+        var t = new GameObject(name).transform;
+        t.SetParent(parent, false);
+        t.position = pos;
+        return t;
+    }
+
+    public static string Generate()
     {
         if (Application.isPlaying) return "à faire hors du jeu";
-        Clear();
         var site = Object.FindFirstObjectByType<SettlementSite>();
         var art = SettlementArt.Get();
         if (site == null || art == null) return "pas de SettlementSite ou de SettlementArt";
-        var root = new GameObject(RootName) { hideFlags = HideFlags.DontSave };
-        int n = 0;
-        foreach (var plot in site.plots)
+        var old = Object.FindFirstObjectByType<CityWorkshop>(FindObjectsInactive.Include);
+        if (old != null) Object.DestroyImmediate(old.gameObject);
+
+        var root = new GameObject(RootName);
+        var ws = root.AddComponent<CityWorkshop>();
+        ws.cityOffset = CityOffset;
+        ws.buildings = Node(root.transform, "Bâtiments (chacun copié à sa place sur l'île)", Vector3.zero);
+        ws.wallsStone = Node(root.transform, "Enceinte — remparts (cité fortifiée)", CityOffset);
+        ws.wallsPalisade = Node(root.transform, "Enceinte — palissade (village)", CityOffset);
+        ws.decor = Node(root.transform, "Décor de la cité (arbres, objets ajoutés)", CityOffset);
+        ws.interiors = Node(root.transform, "Intérieurs", InteriorsOrigin);
+        ws.reference = Node(root.transform, "Sol de l'île (référence, non utilisé en jeu)", CityOffset);
+        ws.wallsPalisade.gameObject.SetActive(false);   // visible à la demande (même tracé que les remparts)
+
+        int nb = 0;
+        foreach (var plot in site.plots) if (BuildTemplate(ws, site, art, plot) != null) nb++;
+        CityWalls.BuildGroup(site, CityWalls.Kind.Stone, ws.wallsStone);
+        CityWalls.BuildGroup(site, CityWalls.Kind.Palisade, ws.wallsPalisade);
+        // rues : une grille posée sur le décalage, ses cases sont celles de l'île
+        var grid = Node(root.transform, "Rues de la cité (peindre ici, tuile « terrain_brick »)", CityOffset).gameObject.AddComponent<Grid>();
+        var streets = new GameObject("Rues").AddComponent<Tilemap>();
+        streets.transform.SetParent(grid.transform, false);
+        streets.gameObject.AddComponent<TilemapRenderer>().sortingOrder = -4;
+        foreach (var c in site.cityStreets) streets.SetTile(c, site.streetBrick);
+        ws.streets = streets;
+        int trees = CopyDecor(ws, site);
+        int tiles = CopyGround(ws, site);
+        int rooms = BuildInteriors(ws);
+
+        EditorSceneManager.MarkSceneDirty(root.scene);
+        EditorSceneManager.SaveScene(root.scene);
+        Selection.activeGameObject = ws.buildings.gameObject;
+        return $"atelier : {nb} bâtiments, {site.cityStreets.Count} cases de rues, {trees} arbres de décor, {tiles} tuiles de sol, {rooms} intérieurs — cité à x+{CityOffset.x}, intérieurs à {InteriorsOrigin}";
+    }
+
+    /// <summary>Modèle d'un bâtiment : la scène du pack (ou le sprite) à la place qu'il aura sur l'île, décalée.</summary>
+    static GameObject BuildTemplate(CityWorkshop ws, SettlementSite site, SettlementArt art, SettlementPlot plot)
+    {
+        var def = SettlementPlan.Get(plot.buildingId);
+        if (def == null || plot.rect.width <= 0) return null;
+        var st = art.GetStamp(def.stamp);
+        GameObject go;
+        Vector3 bl, door;
+        if (st != null)
         {
-            var def = SettlementPlan.Get(plot.buildingId);
-            if (def == null || plot.rect.width <= 0) continue;
-            var st = art.GetStamp(def.stamp);
-            if (st != null)
+            bl = new Vector3(plot.rect.x + (plot.rect.width - st.size.x) * 0.5f, plot.rect.y, 0f);
+            door = (Vector3)st.door + new Vector3(0f, 0.3f, 0f);
+            go = StampVisual.Create(st, ws.buildings, bl + CityOffset, true).gameObject;
+        }
+        else
+        {
+            var frames = art.Frames(def.sprite);
+            if (frames == null || frames.Length == 0 || frames[0] == null) return null;
+            bl = new Vector3(plot.rect.x, plot.rect.y, 0f);
+            door = new Vector3(plot.rect.width * 0.5f, 0.15f, 0f);
+            go = new GameObject();
+            go.transform.SetParent(ws.buildings, false);
+            go.transform.position = bl + CityOffset;
+            go.AddComponent<StampVisual>();
+            var sp = new GameObject("Sprite");
+            sp.transform.SetParent(go.transform, false);
+            sp.transform.localPosition = door;
+            var sr = sp.AddComponent<SpriteRenderer>();
+            sr.sprite = frames[0];
+            sr.sortingOrder = 3;
+            sr.spriteSortPoint = SpriteSortPoint.Pivot;
+            if (frames.Length > 1) { var part = sp.AddComponent<StampPart>(); part.frames = frames; part.fps = 8f; }
+            if (def.id != "field_1" && def.id != "field_2")
             {
-                var bl = new Vector3(plot.rect.x + (plot.rect.width - st.size.x) * 0.5f, plot.rect.y, 0f);
-                var v = StampVisual.Create(st, root.transform, bl, false);
-                v.gameObject.hideFlags = HideFlags.DontSave;
-                v.name = "plot:" + plot.buildingId + " — " + def.name;
+                var col = sp.AddComponent<BoxCollider2D>();
+                sp.layer = StampVisual.ObstacleLayer;
+                col.size = new Vector2(Mathf.Max(0.8f, plot.rect.width - 0.6f), Mathf.Max(0.6f, plot.rect.height - 0.8f));
+                col.offset = new Vector2(0f, col.size.y * 0.5f - 0.15f);
             }
-            else
+        }
+        go.name = $"plot:{def.id} — {def.name}";
+        var ct = go.AddComponent<CityTemplate>();
+        ct.id = def.id;
+        ct.islandOrigin = bl;
+        ct.rect = plot.rect;
+        ct.doorLocal = door;
+        return go;
+    }
+
+    /// <summary>Arbres gardés dans l'enceinte (jardins, vergers) : copiés dans le décor, à retoucher.</summary>
+    static int CopyDecor(CityWorkshop ws, SettlementSite site)
+    {
+        var forest = GameObject.Find("Forêt");
+        if (forest == null) return 0;
+        var r = site.cityRect;
+        var keepOut = new HashSet<Vector3Int>(site.cityStreets);
+        foreach (var c in site.cityWall) keepOut.Add(c);
+        foreach (var pl in site.plots)
+            if (r.Overlaps(pl.rect))
+                for (int x = pl.rect.x; x < pl.rect.xMax; x++)
+                    for (int y = pl.rect.y - 2; y < pl.rect.yMax - 1; y++) keepOut.Add(new Vector3Int(x, y, 0));
+        int n = 0;
+        foreach (Transform t in forest.transform)
+        {
+            var c = Vector3Int.FloorToInt(t.position);
+            if (!r.Contains(new Vector2Int(c.x, c.y))) continue;
+            if (keepOut.Contains(c)) continue;
+            uint h = (uint)(c.x * 73856093 ^ c.y * 19349663);
+            if (h % 100 >= 55) continue;
+            var copy = Object.Instantiate(t.gameObject, ws.decor);
+            copy.name = t.name;
+            copy.transform.position = t.position + CityOffset;
+            copy.layer = StampVisual.ObstacleLayer;
+            if (copy.GetComponent<Collider2D>() == null)
             {
-                var frames = art.Frames(def.sprite);
-                if (frames == null || frames.Length == 0) continue;
-                var go = new GameObject("plot:" + plot.buildingId + " — " + def.name) { hideFlags = HideFlags.DontSave };
-                go.transform.SetParent(root.transform, false);
-                go.transform.position = new Vector3(plot.rect.x + plot.rect.width * 0.5f, plot.rect.y + 0.15f, 0f);
-                var sr = go.AddComponent<SpriteRenderer>();
-                sr.sprite = frames[0];
-                sr.sortingOrder = 3;
-                sr.spriteSortPoint = SpriteSortPoint.Pivot;
+                var col = copy.AddComponent<BoxCollider2D>();
+                col.size = new Vector2(0.5f, 0.3f);
+                col.offset = new Vector2(0f, 0.15f);
             }
             n++;
         }
-        // rues de la cité et enceinte (dessinées en jeu au fil des stades)
-        var streets = new GameObject("Rues et enceinte") { hideFlags = HideFlags.DontSave };
-        streets.transform.SetParent(root.transform, false);
-        foreach (var c in site.cityStreets) Dot(streets.transform, c, new Color(0.78f, 0.6f, 0.42f, 0.55f));
-        foreach (var c in site.cityWall) Dot(streets.transform, c, new Color(0.85f, 0.78f, 0.62f, 0.8f));
-        // intérieurs : côte à côte au-dessus de l'île
-        int k = 0;
-        foreach (var st in art.stamps)
+        return n;
+    }
+
+    /// <summary>Sol de l'île sous la cité (référence visuelle pour retoucher ; le jeu ne s'en sert pas).</summary>
+    static int CopyGround(CityWorkshop ws, SettlementSite site)
+    {
+        var area = site.cityRect;
+        foreach (var pl in site.plots)
         {
-            if (!st.id.StartsWith("int_")) continue;
-            var v = StampVisual.Create(st, root.transform, new Vector3(-90f + k * 16f, 90f, 0f), false);
-            v.gameObject.hideFlags = HideFlags.DontSave;
-            v.name = "Intérieur " + st.id;
-            k++;
+            int x0 = Mathf.Min(area.xMin, pl.rect.xMin), y0 = Mathf.Min(area.yMin, pl.rect.yMin);
+            int x1 = Mathf.Max(area.xMax, pl.rect.xMax), y1 = Mathf.Max(area.yMax, pl.rect.yMax);
+            area = new RectInt(x0, y0, x1 - x0, y1 - y0);
         }
-        foreach (var t in root.GetComponentsInChildren<Transform>(true)) t.gameObject.hideFlags = HideFlags.DontSave;
-        Selection.activeGameObject = root;
-        SceneView.lastActiveSceneView?.FrameSelected();
-        return $"aperçu : {n} bâtiments aux emplacements du plan, {k} intérieurs au nord de l'île (x -90, y 90) — non enregistré dans la scène";
+        area = new RectInt(area.x - 6, area.y - 6, area.width + 12, area.height + 12);
+        var grid = ws.reference.gameObject.AddComponent<Grid>();
+        int n = 0;
+        foreach (var src in Object.FindObjectsByType<Tilemap>(FindObjectsSortMode.None))
+        {
+            if (!src.name.StartsWith("T_") || src.name == "T_Neige" || src.transform.IsChildOf(ws.transform)) continue;   // pas la neige d'hiver
+            var srcR = src.GetComponent<TilemapRenderer>();
+            var dst = new GameObject(src.name).AddComponent<Tilemap>();
+            dst.transform.SetParent(grid.transform, false);
+            var r = dst.gameObject.AddComponent<TilemapRenderer>();
+            if (srcR != null) { r.sortingOrder = srcR.sortingOrder; r.sharedMaterial = srcR.sharedMaterial; }
+            foreach (var p in area.allPositionsWithin)
+            {
+                var c = new Vector3Int(p.x, p.y, 0);
+                var t = src.GetTile(c);
+                if (t == null) continue;
+                dst.SetTile(c, t);
+                dst.SetTileFlags(c, TileFlags.None);
+                dst.SetColor(c, src.GetColor(c));
+                n++;
+            }
+        }
+        return n;
     }
 
-    static void Dot(Transform parent, Vector3Int c, Color col)
+    /// <summary>Chaque intérieur, côte à côte, avec ses repères (porte, points d'interaction) à déplacer.</summary>
+    static int BuildInteriors(CityWorkshop ws)
     {
-        var go = new GameObject("case");
-        go.transform.SetParent(parent, false);
-        go.transform.position = new Vector3(c.x + 0.5f, c.y + 0.5f, 0f);
-        var sr = go.AddComponent<SpriteRenderer>();
-        sr.sprite = SpriteUtil.Square;
-        sr.color = col;
-        sr.sortingOrder = -2;
+        int i = 0;
+        foreach (var (id, title, stamp) in InteriorSystem.StampLayouts())
+        {
+            var pos = InteriorsOrigin + new Vector3((i % 5) * 20f, -(i / 5) * 18f, 0f);
+            var room = Node(ws.interiors, $"interior:{id} — {title}", pos);
+            if (!InteriorSystem.BuildRoomContent(id, room, true)) { Object.DestroyImmediate(room.gameObject); continue; }
+            var label = new GameObject("Titre");
+            label.transform.SetParent(room, false);
+            label.transform.localPosition = new Vector3(0f, 7.5f, 0f);
+            var tmp = label.AddComponent<TMPro.TextMeshPro>();
+            tmp.text = title;
+            tmp.fontSize = 6f;
+            tmp.alignment = TMPro.TextAlignmentOptions.Center;
+            tmp.rectTransform.sizeDelta = new Vector2(18f, 2f);
+            tmp.sortingOrder = 60;
+            i++;
+        }
+        return i;
     }
 
-    /// <summary>
-    /// Les bâtiments déplacés dans l'aperçu gardent leur nouvelle place : emplacements de la scène mis à jour, et
-    /// déplacements notés dans Assets/Art/Generated/PlotOverrides.json (le générateur d'île les réapplique).
-    /// </summary>
-    [MenuItem("DungeonCore/Enregistrer les déplacements de l'aperçu")]
-    public static void SaveMenu() => Debug.Log(SaveMoves());
-
-    public const string OverridesPath = "Assets/Art/Generated/PlotOverrides.json";
-
-    [System.Serializable] public class Move { public string id; public int x, y; }
-    [System.Serializable] public class Moves { public System.Collections.Generic.List<Move> list = new System.Collections.Generic.List<Move>(); }
-
-    public static Moves LoadMoves()
+    public static string RegenerateSelected()
     {
-        if (!System.IO.File.Exists(OverridesPath)) return new Moves();
-        return JsonUtility.FromJson<Moves>(System.IO.File.ReadAllText(OverridesPath)) ?? new Moves();
-    }
-
-    public static string SaveMoves()
-    {
+        var ws = CityWorkshop.Instance;
+        var sel = Selection.activeGameObject;
+        if (ws == null || sel == null) return "sélectionner un bâtiment ou un intérieur de l'atelier";
         var site = Object.FindFirstObjectByType<SettlementSite>();
-        var art = SettlementArt.Get();
-        if (site == null) return "pas de SettlementSite";
-        GameObject root = null;
-        foreach (var go in Resources.FindObjectsOfTypeAll<GameObject>()) if (go != null && go.name == RootName && go.scene.IsValid()) root = go;
-        if (root == null) return "pas d'aperçu ouvert";
-        var moves = LoadMoves();
-        int n = 0;
-        foreach (Transform t in root.transform)
+        var ct = sel.GetComponentInParent<CityTemplate>();
+        if (ct != null)
         {
-            if (!t.name.StartsWith("plot:")) continue;
-            string id = t.name.Substring(5).Split(' ')[0];
-            var plot = site.plots.Find(p => p.buildingId == id);
-            var def = SettlementPlan.Get(id);
-            if (plot == null || def == null) continue;
-            var st = art != null ? art.GetStamp(def.stamp) : null;
-            // origine de l'emprise d'après la position de l'objet (coin bas-gauche du tampon, ou pied du sprite)
-            Vector3 p0 = t.position;
-            int x = st != null ? Mathf.RoundToInt(p0.x - (plot.rect.width - st.size.x) * 0.5f) : Mathf.RoundToInt(p0.x - plot.rect.width * 0.5f);
-            int y = st != null ? Mathf.RoundToInt(p0.y) : Mathf.RoundToInt(p0.y - 0.15f);
-            if (x == plot.rect.x && y == plot.rect.y) continue;
-            plot.rect = new RectInt(x, y, plot.rect.width, plot.rect.height);
-            moves.list.RemoveAll(m => m.id == id);
-            moves.list.Add(new Move { id = id, x = x, y = y });
-            n++;
+            var plot = site.plots.Find(p => p.buildingId == ct.id);
+            if (plot == null) return "emplacement introuvable";
+            var pos = ct.transform.position;
+            Object.DestroyImmediate(ct.gameObject);
+            var go = BuildTemplate(ws, site, SettlementArt.Get(), plot);
+            if (go != null) { go.transform.position = pos; Selection.activeGameObject = go; }
+            EditorSceneManager.MarkSceneDirty(ws.gameObject.scene);
+            return "bâtiment régénéré : " + plot.buildingId;
         }
-        System.IO.File.WriteAllText(OverridesPath, JsonUtility.ToJson(moves, true));
-        AssetDatabase.ImportAsset(OverridesPath);
-        EditorUtility.SetDirty(site);
-        UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(site.gameObject.scene);
-        return n > 0 ? $"{n} bâtiment(s) déplacé(s) : emplacements enregistrés (scène à sauvegarder ; re-précalculer le graphe : PathCacheBaker.Bake)" : "aucun déplacement";
-    }
-
-    public static string Clear()
-    {
-        int n = 0;
-        foreach (var go in Resources.FindObjectsOfTypeAll<GameObject>())
-            if (go != null && go.name == RootName && go.scene.IsValid()) { Object.DestroyImmediate(go); n++; }
-        return n > 0 ? "aperçu effacé" : "pas d'aperçu";
+        var t = sel.transform;
+        while (t != null && !t.name.StartsWith("interior:")) t = t.parent;
+        if (t != null)
+        {
+            string id = t.name.Substring(9).Split(' ')[0];
+            for (int k = t.childCount - 1; k >= 0; k--) if (t.GetChild(k).name != "Titre") Object.DestroyImmediate(t.GetChild(k).gameObject);
+            InteriorSystem.BuildRoomContent(id, t, true);
+            EditorSceneManager.MarkSceneDirty(ws.gameObject.scene);
+            return "intérieur régénéré : " + id;
+        }
+        return "sélectionner un bâtiment ou un intérieur de l'atelier";
     }
 }
 #endif

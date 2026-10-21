@@ -56,6 +56,8 @@ STAMPS = {
     'int_tavern_up': dict(tmx=lambda: pack(666104, 'Tiled_files', 'Tavern_interior_2st_floor.tmx'), interior=True, noExit=True),
     'int_guild':   dict(tmx=lambda: pack(189780, 'Tiled_files', 'Interior_1st_floor.tmx'), interior=True),
     'int_guild_up': dict(tmx=lambda: pack(189780, 'Tiled_files', 'Interior_2nd_floor.tmx'), interior=True, noExit=True),
+    'int_forge':   dict(tmx=lambda: pack(741016, 'Tiled_files', 'Blacksmith_house_interior.tmx'), interior=True),
+    'int_magetower': dict(tmx=lambda: pack(289481, 'Tiled_files', '1st floor.tmx'), interior=True),
     'int_library': dict(tmx=lambda: pack(845649, 'Tiled_files', 'Interior.tmx'), interior=True),
     'int_prison':  dict(tmx=lambda: pack(659586, 'Tiled_files', 'Interior.tmx'), interior=True),
     'int_manor':   dict(tmx=lambda: pack(653272, 'Tiled_files', 'Interior_1st_floor.tmx'), interior=True, ground=['Ladder']),

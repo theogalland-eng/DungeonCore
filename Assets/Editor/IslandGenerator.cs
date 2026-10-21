@@ -577,12 +577,7 @@ public static class IslandGenerator
             foreach (var cc in new[] { e, e + side })
                 if (IsSea(Get(cc.x, cc.y))) pierExt.Add(cc);
         }
-        var perp = side;
-        for (int k = -3; k <= 4; k++)
-        {
-            var cc = e + perp * k;
-            if (IsSea(Get(cc.x, cc.y)) && !pierExt.Contains(cc)) pierExt.Add(cc);
-        }
+        // (le ponton du village de pêcheurs s'allonge en ligne droite : plus de plateforme en T)
         // Barques amarrées le long de l'extension (côté gauche)
         var mid = last + dir * 3;
         for (int k = 0; k < 3; k++)
@@ -911,13 +906,6 @@ public static class IslandGenerator
         var hp = plots.Find(x => x.buildingId == "hero_home");
         if (hp != null)
             planMarks.Add(new PlanMark { name = "Terrain du héros (à acheter)", cell = new Vector3Int(hp.rect.x + hp.rect.width / 2, hp.rect.y, 0), adventureOnly = true });
-
-        // déplacements faits à la main dans l'aperçu de l'éditeur (DungeonCore › Enregistrer les déplacements de l'aperçu)
-        foreach (var mv in CityPreview.LoadMoves().list)
-        {
-            var pl = plots.Find(x => x.buildingId == mv.id);
-            if (pl != null) pl.rect = new RectInt(mv.x, mv.y, pl.rect.width, pl.rect.height);
-        }
 
         // routes entre les quartiers, tracées après les emplacements : elles les contournent et finissent devant les portes
         Vector3Int Door(string id, Vector3Int fallback)
@@ -1283,10 +1271,8 @@ public static class IslandGenerator
                     case K.Dock:
                         if (sart != null && sart.pierLeft != null && sart.seaFloor != null)
                         {
-                            // fond marin (invisible : l'eau est dessinée dessous) + planches du ponton par-dessus
+                            // fond marin (invisible : l'eau est dessinée dessous) ; les planches sont posées en jeu (ponton du village de pêcheurs)
                             Put(sol, c, sart.seaFloor, Color.clear);
-                            bool first = dockDir.x == 0 ? !dockCells.Contains(c + Vector3Int.left) : !dockCells.Contains(c + Vector3Int.down);
-                            Put(decor, c, dockDir.x == 0 ? (first ? sart.pierLeft : sart.pierRight) : sart.pierLeft, Color.white);
                         }
                         else Put(sol, c, plank, Color.white);
                         break;

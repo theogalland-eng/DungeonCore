@@ -21,16 +21,25 @@ public static class CityWalls
         if (root != null) Object.Destroy(root);
         root = null;
         built = kind;
-        if (kind != Kind.None) Build(site, kind);
+        if (kind != Kind.None)
+        {
+            // enceinte retouchée dans l'atelier de la cité : copiée telle quelle
+            var ws = CityWorkshop.Instance;
+            var model = ws == null ? null : kind == Kind.Stone ? ws.wallsStone : ws.wallsPalisade;
+            if (model != null && model.childCount > 0) root = ws.Spawn(model.gameObject, null);
+            else root = BuildGroup(site, kind, null);
+        }
         var r = site.cityRect;
         AstarPath.active?.UpdateGraphs(new Bounds(new Vector3(r.center.x, r.center.y, 0f), new Vector3(r.width + 4, r.height + 4, 1f)), 0.2f);
     }
 
-    private static void Build(SettlementSite site, Kind kind)
+    /// <summary>L'enceinte (palissade ou remparts et tours) sur le tracé du générateur ; aussi pour l'atelier.</summary>
+    public static GameObject BuildGroup(SettlementSite site, Kind kind, Transform parent)
     {
         var art = SettlementArt.Get();
-        if (art == null) return;
-        root = new GameObject(kind == Kind.Stone ? "Remparts" : "Palissade");
+        if (art == null) return null;
+        var root = new GameObject(kind == Kind.Stone ? "Remparts" : "Palissade");
+        if (parent != null) root.transform.SetParent(parent, false);
         root.layer = StampVisual.ObstacleLayer;
         var r = site.cityRect;
         var gates = new HashSet<Vector3Int>(site.cityGates);
@@ -71,30 +80,33 @@ public static class CityWalls
             if (sp == null) return null;
             var go = new GameObject(sprite);
             go.transform.SetParent(root.transform, false);
-            go.transform.position = pos;
+            go.transform.localPosition = pos;   // repère de l'enceinte = cases de l'île (décalé dans l'atelier)
             var sr = go.AddComponent<SpriteRenderer>();
             sr.sprite = sp;
             sr.sortingOrder = 3;
             sr.spriteSortPoint = SpriteSortPoint.Pivot;
             return go;
         }
-        foreach (var t in towers)
+        // chaque pièce porte sa collision : on peut la déplacer ou la supprimer dans l'atelier
+        void Solid(GameObject go, Vector2 offset, Vector2 size)
         {
-            Piece("wall_tower_big", new Vector3(t.x + 0.5f, t.y - 0.1f, 0f));
-            var col = root.AddComponent<BoxCollider2D>();
-            col.offset = new Vector2(t.x + 0.5f, t.y + 0.4f);
-            col.size = new Vector2(2.2f, 1.6f);
+            if (go == null) return;
+            go.layer = StampVisual.ObstacleLayer;
+            var col = go.AddComponent<BoxCollider2D>();
+            col.offset = offset;
+            col.size = size;
         }
+        foreach (var t in towers)
+            Solid(Piece("wall_tower_big", new Vector3(t.x + 0.5f, t.y - 0.1f, 0f)), new Vector2(0f, 0.5f), new Vector2(2.2f, 1.6f));
         foreach (var c in site.cityWall)
         {
             bool south = c.y == r.y, north = c.y == r.yMax - 1;
             bool horizontal = south || north;
             if (kind == Kind.Stone && UnderTower(c)) continue;
             string sprite = kind == Kind.Stone ? (horizontal ? "wall_h" : "wall_v") : (horizontal ? "palisade_h" : "palisade_v");
-            Piece(sprite, new Vector3(c.x + 0.5f, c.y + (horizontal ? 0.1f : 0f), 0f));
-            var col = root.AddComponent<BoxCollider2D>();
-            col.offset = new Vector2(c.x + 0.5f, c.y + 0.5f);
-            col.size = new Vector2(1f, horizontal ? 0.9f : 1f);
+            Solid(Piece(sprite, new Vector3(c.x + 0.5f, c.y + (horizontal ? 0.1f : 0f), 0f)),
+                  new Vector2(0f, horizontal ? 0.4f : 0.5f), new Vector2(1f, horizontal ? 0.9f : 1f));
         }
+        return root;
     }
 }
